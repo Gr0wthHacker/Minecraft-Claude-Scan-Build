@@ -1,0 +1,252 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80515
+  },
+  "size": {
+    "x": 48,
+    "y": 26,
+    "z": 41
+  },
+  "generated_by": "midwaybuild",
+  "kind": "midway_build",
+  "build": "arrival_court",
+  "name": "PF Arrival Court",
+  "lot": [
+    24,
+    215,
+    71,
+    255
+  ],
+  "facing": "west",
+  "signs": 5,
+  "lamps": 22,
+  "gates": 5,
+  "openings": 282,
+  "roof": 630,
+  "floor": 1540,
+  "ceiling": 429,
+  "masts": [
+    {
+      "at": [
+        25,
+        223
+      ],
+      "built": 0
+    },
+    {
+      "at": [
+        25,
+        247
+      ],
+      "built": 0
+    },
+    {
+      "at": [
+        68,
+        223
+      ],
+      "top": 18,
+      "built": 13
+    },
+    {
+      "at": [
+        68,
+        247
+      ],
+      "top": 18,
+      "built": 13
+    }
+  ],
+  "contract": "one connected building inside lot V24-71 U215-255, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate",
+        "oak_trapdoor"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "The Midway's admission sequence in one building: a gateway on the spine, a ticket hall with the box office and guest services either side of it, an open arcaded court, and a turnstile screen that hands a visitor east into the land. No food, no prizes and no street furniture - the ground layer draws the street and the centre of the court stays empty.\n"
+    },
+    "metrics": {
+      "blocks": 6010,
+      "materials": 28,
+      "dominant_material_share": 0.1682,
+      "light_blocks": 22,
+      "massing": {
+        "width": 46,
+        "height": 22,
+        "depth": 37,
+        "fill_ratio": 0.1605
+      },
+      "silhouette": {
+        "top": {
+          "area": 1696,
+          "fill_ratio": 0.8618
+        },
+        "front": {
+          "area": 543,
+          "fill_ratio": 0.4351
+        },
+        "side": {
+          "area": 655,
+          "fill_ratio": 0.6144
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6815,
+          0.3155,
+          0.003
+        ],
+        "top_silhouette_perimeter": 297,
+        "surface_faces_per_block": 2.0885
+      },
+      "material_counts": {
+        "stone_bricks": 1011,
+        "stone_brick_stairs": 809,
+        "stone": 704,
+        "oak_planks": 602,
+        "white_wool": 540,
+        "smooth_stone": 432,
+        "polished_diorite_stairs": 242,
+        "stripped_oak_log": 233,
+        "polished_blackstone_bricks": 232,
+        "crimson_stairs": 227,
+        "red_wool": 220,
+        "stone_brick_slab": 208
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "9cb3ffaf9c9e868af37ff0c3d102248e622fcc62aa65ab1b4dfd1d2e77ca2bd9",
+    "generator_source_digest": "b8fe94c691bbe04dbcd09fd44afb07393831b480222b7e6d9233acf872ace88f",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 75.787528,
+    "blocks": 6010,
+    "blocks_per_second": 79.3
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building"
+    ],
+    "blocks": 6010,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: crimson_slab",
+    "not in the provisional skyblock-1.19 list: crimson_stairs",
+    "not in the provisional skyblock-1.19 list: lightning_rod",
+    "not in the provisional skyblock-1.19 list: oak_fence_gate",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_diorite_slab",
+    "not in the provisional skyblock-1.19 list: polished_diorite_stairs"
+  ],
+  "file": "PF Arrival Court.litematic"
+}

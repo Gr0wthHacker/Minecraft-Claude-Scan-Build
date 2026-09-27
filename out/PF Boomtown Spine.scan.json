@@ -1,0 +1,1982 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80347
+  },
+  "size": {
+    "x": 53,
+    "y": 30,
+    "z": 46
+  },
+  "generated_by": "frontier_builds",
+  "kind": "frontier_boomtown",
+  "lot": [
+    53,
+    46
+  ],
+  "at": [
+    24,
+    47
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "doors": [
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        5,
+        6
+      ],
+      "u": [
+        20,
+        20
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          4,
+          20
+        ],
+        [
+          7,
+          20
+        ]
+      ],
+      "span": [
+        5,
+        6
+      ],
+      "step": {
+        "facing": "north",
+        "v": [
+          5,
+          6
+        ],
+        "u": [
+          21,
+          21
+        ]
+      }
+    },
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        18,
+        19
+      ],
+      "u": [
+        20,
+        20
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          17,
+          20
+        ],
+        [
+          20,
+          20
+        ]
+      ],
+      "span": [
+        18,
+        19
+      ],
+      "step": {
+        "facing": "north",
+        "v": [
+          18,
+          19
+        ],
+        "u": [
+          21,
+          21
+        ]
+      }
+    },
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        29,
+        30
+      ],
+      "u": [
+        20,
+        20
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          28,
+          20
+        ],
+        [
+          31,
+          20
+        ]
+      ],
+      "span": [
+        29,
+        30
+      ],
+      "step": {
+        "facing": "north",
+        "v": [
+          29,
+          30
+        ],
+        "u": [
+          21,
+          21
+        ]
+      }
+    },
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        39,
+        40
+      ],
+      "u": [
+        20,
+        20
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          38,
+          20
+        ],
+        [
+          41,
+          20
+        ]
+      ],
+      "span": [
+        39,
+        40
+      ],
+      "step": {
+        "facing": "north",
+        "v": [
+          39,
+          40
+        ],
+        "u": [
+          21,
+          21
+        ]
+      }
+    },
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        7,
+        8
+      ],
+      "u": [
+        26,
+        26
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          6,
+          26
+        ],
+        [
+          9,
+          26
+        ]
+      ],
+      "span": [
+        7,
+        8
+      ],
+      "step": {
+        "facing": "south",
+        "v": [
+          7,
+          8
+        ],
+        "u": [
+          25,
+          25
+        ]
+      }
+    },
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        22,
+        23
+      ],
+      "u": [
+        26,
+        26
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          21,
+          26
+        ],
+        [
+          24,
+          26
+        ]
+      ],
+      "span": [
+        22,
+        23
+      ],
+      "step": {
+        "facing": "south",
+        "v": [
+          22,
+          23
+        ],
+        "u": [
+          25,
+          25
+        ]
+      }
+    },
+    {
+      "kind": "door",
+      "axis": "v",
+      "v": [
+        37,
+        38
+      ],
+      "u": [
+        26,
+        26
+      ],
+      "y": [
+        1,
+        3
+      ],
+      "lintel_y": 4,
+      "jambs": [
+        [
+          36,
+          26
+        ],
+        [
+          39,
+          26
+        ]
+      ],
+      "span": [
+        37,
+        38
+      ],
+      "step": {
+        "facing": "south",
+        "v": [
+          37,
+          38
+        ],
+        "u": [
+          25,
+          25
+        ]
+      }
+    }
+  ],
+  "signs": [
+    {
+      "at": [
+        6,
+        10,
+        21
+      ],
+      "facing": "south",
+      "lines": [
+        "TELEGRAPH ROOM"
+      ]
+    },
+    {
+      "at": [
+        19,
+        9,
+        21
+      ],
+      "facing": "south",
+      "lines": [
+        "GENERAL STORE"
+      ]
+    },
+    {
+      "at": [
+        30,
+        10,
+        21
+      ],
+      "facing": "south",
+      "lines": [
+        "LIVERY STABLE"
+      ]
+    },
+    {
+      "at": [
+        40,
+        9,
+        21
+      ],
+      "facing": "south",
+      "lines": [
+        "STAGE OFFICE"
+      ]
+    },
+    {
+      "at": [
+        8,
+        9,
+        25
+      ],
+      "facing": "north",
+      "lines": [
+        "SALOON"
+      ]
+    },
+    {
+      "at": [
+        23,
+        10,
+        25
+      ],
+      "facing": "north",
+      "lines": [
+        "MINERS REST"
+      ]
+    },
+    {
+      "at": [
+        38,
+        9,
+        25
+      ],
+      "facing": "north",
+      "lines": [
+        "POWDER AGENT"
+      ]
+    },
+    {
+      "at": [
+        46,
+        8,
+        23
+      ],
+      "facing": "west",
+      "lines": [
+        "MINING SQUARE"
+      ]
+    },
+    {
+      "at": [
+        52,
+        8,
+        23
+      ],
+      "facing": "east",
+      "lines": [
+        "MINING SQUARE"
+      ]
+    }
+  ],
+  "roofs": [
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        1,
+        12
+      ],
+      "u": [
+        7,
+        21
+      ],
+      "y0": 9,
+      "y1": 15,
+      "mid": 14.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        14,
+        25
+      ],
+      "u": [
+        7,
+        21
+      ],
+      "y0": 8,
+      "y1": 14,
+      "mid": 14.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        27,
+        33
+      ],
+      "u": [
+        7,
+        21
+      ],
+      "y0": 9,
+      "y1": 15,
+      "mid": 14.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        35,
+        45
+      ],
+      "u": [
+        7,
+        21
+      ],
+      "y0": 8,
+      "y1": 14,
+      "mid": 14.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        1,
+        15
+      ],
+      "u": [
+        25,
+        39
+      ],
+      "y0": 8,
+      "y1": 14,
+      "mid": 32.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        17,
+        30
+      ],
+      "u": [
+        25,
+        39
+      ],
+      "y0": 9,
+      "y1": 15,
+      "mid": 32.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "gable",
+      "axis": "u",
+      "v": [
+        32,
+        45
+      ],
+      "u": [
+        25,
+        39
+      ],
+      "y0": 8,
+      "y1": 14,
+      "mid": 32.0,
+      "up": "south",
+      "dn": "north"
+    },
+    {
+      "style": "cap",
+      "v": [
+        27,
+        33
+      ],
+      "u": [
+        1,
+        7
+      ],
+      "y0": 13,
+      "y1": 15,
+      "cv": 30,
+      "cu": 4,
+      "diagonal": true
+    },
+    {
+      "style": "cap",
+      "v": [
+        39,
+        41
+      ],
+      "u": [
+        13,
+        15
+      ],
+      "y0": 18,
+      "y1": 18,
+      "cv": 40.0,
+      "cu": 14.0
+    }
+  ],
+  "stairs": 1274,
+  "refused": 0,
+  "parts": {
+    "shops": [
+      {
+        "v": [
+          1,
+          12
+        ],
+        "u": [
+          8,
+          20
+        ],
+        "wall_top": 8,
+        "ridge_y": 15,
+        "title": "TELEGRAPH ROOM",
+        "openings": [
+          {
+            "kind": "door",
+            "axis": "v",
+            "v": [
+              5,
+              6
+            ],
+            "u": [
+              20,
+              20
+            ],
+            "y": [
+              1,
+              3
+            ],
+            "lintel_y": 4,
+            "jambs": [
+              [
+                4,
+                20
+              ],
+              [
+                7,
+                20
+              ]
+            ],
+            "span": [
+              5,
+              6
+            ],
+            "step": {
+              "facing": "north",
+              "v": [
+                5,
+                6
+              ],
+              "u": [
+                21,
+                21
+              ]
+            }
+          }
+        ],
+        "showfront": {
+          "face": "+u",
+          "profile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5
+          ],
+          "cells": 12,
+          "board": {
+            "span": [
+              3,
+              9
+            ],
+            "y": [
+              9,
+              11
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              1,
+              20
+            ],
+            [
+              2,
+              20
+            ],
+            [
+              3,
+              20
+            ],
+            [
+              4,
+              20
+            ],
+            [
+              5,
+              20
+            ],
+            [
+              6,
+              20
+            ],
+            [
+              7,
+              20
+            ],
+            [
+              8,
+              20
+            ],
+            [
+              9,
+              20
+            ],
+            [
+              10,
+              20
+            ],
+            [
+              11,
+              20
+            ],
+            [
+              12,
+              20
+            ]
+          ],
+          "tops": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            17,
+            17,
+            17,
+            16,
+            15,
+            14,
+            13
+          ],
+          "top": 17,
+          "signed": true
+        },
+        "canvas": {
+          "face": "+u",
+          "y": 5,
+          "depth": 2,
+          "cells": 24,
+          "valance": 12
+        }
+      },
+      {
+        "v": [
+          14,
+          25
+        ],
+        "u": [
+          8,
+          20
+        ],
+        "wall_top": 7,
+        "ridge_y": 14,
+        "title": "GENERAL STORE",
+        "openings": [
+          {
+            "kind": "door",
+            "axis": "v",
+            "v": [
+              18,
+              19
+            ],
+            "u": [
+              20,
+              20
+            ],
+            "y": [
+              1,
+              3
+            ],
+            "lintel_y": 4,
+            "jambs": [
+              [
+                17,
+                20
+              ],
+              [
+                20,
+                20
+              ]
+            ],
+            "span": [
+              18,
+              19
+            ],
+            "step": {
+              "facing": "north",
+              "v": [
+                18,
+                19
+              ],
+              "u": [
+                21,
+                21
+              ]
+            }
+          }
+        ],
+        "showfront": {
+          "face": "+u",
+          "profile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5
+          ],
+          "cells": 12,
+          "board": {
+            "span": [
+              3,
+              9
+            ],
+            "y": [
+              8,
+              10
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              14,
+              20
+            ],
+            [
+              15,
+              20
+            ],
+            [
+              16,
+              20
+            ],
+            [
+              17,
+              20
+            ],
+            [
+              18,
+              20
+            ],
+            [
+              19,
+              20
+            ],
+            [
+              20,
+              20
+            ],
+            [
+              21,
+              20
+            ],
+            [
+              22,
+              20
+            ],
+            [
+              23,
+              20
+            ],
+            [
+              24,
+              20
+            ],
+            [
+              25,
+              20
+            ]
+          ],
+          "tops": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            16,
+            16,
+            16,
+            15,
+            14,
+            13,
+            12
+          ],
+          "top": 16,
+          "signed": true
+        },
+        "canvas": {
+          "face": "+u",
+          "y": 5,
+          "depth": 2,
+          "cells": 24,
+          "valance": 12
+        }
+      },
+      {
+        "v": [
+          27,
+          33
+        ],
+        "u": [
+          8,
+          20
+        ],
+        "wall_top": 8,
+        "ridge_y": 15,
+        "title": "LIVERY STABLE",
+        "openings": [
+          {
+            "kind": "door",
+            "axis": "v",
+            "v": [
+              29,
+              30
+            ],
+            "u": [
+              20,
+              20
+            ],
+            "y": [
+              1,
+              3
+            ],
+            "lintel_y": 4,
+            "jambs": [
+              [
+                28,
+                20
+              ],
+              [
+                31,
+                20
+              ]
+            ],
+            "span": [
+              29,
+              30
+            ],
+            "step": {
+              "facing": "north",
+              "v": [
+                29,
+                30
+              ],
+              "u": [
+                21,
+                21
+              ]
+            }
+          }
+        ],
+        "showfront": {
+          "face": "+u",
+          "profile": [
+            7,
+            8,
+            9,
+            9,
+            9,
+            8,
+            7
+          ],
+          "cells": 7,
+          "board": {
+            "span": [
+              1,
+              5
+            ],
+            "y": [
+              9,
+              11
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              27,
+              20
+            ],
+            [
+              28,
+              20
+            ],
+            [
+              29,
+              20
+            ],
+            [
+              30,
+              20
+            ],
+            [
+              31,
+              20
+            ],
+            [
+              32,
+              20
+            ],
+            [
+              33,
+              20
+            ]
+          ],
+          "tops": [
+            15,
+            16,
+            17,
+            17,
+            17,
+            16,
+            15
+          ],
+          "top": 17,
+          "signed": true
+        },
+        "canvas": {
+          "face": "+u",
+          "y": 5,
+          "depth": 2,
+          "cells": 14,
+          "valance": 7
+        }
+      },
+      {
+        "v": [
+          35,
+          45
+        ],
+        "u": [
+          8,
+          20
+        ],
+        "wall_top": 7,
+        "ridge_y": 14,
+        "title": "STAGE OFFICE",
+        "openings": [
+          {
+            "kind": "door",
+            "axis": "v",
+            "v": [
+              39,
+              40
+            ],
+            "u": [
+              20,
+              20
+            ],
+            "y": [
+              1,
+              3
+            ],
+            "lintel_y": 4,
+            "jambs": [
+              [
+                38,
+                20
+              ],
+              [
+                41,
+                20
+              ]
+            ],
+            "span": [
+              39,
+              40
+            ],
+            "step": {
+              "facing": "north",
+              "v": [
+                39,
+                40
+              ],
+              "u": [
+                21,
+                21
+              ]
+            }
+          }
+        ],
+        "showfront": {
+          "face": "+u",
+          "profile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5
+          ],
+          "cells": 11,
+          "board": {
+            "span": [
+              2,
+              8
+            ],
+            "y": [
+              8,
+              10
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              35,
+              20
+            ],
+            [
+              36,
+              20
+            ],
+            [
+              37,
+              20
+            ],
+            [
+              38,
+              20
+            ],
+            [
+              39,
+              20
+            ],
+            [
+              40,
+              20
+            ],
+            [
+              41,
+              20
+            ],
+            [
+              42,
+              20
+            ],
+            [
+              43,
+              20
+            ],
+            [
+              44,
+              20
+            ],
+            [
+              45,
+              20
+            ]
+          ],
+          "tops": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            16,
+            16,
+            15,
+            14,
+            13,
+            12
+          ],
+          "top": 16,
+          "signed": true
+        },
+        "canvas": {
+          "face": "+u",
+          "y": 5,
+          "depth": 2,
+          "cells": 22,
+          "valance": 11
+        }
+      },
+      {
+        "v": [
+          1,
+          15
+        ],
+        "u": [
+          26,
+          38
+        ],
+        "wall_top": 7,
+        "ridge_y": 14,
+        "title": "SALOON",
+        "openings": [
+          {
+            "kind": "door",
+            "axis": "v",
+            "v": [
+              7,
+              8
+            ],
+            "u": [
+              26,
+              26
+            ],
+            "y": [
+              1,
+              3
+            ],
+            "lintel_y": 4,
+            "jambs": [
+              [
+                6,
+                26
+              ],
+              [
+                9,
+                26
+              ]
+            ],
+            "span": [
+              7,
+              8
+            ],
+            "step": {
+              "facing": "south",
+              "v": [
+                7,
+                8
+              ],
+              "u": [
+                25,
+                25
+              ]
+            }
+          }
+        ],
+        "showfront": {
+          "face": "-u",
+          "profile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5,
+            4
+          ],
+          "cells": 15,
+          "board": {
+            "span": [
+              4,
+              10
+            ],
+            "y": [
+              8,
+              10
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              1,
+              26
+            ],
+            [
+              2,
+              26
+            ],
+            [
+              3,
+              26
+            ],
+            [
+              4,
+              26
+            ],
+            [
+              5,
+              26
+            ],
+            [
+              6,
+              26
+            ],
+            [
+              7,
+              26
+            ],
+            [
+              8,
+              26
+            ],
+            [
+              9,
+              26
+            ],
+            [
+              10,
+              26
+            ],
+            [
+              11,
+              26
+            ],
+            [
+              12,
+              26
+            ],
+            [
+              13,
+              26
+            ],
+            [
+              14,
+              26
+            ],
+            [
+              15,
+              26
+            ]
+          ],
+          "tops": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            16,
+            16,
+            16,
+            16,
+            15,
+            14,
+            13,
+            12,
+            11
+          ],
+          "top": 16,
+          "signed": true
+        },
+        "canvas": {
+          "face": "-u",
+          "y": 5,
+          "depth": 2,
+          "cells": 30,
+          "valance": 15
+        }
+      },
+      {
+        "v": [
+          17,
+          30
+        ],
+        "u": [
+          26,
+          38
+        ],
+        "wall_top": 8,
+        "ridge_y": 15,
+        "title": "MINERS REST",
+        "openings": [
+          {
+            "kind": "door",
+            "axis": "v",
+            "v": [
+              22,
+              23
+            ],
+            "u": [
+              26,
+              26
+            ],
+            "y": [
+              1,
+              3
+            ],
+            "lintel_y": 4,
+            "jambs": [
+              [
+                21,
+                26
+              ],
+              [
+                24,
+                26
+              ]
+            ],
+            "span": [
+              22,
+              23
+            ],
+            "step": {
+              "facing": "south",
+              "v": [
+                22,
+                23
+              ],
+              "u": [
+                25,
+                25
+              ]
+            }
+          }
+        ],
+        "showfront": {
+          "face": "-u",
+          "profile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5,
+            4
+          ],
+          "cells": 14,
+          "board": {
+            "span": [
+              4,
+              10
+            ],
+            "y": [
+              9,
+              11
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              17,
+              26
+            ],
+            [
+              18,
+              26
+            ],
+            [
+              19,
+              26
+            ],
+            [
+              20,
+              26
+            ],
+            [
+              21,
+              26
+            ],
+            [
+              22,
+              26
+            ],
+            [
+              23,
+              26
+            ],
+            [
+              24,
+              26
+            ],
+            [
+              25,
+              26
+            ],
+            [
+              26,
+              26
+            ],
+            [
+              27,
+              26
+            ],
+            [
+              28,
+              26
+            ],
+            [
+              29,
+              26
+            ],
+            [
+              30,
+              26
+            ]
+          ],
+          "tops": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            17,
+            17,
+            17,
+            16,
+            15,
+            14,
+            13,
+            12
+          ],
+          "top": 17,
+          "signed": true
+        },
+        "canvas": {
+          "face": "-u",
+          "y": 5,
+          "depth": 2,
+          "cells": 28,
+          "valance": 14
+        }
+      },
+      {
+        "v": [
+          32,
+          45
+        ],
+        "u": [
+          26,
+          38
+        ],
+        "wall_top": 7,
+        "ridge_y": 14,
+        "title": "POWDER AGENT",
+        "openings": [
+          {
+            "kind": "door",
+            "axis": "v",
+            "v": [
+              37,
+              38
+            ],
+            "u": [
+              26,
+              26
+            ],
+            "y": [
+              1,
+              3
+            ],
+            "lintel_y": 4,
+            "jambs": [
+              [
+                36,
+                26
+              ],
+              [
+                39,
+                26
+              ]
+            ],
+            "span": [
+              37,
+              38
+            ],
+            "step": {
+              "facing": "south",
+              "v": [
+                37,
+                38
+              ],
+              "u": [
+                25,
+                25
+              ]
+            }
+          }
+        ],
+        "showfront": {
+          "face": "-u",
+          "profile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            9,
+            9,
+            9,
+            8,
+            7,
+            6,
+            5,
+            4
+          ],
+          "cells": 14,
+          "board": {
+            "span": [
+              4,
+              10
+            ],
+            "y": [
+              8,
+              10
+            ]
+          },
+          "lit": 2,
+          "at": [
+            [
+              32,
+              26
+            ],
+            [
+              33,
+              26
+            ],
+            [
+              34,
+              26
+            ],
+            [
+              35,
+              26
+            ],
+            [
+              36,
+              26
+            ],
+            [
+              37,
+              26
+            ],
+            [
+              38,
+              26
+            ],
+            [
+              39,
+              26
+            ],
+            [
+              40,
+              26
+            ],
+            [
+              41,
+              26
+            ],
+            [
+              42,
+              26
+            ],
+            [
+              43,
+              26
+            ],
+            [
+              44,
+              26
+            ],
+            [
+              45,
+              26
+            ]
+          ],
+          "tops": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            16,
+            16,
+            16,
+            15,
+            14,
+            13,
+            12,
+            11
+          ],
+          "top": 16,
+          "signed": true
+        },
+        "canvas": {
+          "face": "-u",
+          "y": 5,
+          "depth": 2,
+          "cells": 28,
+          "valance": 14
+        }
+      }
+    ],
+    "masts": [
+      {
+        "at": [
+          7,
+          20
+        ],
+        "top": 25,
+        "pennant": 6
+      },
+      {
+        "at": [
+          20,
+          20
+        ],
+        "top": 24,
+        "pennant": 6
+      },
+      {
+        "at": [
+          30,
+          20
+        ],
+        "top": 25,
+        "pennant": 6
+      },
+      {
+        "at": [
+          40,
+          20
+        ],
+        "top": 24,
+        "pennant": 6
+      },
+      {
+        "at": [
+          8,
+          26
+        ],
+        "top": 24,
+        "pennant": 6
+      },
+      {
+        "at": [
+          24,
+          26
+        ],
+        "top": 25,
+        "pennant": 6
+      },
+      {
+        "at": [
+          39,
+          26
+        ],
+        "top": 24,
+        "pennant": 6
+      }
+    ],
+    "bunting": 27,
+    "gate": {
+      "span": [
+        21,
+        25
+      ],
+      "piers": [
+        [
+          20,
+          20
+        ],
+        [
+          26,
+          26
+        ]
+      ],
+      "title": "MINING SQUARE",
+      "axis": "u",
+      "clear_h": 5
+    },
+    "water_tower": {
+      "at": [
+        30,
+        4
+      ],
+      "top": 15
+    },
+    "cupola": {
+      "at": [
+        40,
+        14
+      ],
+      "top": 19
+    },
+    "mast": {
+      "at": [
+        6,
+        14
+      ],
+      "top": 22,
+      "pennant": 6
+    }
+  },
+  "contract": "one connected frontier build filling no cell outside its 53x46 lot, every opening framed with two whole jambs and a lintel between their tops, every stair leaning the way it climbs, every sign on a wall that is there, and no street furniture - the ground layer already draws all of it",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_trapdoor"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "A boom-town main street: a five-wide boardwalk between two terraces of false-fronted timber shops with awnings over the walk, a water tower behind the north terrace, and a portal at the east end onto the cross walk to Mining Square.\n"
+    },
+    "metrics": {
+      "blocks": 6936,
+      "materials": 27,
+      "dominant_material_share": 0.3097,
+      "light_blocks": 4,
+      "massing": {
+        "width": 53,
+        "height": 26,
+        "depth": 39,
+        "fill_ratio": 0.1291
+      },
+      "silhouette": {
+        "top": {
+          "area": 1499,
+          "fill_ratio": 0.6148
+        },
+        "front": {
+          "area": 862,
+          "fill_ratio": 0.5421
+        },
+        "side": {
+          "area": 517,
+          "fill_ratio": 0.3746
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.7304,
+          0.2572,
+          0.0124
+        ],
+        "top_silhouette_perimeter": 654,
+        "surface_faces_per_block": 2.3201
+      },
+      "material_counts": {
+        "spruce_planks": 2148,
+        "dark_oak_stairs": 1158,
+        "stone_bricks": 491,
+        "stripped_spruce_log": 458,
+        "spruce_log": 451,
+        "polished_blackstone_bricks": 424,
+        "smooth_stone": 400,
+        "glass_pane": 296,
+        "red_wool": 280,
+        "spruce_slab": 162,
+        "white_wool": 109,
+        "spruce_fence": 102
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "421fe031a8736a6bb48db4a267159938d409c0f0767f9dcdf1fd264f481c924f",
+    "generator_source_digest": "f1bf9a37ed9f1d0d50ffaac284c59c7920d2022536d38d2e8a6a465eab749a6e",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 68.641908,
+    "blocks": 6936,
+    "blocks_per_second": 101.05
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building"
+    ],
+    "blocks": 6936,
+    "mechanic_families": [
+      "access",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: dark_oak_planks",
+    "not in the provisional skyblock-1.19 list: dark_oak_slab",
+    "not in the provisional skyblock-1.19 list: dark_oak_stairs",
+    "not in the provisional skyblock-1.19 list: iron_bars",
+    "not in the provisional skyblock-1.19 list: lightning_rod",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Boomtown Spine.litematic",
+  "name": "PF Boomtown Spine"
+}

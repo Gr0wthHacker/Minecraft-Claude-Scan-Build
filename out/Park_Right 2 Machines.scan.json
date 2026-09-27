@@ -1,0 +1,19 @@
+{
+  "origin": {
+    "x": 97554,
+    "y": 146,
+    "z": 80750
+  },
+  "size": {
+    "x": 80,
+    "y": 65,
+    "z": 98
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "dig": [],
+  "slice": true,
+  "note": "one build step; a SLICE of the whole, so its circuits are cut at the seam",
+  "file": "Park_Right 2 Machines.litematic",
+  "name": "Park_Right 2 Machines"
+}

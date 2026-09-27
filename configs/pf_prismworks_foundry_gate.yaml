@@ -1,0 +1,81 @@
+# PF FOUNDRY GATE - Prismworks' threshold, on the grand spine at V24 / U430.
+#
+# THE LOT IS 53 x 36 AND THE BUILDING DOES NOT FILL IT. The portal block takes the front 21
+# courses and a twin arcade carries the entrance axis another 21 into the land; the rear quarter
+# is left as lawn. A facade field wall to wall is a car park with a roof, and 20-30% intentional
+# openness is what makes a threshold read as something you walk THROUGH.
+#
+# THE PASSAGE IS ON THE SPUR. `Park Ways` lands Foundry Gate's spur at V19-23 / U447-449, so the
+# seven-wide passage is centred on U448 and the whole composition is read straight down it from
+# the spine at V18. Get that off by two and the land's front door is beside its own path.
+#
+# `keep_clear` IS NOT DECORATION. The park's avenue lamp at (V42, U466) throws a four-armed iron
+# bars cross at world Y209 and one of those arms reaches to U465, which is this lot's own last
+# column. The generator refuses that cell; `tests/test_prismworks_builds.py` re-derives the whole
+# list from `out/Park Complete.litematic` rather than trusting this comment.
+#
+# NOTHING HERE IS GROUND. Y=0 of the canvas is world Y203, the first course above the lawn, so
+# this design and `Park Ways` share the lot without contesting one cell of it.
+#
+# THE MACHINE LAND, PROPERLY DESIGNED (2026-09-02). Jack: "we still need to properly design the
+# prism area" - he could not tell it WAS Prismworks. The cause was measurable: every material
+# in the land sat between luminance 38 and 73 and every one of them was grey, so a ladder of six
+# greys still read as one hue and the buildings read as dark blocks. Two things fixed it, and
+# neither is ornament:
+#
+#   THE PLANT METAL. `waxed_copper_block` is L124 and CHEAP here where plain `copper_block` is
+#   expensive - a 79-point step AND the only real hue this land can buy. It is the cornice band
+#   on every building and the collar on every setback of the Ascent, and it is never a wall.
+#
+#   THE SIGNAL AS A SEQUENCE. The land's brief is precision and sequence, and what it shipped
+#   was scattered cyan that reads as speckle past ten blocks. Every pier now carries a
+#   projecting ladder - stone, a signal cell every fourth course, two of high, a lit head - and
+#   the Ascent's four blade edges are ONE CONTINUOUS line of light with a glow every eight, so
+#   the stages can be counted from the podium. Parapets carry a lightning-rod instrument array,
+#   which is what a machine land has where a fairground has flags.
+name: PF Foundry Gate
+gen: prismworks_builds
+params:
+  kind: gate
+  at: [24, 430]
+  size: [53, 36]
+  height: 30
+  keep_clear: [[18, 35, 6]]
+  seed: 0
+roles: [building, path]
+anchors:
+  - {name: public_entry, kind: entry, position: [0, 1, 18], facing: west, width: 7}
+  - {name: public_exit, kind: exit, position: [20, 1, 18], facing: east, width: 7}
+  - {name: street_front, kind: visual_front, position: [0, 1, 18], facing: west, width: 34}
+  - {name: service_access, kind: maintenance, position: [44, 1, 13], facing: east, width: 3}
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: prismworks
+  focal_face: west
+  narrative: >
+    The machine land's gate: two pylons with a seven-wide passage cut clean through them on the
+    spine's own axis, an overbridge chamber over the passage, a corbelled cornice and a merlon
+    parapet, and four signal masts on the pylon corners. Behind it a twin arcade carries the axis
+    twenty-one courses into the land under a louvred roof and then stops.
+fun_contract:
+  enforce: true
+  class: orientation
+  player_verbs: [walk through the passage, read the land's line, take the arcade into the works]
+  outcome: >
+    You are through the gate and on the Prismworks axis, with the arcade's louvred roof and its
+    line of cold lamps pointing at the land's own buildings.
+  spatial_job: >
+    The threshold between the grand spine and Prismworks: it turns a lot boundary into a door,
+    and its arcade carries the entrance axis far enough into the land to hand a visitor on.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # The ground layer scatters moss carpet tufts across every lot as lawn trim. They are the one
+  # thing a builder clears before laying a plinth, and they are the only context block this design
+  # ever meets - see the test that asserts nothing else is replaced.
+  verify_replaceable: [moss_carpet]
+origin_lock: false

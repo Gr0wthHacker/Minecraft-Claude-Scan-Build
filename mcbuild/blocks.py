@@ -119,6 +119,11 @@ def server_authoritative() -> bool:
     return bool(_server().get("authoritative"))
 
 
+def server_block_names() -> set[str]:
+    """Declared server registry names; empty means compatibility cannot honestly be enforced."""
+    return set(_server().get("blocks", ()))
+
+
 def available(name: str) -> bool:
     """Can this actually be placed on the server.
 
@@ -201,8 +206,19 @@ def validate(name: str, state: dict | None = None) -> list[str]:
 
 # ------------------------------------------------------------------ colour
 
-def color(name: str) -> tuple[int, int, int] | None:
-    rgb = (_db().get(_short(name)) or {}).get("rgb")
+def color(name: str, face: str = "top") -> tuple[int, int, int] | None:
+    """The block's colour on a given FACE.
+
+    A floor is read from above and a statue from the side, and for 155 blocks those are different
+    answers - `oak_log` is [151,122,73] on its end grain and [109,85,51] down its bark, `cherry_log`
+    differs by 131. One number could only ever be right for one kind of build, so the caller says
+    which it means. `top` stays the default because that is what every existing caller assumed.
+
+    The values are TINTED where the game tints: `grass_block` is [84,109,51], not the [147,147,147]
+    its greyscale texture would give. See tools/recolour.py.
+    """
+    rec = _db().get(_short(name)) or {}
+    rgb = rec.get("rgb_side" if face == "side" else "rgb_top") or rec.get("rgb")
     return tuple(rgb) if rgb else None
 
 
@@ -248,12 +264,16 @@ def candidates(full_only: bool = True, tier: set[str] | None = None, exclude: tu
     return sorted(out)
 
 
-def nearest(rgb, pool: list[str] | None = None, **kw) -> str | None:
-    """The block closest to a colour. Searches all 1193 by default, not a hand-written shortlist."""
+def nearest(rgb, pool: list[str] | None = None, face: str = "top", **kw) -> str | None:
+    """The block closest to a colour. Searches all 1193 by default, not a hand-written shortlist.
+
+    `face` picks which surface is being matched - pass "side" for anything seen in elevation, which
+    is every statue and every wall. It changes the answer for 155 blocks.
+    """
     pool = pool if pool is not None else candidates(**kw)
     best, bd = None, float("inf")
     for n in pool:
-        c = color(n)
+        c = color(n, face)
         if not c:
             continue
         d = _dist(rgb, c)
@@ -262,7 +282,7 @@ def nearest(rgb, pool: list[str] | None = None, **kw) -> str | None:
     return best
 
 
-def ramp(a, b, steps: int, pool: list[str] | None = None, **kw) -> list[str]:
+def ramp(a, b, steps: int, pool: list[str] | None = None, face: str = "top", **kw) -> list[str]:
     """A shading ladder between two colours - `steps` distinct blocks, in order.
 
     Duplicates are dropped rather than repeated: a ramp that lands on the same block twice reads as a
@@ -273,7 +293,7 @@ def ramp(a, b, steps: int, pool: list[str] | None = None, **kw) -> list[str]:
     for i in range(steps):
         t = i / max(1, steps - 1)
         want = tuple(round(a[j] + (b[j] - a[j]) * t) for j in range(3))
-        pick = nearest(want, pool=[p for p in pool if p not in out])
+        pick = nearest(want, pool=[p for p in pool if p not in out], face=face)
         if pick:
             out.append(pick)
     return out

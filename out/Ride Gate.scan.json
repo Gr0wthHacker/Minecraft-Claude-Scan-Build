@@ -1,0 +1,94 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 200,
+    "z": 80430
+  },
+  "size": {
+    "x": 11,
+    "y": 9,
+    "z": 19
+  },
+  "generated_by": "ticketing",
+  "kind": "ticketing/ridegate",
+  "land": "frontier",
+  "facing": "north",
+  "contract": "a press opens the lane for about 13 redstone ticks; the lamp over the lane is lit exactly while the door is open, because it reads the same block",
+  "unverified": [],
+  "budget": {
+    "redstone_lamp": 2
+  },
+  "width": 9,
+  "depth": 2,
+  "height": 5,
+  "lanes": 2,
+  "stages": 4,
+  "lane_i": [
+    1,
+    5
+  ],
+  "span": 12,
+  "fore": 14,
+  "doors": [
+    [
+      97553,
+      203,
+      80444
+    ],
+    [
+      97557,
+      203,
+      80444
+    ]
+  ],
+  "slots": [
+    [
+      97555,
+      204,
+      80443
+    ],
+    [
+      97559,
+      204,
+      80443
+    ]
+  ],
+  "lamps": [
+    [
+      97553,
+      202,
+      80440
+    ],
+    [
+      97557,
+      202,
+      80440
+    ]
+  ],
+  "inputs": [
+    [
+      97555,
+      204,
+      80443
+    ],
+    [
+      97559,
+      204,
+      80443
+    ]
+  ],
+  "outputs": [
+    [
+      97553,
+      203,
+      80444
+    ],
+    [
+      97557,
+      203,
+      80444
+    ]
+  ],
+  "file": "Ride Gate.litematic",
+  "name": "Ride Gate"
+}

@@ -1,0 +1,194 @@
+{
+  "origin": {
+    "x": 97569,
+    "y": 202,
+    "z": 80626
+  },
+  "size": {
+    "x": 6,
+    "y": 9,
+    "z": 9
+  },
+  "generated_by": "wayfinding",
+  "kind": "fingerpost",
+  "land": "midway",
+  "facing": "east",
+  "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
+  "arms": [
+    {
+      "direction": "north",
+      "dest": "Frontier",
+      "sign_facing": "north",
+      "placed": true,
+      "sign_at": [
+        97573,
+        206,
+        80626
+      ]
+    },
+    {
+      "direction": "south",
+      "dest": "Hollow",
+      "sign_facing": "south",
+      "placed": true,
+      "sign_at": [
+        97573,
+        207,
+        80634
+      ]
+    },
+    {
+      "direction": "west",
+      "dest": "Park Gate",
+      "sign_facing": "west",
+      "placed": true,
+      "sign_at": [
+        97569,
+        208,
+        80630
+      ]
+    }
+  ],
+  "post_h": 7,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Midway Post serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 29,
+      "materials": 6,
+      "dominant_material_share": 0.3103,
+      "light_blocks": 1,
+      "massing": {
+        "width": 6,
+        "height": 9,
+        "depth": 9,
+        "fill_ratio": 0.0597
+      },
+      "silhouette": {
+        "top": {
+          "area": 18,
+          "fill_ratio": 0.3333
+        },
+        "front": {
+          "area": 15,
+          "fill_ratio": 0.2778
+        },
+        "side": {
+          "area": 19,
+          "fill_ratio": 0.2346
+        }
+      },
+      "material_counts": {
+        "stone": 9,
+        "oak_log": 7,
+        "oak_fence": 6,
+        "blackstone": 3,
+        "oak_wall_sign": 3,
+        "lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "b3062b95b7b66264fb68f188482d384753e2d3b8ea4f6c0ee28112008b5c0832",
+    "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 29,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
+  "file": "Midway Post.litematic",
+  "name": "Midway Post"
+}

@@ -1,0 +1,67 @@
+# PF WELCOME COURT - the walk-up between the entry gate and the ferris wheel.
+#
+# THIS LOT IS THE ONE PLACE IN THE PARK WHERE AN AXIS ALREADY EXISTS AND WAS NOT USED. The entry
+# gate's two iron doors, this court and the Sky Lift's hub are all on U300 - measured, not
+# arranged: the wheel's densest column is U300 with 435 cells, its neighbours 375 each.
+#
+# WHAT THE PREVIOUS COURT WAS, measured off `out/Park Complete.litematic` rather than described:
+#
+#   4,613 blocks, the whole 51 x 41 paved on one world-aligned grid
+#   11 trees of 4 species at 11 positions nothing derived
+#   39 `yellow_wool` cells - the head course of its own lamp standards
+#   9 `magenta_wool` and 15 `light_blue_wool` with no other member of their colour near them
+#   nothing symmetric about U300
+#
+# Jack: "gates and a board etc are all overlapping and chaotic with the entrance to the main
+# center ... get rid of the crappy lamp posts with yellow wool tops and crap - we need this to
+# feel premium and clean."
+#
+# THE LOT IS 51 x 41 AT V24, U280 and not one cell may leave it - `tools/park_lots.PLACEMENT`
+# derives it, and anything outside is cropped at placement, which means a part that silently does
+# not exist. The generator's canvas IS the lot, so a cell past it raises rather than shipping.
+#
+# THE LOT IS EMPTY ABOVE THE LAWN except for 101 scattered `moss_carpet` cells at Y203, which is
+# the ground layer's own lawn trim and is named in `verify_replaceable`. No lamp mast and no lamp
+# ARM reaches into this lot - unlike the other four midway lots - so there is no `blocked` list.
+name: PF Welcome Court
+gen: midwaybuild
+params:
+  kind: welcome_court
+  lot: [24, 270, 79, 330]
+  # the world corner of (V24, the first course above the lawn, U280). `Park Complete` is anchored
+  # at 97500 190 80300 and its lawn course is Y202, so a lot's floor course is Y203.
+  at: [97524, 203, 80570]
+  height: 18
+  seed: 7
+  # THE SKY LIFT'S QUEUE HAS LEFT THIS LOT (2026-09-03). It used to own the west rear corner -
+  # V65-79 x U270-279, ninety-eight columns - because the wheel stood at V80, directly behind this
+  # court. The wheel is at V130 now with the Midway Cascade between, and its queue went with it to
+  # V111-120 x U270-278, which is the Cascade's lot and is named in the Cascade's own `blocked`.
+  #
+  # THE ENTRY IS REMOVED RATHER THAN LEFT IN. A stale `blocked` box is not inert: this generator
+  # refuses those cells, so keeping it would leave a 15 x 10 hole in the court's north-west corner
+  # reserved for something that is fifty blocks away - and nothing would ever report it, because
+  # a cell nobody built is indistinguishable from a cell nobody wanted.
+roles: [path]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    The Midway's walk-up: an eleven-wide processional walk on the gate's own axis, opening into a
+    paved roundel with a two-tier stone fountain at the park's exact centre, closed east and west
+    by curved bench exedras, with four kerbed lawn beds carrying one oak each on the quadrant
+    centres. Half the lot is green. Nothing of this court stands in the walk, so the vista from
+    the gate's doors to the wheel's hub is the composition rather than an accident.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # the lawn's decorative moss carpet is covered where the court stands on it, and the RETIRED
+  # court occupies this lot in `Park Complete` - see the note in `tools/park_place.py`: a `PF `
+  # build supersedes the artifact of the same name, so the overlap this reports against the
+  # shipped park is with the thing being replaced.
+  verify_replaceable: [moss_carpet]
+origin_lock: false

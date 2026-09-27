@@ -1,0 +1,24 @@
+name: Abyss Sperm Whale Greybox
+gen: sperm_whale
+params:
+  at: [97500, 95, 80255]
+  size: [115, 85, 215]
+  seed: 11
+  greybox: true
+  shell: 0
+roles: [construction]
+design:
+  purpose: landmark
+  hierarchy: supporting
+  style: prismworks
+  narrative: Measured sperm-whale anatomy and sightline greybox.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against:
+    - out/Park Complete.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+origin_lock: false

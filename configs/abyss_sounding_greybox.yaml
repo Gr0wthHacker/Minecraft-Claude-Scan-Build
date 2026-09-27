@@ -1,0 +1,28 @@
+name: Abyss Sounding Greybox
+gen: abyss_sounding
+params:
+  under:
+    - out/Park Complete.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+    - out/Abyss Sperm Whale.litematic
+    - out/Abyss Mouth Access.litematic
+  squid: out/Abyss Squid.litematic
+  greybox: true
+roles: [construction]
+design:
+  purpose: landmark
+  hierarchy: supporting
+  style: prismworks
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against:
+    - out/Park Complete.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+    - out/Abyss Sperm Whale.litematic
+    - out/Abyss Mouth Access.litematic
+origin_lock: false

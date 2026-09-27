@@ -1,0 +1,42 @@
+name: Abyss Mouth Access
+gen: abyss_access
+params:
+  under:
+    - out/Park Complete.litematic
+    - out/PF Prism Well.litematic
+    - out/PF Prism Rig.litematic
+    - out/PF Crown Descent.litematic
+    - out/PF Prism Descent.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+  greybox: false
+roles: [ride, construction]
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: prismworks
+  narrative: >
+    Two one-way parkour strands connect the Prism descents to separate sides of
+    the squid's open mouth, with no independent surface entrance.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [leave the Crown Descent, jump toward the squid, enter its mouth, return on the Wake Line]
+  outcome: Reach the Abyss Market and rejoin the established Prism recovery route.
+  reset: Misses use the lower recovery spine and return to a marked rest in live proof.
+  service_access: Existing descent recovery and mouth galleries provide inspection access.
+  bypass: The ordinary Prism descents remain usable without entering the squid.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against:
+    - out/Park Complete.litematic
+    - out/PF Prism Well.litematic
+    - out/PF Prism Rig.litematic
+    - out/PF Crown Descent.litematic
+    - out/PF Prism Descent.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+origin_lock: false

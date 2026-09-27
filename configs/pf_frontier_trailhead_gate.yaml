@@ -1,0 +1,49 @@
+# PF TRAILHEAD GATE - the Frontier's threshold, on the spine.
+#
+# 45 x 39 at V24 U0, Frontier column A. The spur `Park Ways` already lays at V19-23 / U18-20
+# lands on this lot's front face, so the portal stands on U19 and nothing else does.
+#
+# IT IS A THRESHOLD YOU PASS THROUGH, NOT A FACADE WITH A DEAD DOORWAY - `PARK_FULL_BUILD_SPEC`
+# F1's own words. A guest walks in from the spine under the portal, into a walled forecourt, and
+# out again through the arch on the EAST flank onto the U41-45 avenue. Both ends are places.
+#
+# THE `PF ` PREFIX IS DELIBERATE. `out/` already holds `Trailhead Gate` and friends from the
+# retired park, and a scan once overwrote a design of the same name and took its dig list with it.
+#
+# THE SHOW LAYER (2026-09-02). Jack: "we need this to be a theme park, and amusement area,
+# beautiful, not just full of buildings." Measured, the whole Frontier ran 0.0-2.6% coloured or
+# lit blocks - stone brick, spruce and dark oak with a plinth, a string course and a cornice,
+# which is a correct way to build a VILLAGE. What was added is announcement rather than
+# ornament: a SHAPED show front with a name board and a painted cornice on every guest-facing
+# frontage, striped canvas awnings, bunting, and a mast with a pennant on the skyline. The rise
+# of every show front is DERIVED from its own ridge, because a false front that does not clear
+# its roof is invisible from every bearing but straight down the street - which is how the
+# first build passed a head-on render and read as a village from everywhere else.
+name: PF Trailhead Gate
+gen: frontier_builds
+params:
+  kind: trailhead
+  lot: [45, 39]
+  at: [24, 0]
+  entry_u: 19          # the spur's own column
+  seed: 11
+roles: [building]
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    A gold-rush trailhead: a timber-headed stone portal between two gate towers, the trail office
+    on one side and a covered waiting porch on the other, a stockade round a forecourt, a water
+    tower over the back wall, and a second arch out to the mine avenue.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # The lawn's own scatter. `Park Ways` lays moss carpet across every lot at the course this
+  # design builds on; it is what a builder clears with one swing before placing, and it is
+  # cleared ONLY where a cell of this design actually stands.
+  verify_replaceable: [moss_carpet]
+origin_lock: false

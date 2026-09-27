@@ -114,19 +114,23 @@ def test_server_gate_is_off_but_still_wired():
     assert len(B.candidates()) > 400, "the full palette pool should be back"
 
 
+# Blocks CONFIRMED newer than the 1.19 server. One definition: two tests ask about it - whether a
+# design uses one, and whether the witnessed allowlist contains one - and two copies would drift.
+POST_1_19 = {"pink_petals", "cherry_planks", "cherry_log", "bamboo_planks", "bamboo_mosaic",
+             "chiseled_bookshelf", "decorated_pot", "suspicious_sand", "suspicious_gravel",
+             "sniffer_egg", "pitcher_plant", "torchflower", "calibrated_sculk_sensor",
+             "crafter", "trial_spawner", "vault", "heavy_core", "copper_bulb", "tuff_bricks",
+             "chiseled_copper", "copper_grate", "pale_oak_planks", "pale_oak_log", "resin_block",
+             "creaking_heart", "leaf_litter", "wildflowers", "firefly_bush", "cactus_flower",
+             "copper_chest", "copper_golem_statue", "shelf"}
+
+
 def test_no_design_uses_a_confirmed_post_server_block():
     """Only blocks CONFIRMED newer than the server. The allowlist is provisional (built from what the
     captures happen to contain), so it cannot be used as a whitelist yet - it is missing most of 1.19
     and would reject `allium`. Until a real 1.19 registry is supplied, gate on a blacklist instead."""
     import glob
     from mcbuild import scan
-    POST_1_19 = {"pink_petals", "cherry_planks", "cherry_log", "bamboo_planks", "bamboo_mosaic",
-                 "chiseled_bookshelf", "decorated_pot", "suspicious_sand", "suspicious_gravel",
-                 "sniffer_egg", "pitcher_plant", "torchflower", "calibrated_sculk_sensor",
-                 "crafter", "trial_spawner", "vault", "heavy_core", "copper_bulb", "tuff_bricks",
-                 "chiseled_copper", "copper_grate", "pale_oak_planks", "pale_oak_log", "resin_block",
-                 "creaking_heart", "leaf_litter", "wildflowers", "firefly_bush", "cactus_flower",
-                 "copper_chest", "copper_golem_statue", "shelf"}
     bad = []
     for f in sorted(glob.glob(os.path.join(os.path.dirname(__file__), "..", "out", "*.litematic"))):
         if os.path.basename(f).startswith("island"):
@@ -140,3 +144,29 @@ def test_no_design_uses_a_confirmed_post_server_block():
             if n in POST_1_19:
                 bad.append(f"{os.path.basename(f)}: {n}")
     assert not bad, sorted(set(bad))
+
+
+def test_the_allowlist_keeps_its_policy_keys():
+    """`blocks.available` reads `enforce` with a default of TRUE, so a regeneration that dropped the
+    key would silently switch the gate on and start rejecting blocks across every generator - the
+    opposite of the decision recorded in `note`. `tools/server_blocks.py` carries them across; this
+    is the tripwire, because the failure is invisible until a palette pick comes back empty."""
+    srv = B._server()
+    assert "enforce" in srv, "regenerating dropped `enforce` - the gate just turned itself on"
+    assert "note" in srv, "the reason the gate is off must survive a regeneration"
+
+
+def test_the_allowlist_is_witnessed_and_1_19_clean():
+    """It is built from captures of the real server, so every name in it is a block skyblock.net has
+    actually sent a client. `reference/amazingsteal` - another player's island, 665 distinct blocks -
+    is most of it. That witness is about AVAILABILITY only: 17.5% of that build is expensive tier,
+    which is a nine-year wallet and transfers to nothing.
+
+    A witnessed list must also stay consistent with the server version, or the evidence is wrong
+    about which server it came from."""
+    names = B.server_block_names()
+    assert len(names) > 600, f"only {len(names)} - did a capture fail to load? the tool prints SKIPPED"
+    assert not (names & POST_1_19), sorted(names & POST_1_19)
+    # the ordinary blocks the old 191-name list rejected while four designs were built from them
+    for n in ("allium", "deepslate_bricks", "sandstone", "mangrove_planks"):
+        assert n in names, n

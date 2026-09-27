@@ -1,0 +1,29 @@
+name: Mine Cart Escape
+gen: attractions
+params:
+  land: frontier
+  facing: east
+  at:
+  - 97634
+  - 179
+  - 80383
+  kind: runawaymine
+  title: Mine Cart Escape
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: ride
+  hierarchy: landmark
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97638
+    - 180
+    - 80372
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: frontier
+  narrative: Mine Cart Escape serves the frontier visitor journey.
+origin_lock: false

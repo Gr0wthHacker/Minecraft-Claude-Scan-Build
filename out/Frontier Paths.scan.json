@@ -1,0 +1,162 @@
+{
+  "origin": {
+    "x": 97552,
+    "y": 142,
+    "z": 80352
+  },
+  "size": {
+    "x": 90,
+    "y": 66,
+    "z": 97
+  },
+  "generated_by": "park",
+  "kind": "paths",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "every declared public interface is joined to the network, queues are fenced and off the through-route, and the service road runs behind the buildings unlit",
+  "unverified": [],
+  "routes": 76,
+  "cells": 4683,
+  "lamps": 86,
+  "queue_rails": 0,
+  "roles": {
+    "main_spine": 2,
+    "exit": 2,
+    "secondary": 34,
+    "shaft": 2,
+    "service": 36
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "Frontier Paths serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 4106,
+      "materials": 6,
+      "dominant_material_share": 0.3938,
+      "light_blocks": 86,
+      "massing": {
+        "width": 90,
+        "height": 66,
+        "depth": 97,
+        "fill_ratio": 0.0071
+      },
+      "silhouette": {
+        "top": {
+          "area": 3634,
+          "fill_ratio": 0.4163
+        },
+        "front": {
+          "area": 367,
+          "fill_ratio": 0.0618
+        },
+        "side": {
+          "area": 331,
+          "fill_ratio": 0.0517
+        }
+      },
+      "material_counts": {
+        "cobblestone": 1617,
+        "stone_bricks": 1362,
+        "stone": 781,
+        "spruce_log": 258,
+        "lantern": 86,
+        "orange_wool": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "a5e6f5bec7f261c05372b0f76c23ed4df5661232269167193d338e8feefc60ed",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "path",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 4106,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
+  "file": "Frontier Paths.litematic",
+  "name": "Frontier Paths"
+}

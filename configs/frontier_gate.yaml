@@ -1,0 +1,34 @@
+name: Frontier Gate
+gen: park
+params:
+  land: frontier
+  width: 7
+  height: 6
+  facing: south
+  at:
+  - 97598
+  - 203
+  - 80448
+  kind: arch
+  title: Frontier Gate
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: arrival
+  hierarchy: landmark
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97595
+    - 204
+    - 80451
+  - - 97595
+    - 204
+    - 80443
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: frontier
+  narrative: Frontier Gate serves the frontier visitor journey.
+origin_lock: false

@@ -34,7 +34,13 @@ final class Highlight {
 	private Highlight() {}
 
 	static void register() {
-		ClientTickEvents.END_CLIENT_TICK.register(Highlight::tick);
+		// TIMED. Perf's own docstring promised a `highlight` section and there was never one, so
+		// the busiest tick in the mod - every layer redrawn every tick over whatever block lists
+		// the callers supplied - was invisible in the report that exists to find it.
+		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			Perf.tick();                                 // one tick, however many sections ran in it
+			Perf.run("highlight", () -> tick(mc));
+		});
 	}
 
 	/** Replace the batch with this id. Keyed by id, not colour: two designs sharing a colour used to
@@ -73,6 +79,18 @@ final class Highlight {
 	}
 
 	private static void tick(Minecraft mc) {
+		// A THROW OUT OF A TICK EVENT IS A CLIENT CRASH. The pre-upload audit guarded the two ticks
+		// that drive movement and looting on exactly this ground and missed this one, which is the
+		// busiest of the lot - every highlight layer redraws here on every tick, over block lists
+		// the caller supplied. Drawing is never worth taking the client down for.
+		try {
+			Perf.run("highlight", () -> draw(mc));
+		} catch (Exception e) {
+			BATCHES.clear();                       // whatever was malformed, stop redrawing it
+		}
+	}
+
+	private static void draw(Minecraft mc) {
 		if (mc.level == null || mc.player == null || BATCHES.isEmpty()) return;
 		long now = System.currentTimeMillis();
 		BATCHES.removeIf(b -> b.until() < now);

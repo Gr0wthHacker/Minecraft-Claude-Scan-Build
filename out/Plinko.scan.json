@@ -1,0 +1,398 @@
+{
+  "origin": {
+    "x": 97571,
+    "y": 202,
+    "z": 80552
+  },
+  "size": {
+    "x": 17,
+    "y": 17,
+    "z": 23
+  },
+  "generated_by": "arcade",
+  "kind": "plinko",
+  "footprint": [
+    23,
+    17
+  ],
+  "courses": [
+    -1,
+    15
+  ],
+  "land": "midway",
+  "facing": "east",
+  "contract": "5 channels; a ball read by channel k pays [3, 2, 1, 2, 3] prizes from that channel alone, exactly once per ball, and nothing from any other",
+  "unverified": [
+    "WHERE THE BALL LANDS is Minecraft's item physics, which this simulator has no entities to model. The board is real and the pegs are staggered; the distribution is the game's own and must be watched in world, exactly as the dropper randomiser's odds are."
+  ],
+  "budget": {},
+  "concealed": 132,
+  "visible_redstone": 0,
+  "width": 21,
+  "depth": 15,
+  "height": 16,
+  "lanes": 5,
+  "pegs": 76,
+  "prizes": [
+    3,
+    2,
+    1,
+    2,
+    3
+  ],
+  "hoppers": [
+    [
+      97585,
+      203,
+      80572
+    ],
+    [
+      97585,
+      203,
+      80568
+    ],
+    [
+      97585,
+      203,
+      80564
+    ],
+    [
+      97585,
+      203,
+      80560
+    ],
+    [
+      97585,
+      203,
+      80556
+    ]
+  ],
+  "droppers": [
+    [
+      [
+        97577,
+        204,
+        80572
+      ],
+      [
+        97576,
+        204,
+        80572
+      ],
+      [
+        97575,
+        204,
+        80572
+      ]
+    ],
+    [
+      [
+        97577,
+        204,
+        80568
+      ],
+      [
+        97576,
+        204,
+        80568
+      ]
+    ],
+    [
+      [
+        97577,
+        204,
+        80564
+      ]
+    ],
+    [
+      [
+        97577,
+        204,
+        80560
+      ],
+      [
+        97576,
+        204,
+        80560
+      ]
+    ],
+    [
+      [
+        97577,
+        204,
+        80556
+      ],
+      [
+        97576,
+        204,
+        80556
+      ],
+      [
+        97575,
+        204,
+        80556
+      ]
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97585,
+      203,
+      80572
+    ],
+    [
+      97585,
+      203,
+      80568
+    ],
+    [
+      97585,
+      203,
+      80564
+    ],
+    [
+      97585,
+      203,
+      80560
+    ],
+    [
+      97585,
+      203,
+      80556
+    ]
+  ],
+  "outputs": [
+    [
+      97577,
+      204,
+      80572
+    ],
+    [
+      97576,
+      204,
+      80572
+    ],
+    [
+      97575,
+      204,
+      80572
+    ],
+    [
+      97577,
+      204,
+      80568
+    ],
+    [
+      97576,
+      204,
+      80568
+    ],
+    [
+      97577,
+      204,
+      80564
+    ],
+    [
+      97577,
+      204,
+      80560
+    ],
+    [
+      97576,
+      204,
+      80560
+    ],
+    [
+      97577,
+      204,
+      80556
+    ],
+    [
+      97576,
+      204,
+      80556
+    ],
+    [
+      97575,
+      204,
+      80556
+    ]
+  ],
+  "stock": {
+    "each lane's droppers": "the prize that channel pays",
+    "the player": "a ball to drop - an egg, a snowball, any item"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Plinko serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 1313,
+      "materials": 13,
+      "dominant_material_share": 0.3945,
+      "light_blocks": 2,
+      "massing": {
+        "width": 17,
+        "height": 17,
+        "depth": 23,
+        "fill_ratio": 0.1975
+      },
+      "silhouette": {
+        "top": {
+          "area": 391,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 85,
+          "fill_ratio": 0.2941
+        },
+        "side": {
+          "area": 360,
+          "fill_ratio": 0.9207
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 518,
+        "white_wool": 310,
+        "oak_fence": 209,
+        "blackstone": 120,
+        "oak_log": 70,
+        "redstone_wire": 41,
+        "dropper": 11,
+        "comparator": 10,
+        "repeater": 10,
+        "barrel": 5,
+        "hopper": 5,
+        "lantern": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "f9b632d362a4b5beac00b24fc79f3ba25a8ddfaeeecfdc1da4d1c24258d372c5",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97589,
+        204,
+        80563
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1313,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dropper"
+  ],
+  "file": "Plinko.litematic",
+  "name": "Plinko"
+}

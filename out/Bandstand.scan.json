@@ -1,0 +1,29 @@
+{
+  "origin": {
+    "x": 97561,
+    "y": 202,
+    "z": 80561
+  },
+  "size": {
+    "x": 17,
+    "y": 20,
+    "z": 17
+  },
+  "generated_by": "civic",
+  "kind": "bandstand",
+  "land": "midway",
+  "facing": "south",
+  "contract": "an open pavilion: a stepped base you climb, eight columns, a waist-height balustrade with the front left open, and a stepped roof with a bell under its apex",
+  "unverified": [],
+  "plan": "square",
+  "radius": 5,
+  "height": 18,
+  "columns": 4,
+  "rails": 33,
+  "lanterns": 4,
+  "steep": false,
+  "signs": 1,
+  "signs_placed": 1,
+  "file": "Bandstand.litematic",
+  "name": "Bandstand"
+}

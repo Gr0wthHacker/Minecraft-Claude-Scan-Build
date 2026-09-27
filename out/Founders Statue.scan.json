@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97615,
+    "y": 202,
+    "z": 80615
+  },
+  "size": {
+    "x": 11,
+    "y": 21,
+    "z": 11
+  },
+  "generated_by": "civic",
+  "kind": "statue",
+  "land": "midway",
+  "facing": "north",
+  "contract": "a moulded plinth carrying a columnar or planar figure at least fourteen courses tall, with its inscription on the plinth's own front face",
+  "unverified": [],
+  "figure": "obelisk",
+  "height": 20,
+  "plinth": 7,
+  "signs": 1,
+  "signs_placed": 1,
+  "file": "Founders Statue.litematic",
+  "name": "Founders Statue"
+}

@@ -1,0 +1,79 @@
+# PF SIGNAL ZERO - the bottom of the Prism Well.
+#
+# THE CATCH IS THE POINT AND IT IS NOT OPTIONAL. A hundred-course course hanging in open void
+# over a floating park has exactly one failure mode without a floor: you miss and you fall out
+# of the world. Everything else here - the room, the light, the bell - is what turns that floor
+# into somewhere worth arriving.
+#
+# ONE POOL, NOT THREE NETS. The plan began with a catch under each act so a miss cost one act;
+# three annuli covering this fall zone measured seventeen thousand cells. Catching every fall in
+# one pool and putting the CHECKPOINTS ON THE WAY BACK UP keeps the same promise - the return
+# column stops at each act - and a long fall into a lit pool is better than a net under your feet.
+#
+# SIZED FROM THE COURSE. The descent runs r30 to r14 and the search flexes four either way, so a
+# fall starts somewhere in r15..r35 - the outer run flexes to 35. Thirty-six of water covers it; that is a third of what the
+# first geometry needed, and the Well's start pier is what bought the difference.
+#
+# THE BELL IS THE PAYOFF AND HAS NO REDSTONE IN IT. Cheap, 1.19, no circuit to desynchronise,
+# and audible from the gallery a hundred courses up - so ringing it tells everyone watching that
+# somebody just finished. A signal running up the shaft to fire the rim's mast ring is the
+# obvious alternative and is deliberately NOT built: a vertical transmitter that tall is its own
+# machine, and this repo cut two finished casino games rather than ship one it could not judge.
+name: PF Signal Zero
+gen: prismfloor
+params:
+  centre: [97590, 80815]
+  y_floor: 95
+  # SEVEN, NOT SIX, AND IT IS THE DIAGONAL THAT DECIDES IT. The Well's four lit posts stand at
+  # CHEBYSHEV 4 from the centre, which is 5.66 EUCLIDEAN - and the test here is `r < keep-0.5`,
+  # so at six the corner posts fell just outside the kept-clear disc and the pool laid water
+  # into all four of them. Four cells, and the only thing that reported it was the assembly's
+  # own module clash check: both designs audited clean on their own.
+  # FIFTEEN, BECAUSE THE COLUMN IS A FRAME NOW. This was sized when the shaft below the deck
+  # was four posts at chebyshev 4; it is an eight-ribbed frame at r13 running the whole way to
+  # the floor, and the pool laid 152 cells of water and bed straight through it. A number that
+  # names another design's footprint has to move when that design does.
+  keep_clear: 15          # the return frame's footprint belongs to PF Prism Well
+  pool_r: 38
+  apron: 4
+  wall: 2
+  wall_h: 7
+  bell_at: 180
+  seed: 23
+roles: [construction, building]
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A lit chamber a hundred courses under the park: a pearl-lit pool thirty-four across that
+    catches every fall on the course, a dry apron and a wall round it so the floor is a room and
+    not a ledge, and a bell on a copper frame at the head of the pool.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [land in the pool, walk out onto the apron, ring the bell, take the column back up]
+  outcome: >
+    You arrive at the bottom of the well - by finishing the course or by missing it - without
+    taking damage, and the bell says so to everyone on the gallery a hundred courses above.
+  reset: >
+    Nothing is consumed and no state is held. The pool refills nothing and empties into nothing;
+    the bell can be rung by anyone, any number of times.
+  service_access: >
+    The return column stands in the middle of the pool with its own footprint kept clear, and is
+    reached by walking - the pool is one deep, so nobody has to swim.
+  bypass: >
+    The chamber is reached from the column without setting foot on the course, so a spectator can
+    ride down, watch an arrival and ride back up.
+requires_in_game:
+  - a fall from the highest point of the course lands inside the pool, not on the apron or wall
+  - one-deep water cancels the fall from a hundred courses
+  - the bell is audible from the gallery
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false      # the whole chamber hangs in void, like everything else in this well
+  verify_against: [out/prism_all.litematic]
+origin_lock: false

@@ -1,0 +1,15 @@
+name: The Graveyard
+gen: hollowmanor
+params:
+  land: hollow
+  facing: west
+  at:
+  - 97612
+  - 203
+  - 80753
+  kind: graveyard
+  title: The Graveyard
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

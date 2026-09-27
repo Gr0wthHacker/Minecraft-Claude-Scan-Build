@@ -1,0 +1,244 @@
+{
+  "origin": {
+    "x": 97630,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 17,
+    "y": 18,
+    "z": 17
+  },
+  "generated_by": "plateaushop",
+  "kind": "plateaushop",
+  "lot": [
+    17,
+    17
+  ],
+  "at": [
+    130,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "v",
+  "signs": [
+    {
+      "at": [
+        2,
+        4,
+        9
+      ],
+      "facing": "west",
+      "lines": [
+        "THE FIELD SHOP",
+        "casts, rubbings",
+        "and cold drinks"
+      ]
+    },
+    {
+      "at": [
+        13,
+        3,
+        9
+      ],
+      "facing": "west",
+      "lines": [
+        "TRADE HERE",
+        "type /shops to",
+        "buy and sell",
+        "on the server"
+      ]
+    },
+    {
+      "at": [
+        8,
+        3,
+        3
+      ],
+      "facing": "south",
+      "lines": [
+        "THE BROKEN EDGE",
+        "the plateau",
+        "ends here -",
+        "mind the rail"
+      ]
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "terrace": {
+      "pave": 68,
+      "rail": 17,
+      "post": 4,
+      "bench": 2,
+      "lamp": 4
+    },
+    "plinth": 154,
+    "shop": {
+      "post": 64,
+      "wall": 76,
+      "roof": 154,
+      "counter": 9,
+      "beam": 11,
+      "lamp": 2,
+      "shelf": 7
+    },
+    "signs": {
+      "board": 1,
+      "shops": 1,
+      "plaque": 1,
+      "bell": 1
+    },
+    "planters": 12
+  },
+  "contract": "an open-fronted field shop on the lot the Vantage Lookout was retired from, with a counter instead of a fourth wall, a bell somebody can ring, a board naming the server's own /shops rather than stock it does not hold, NOT ONE CONTAINER, and a rim terrace in front of it that is also where the belvedere is seen from",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 577,
+      "materials": 18,
+      "dominant_material_share": 0.2045,
+      "light_blocks": 6,
+      "massing": {
+        "width": 17,
+        "height": 6,
+        "depth": 15,
+        "fill_ratio": 0.3771
+      },
+      "silhouette": {
+        "top": {
+          "area": 222,
+          "fill_ratio": 0.7682
+        },
+        "front": {
+          "area": 92,
+          "fill_ratio": 0.3007
+        },
+        "side": {
+          "area": 78,
+          "fill_ratio": 0.2549
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "top_silhouette_perimeter": 103,
+        "surface_faces_per_block": 2.1629
+      },
+      "material_counts": {
+        "stone_bricks": 118,
+        "jungle_planks": 93,
+        "white_wool": 72,
+        "red_wool": 71,
+        "jungle_log": 62,
+        "cobblestone": 43,
+        "cracked_stone_bricks": 36,
+        "stone": 25,
+        "jungle_fence": 13,
+        "stripped_jungle_log": 11,
+        "jungle_slab": 9,
+        "moss_block": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "6e8c884e5f284053aaff05f4b907867649e56f2f7843e3080bfe56cd2b558cd9",
+    "generator_source_digest": "0fab338d8a043d2f582a82a1815c6273757a9df8f0d0bc2ec91bfa25a80aa930",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 7.369022,
+    "blocks": 577,
+    "blocks_per_second": 78.3
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 577,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: jungle_fence",
+    "not in the provisional skyblock-1.19 list: jungle_log",
+    "not in the provisional skyblock-1.19 list: jungle_planks",
+    "not in the provisional skyblock-1.19 list: jungle_slab",
+    "not in the provisional skyblock-1.19 list: jungle_stairs",
+    "not in the provisional skyblock-1.19 list: stripped_jungle_log"
+  ],
+  "file": "PF Plateau Shop.litematic",
+  "name": "PF Plateau Shop"
+}

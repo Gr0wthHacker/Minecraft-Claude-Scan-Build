@@ -1,0 +1,210 @@
+{
+  "origin": {
+    "x": 97580,
+    "y": 203,
+    "z": 80566
+  },
+  "size": {
+    "x": 41,
+    "y": 12,
+    "z": 71
+  },
+  "generated_by": "midwaybuild",
+  "kind": "midway_build",
+  "build": "midway_row",
+  "name": "PF Midway Row",
+  "lot": [
+    80,
+    266,
+    120,
+    336
+  ],
+  "facing": "west",
+  "signs": 0,
+  "lamps": 30,
+  "benches": 12,
+  "trees": 6,
+  "floor": 2805,
+  "bunting": 3,
+  "stalls": 8,
+  "axis": 301,
+  "contract": "one connected building inside lot V80-120 U266-336, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_trapdoor"
+      ],
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "The Midway's own midway: the Welcome Court's thirteen-wide walk carried on to the back promenade, with four open-fronted stalls facing four more across it - hook a duck, hot dogs, a coconut shy, candy floss, tin can alley, toffee apples, a ring toss and lemonade - each under its own striped awning with a lit board over the counter, bunting strung across the avenue in every gap between them, and a seating terrace of trees and benches behind each row where what you bought is eaten. Nothing stands in the avenue, so the vista from the entry gate still ends at the wheel's hub.\n"
+    },
+    "metrics": {
+      "blocks": 5383,
+      "materials": 25,
+      "dominant_material_share": 0.2493,
+      "light_blocks": 30,
+      "massing": {
+        "width": 41,
+        "height": 7,
+        "depth": 71,
+        "fill_ratio": 0.2642
+      },
+      "silhouette": {
+        "top": {
+          "area": 2768,
+          "fill_ratio": 0.9509
+        },
+        "front": {
+          "area": 255,
+          "fill_ratio": 0.5183
+        },
+        "side": {
+          "area": 272,
+          "fill_ratio": 0.3192
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6937,
+          0.3063,
+          0.0
+        ],
+        "top_silhouette_perimeter": 287,
+        "surface_faces_per_block": 2.0212
+      },
+      "material_counts": {
+        "smooth_stone": 1342,
+        "stone_bricks": 864,
+        "moss_block": 650,
+        "polished_blackstone_bricks": 371,
+        "polished_diorite_slab": 370,
+        "crimson_slab": 330,
+        "stone": 297,
+        "white_wool": 260,
+        "oak_leaves": 174,
+        "oak_slab": 96,
+        "chiseled_stone_bricks": 92,
+        "cracked_stone_bricks": 82
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "1d688b3a90923acf36e27b2a5b179fbe27b05e8594a5c1c7361b5bae03608273",
+    "generator_source_digest": "ab75230d68facf6bf32162e5f3408d59aa6287f61940ae48a87cc35a9bd63891",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 53.565097,
+    "blocks": 5383,
+    "blocks_per_second": 100.49
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "building"
+    ],
+    "blocks": 5383,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: crimson_slab",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_diorite_slab"
+  ],
+  "file": "PF Midway Row.litematic"
+}

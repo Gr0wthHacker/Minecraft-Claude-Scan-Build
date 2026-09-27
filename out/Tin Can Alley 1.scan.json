@@ -1,0 +1,27 @@
+{
+  "origin": {
+    "x": 97595,
+    "y": 202,
+    "z": 80383
+  },
+  "size": {
+    "x": 7,
+    "y": 7,
+    "z": 9
+  },
+  "generated_by": "park",
+  "kind": "booth",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "a booth whose rules and odds are printed on its own sign",
+  "unverified": [
+    "the game machine inside is a separate, simulated module"
+  ],
+  "width": 7,
+  "depth": 5,
+  "height": 5,
+  "signed": true,
+  "board": 15,
+  "file": "Tin Can Alley 1.litematic",
+  "name": "Tin Can Alley 1"
+}

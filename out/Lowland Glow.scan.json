@@ -1,0 +1,36 @@
+{
+  "origin": {
+    "x": -24242,
+    "y": 36,
+    "z": 29951
+  },
+  "size": {
+    "x": 71,
+    "y": 34,
+    "z": 90
+  },
+  "generated_by": "lowglow",
+  "kind": "lowglow",
+  "profile_view": "top",
+  "facing": [
+    0,
+    1
+  ],
+  "features_built": {
+    "froglights": 1,
+    "lichen": 10,
+    "souls": 11,
+    "lanterns": 1,
+    "hanging": 1,
+    "pickles": 5
+  },
+  "dig": [
+    [
+      -24196,
+      37,
+      29951
+    ]
+  ],
+  "file": "Lowland Glow.litematic",
+  "name": "Lowland Glow"
+}

@@ -30,8 +30,11 @@ from PIL import Image
 JAR = pathlib.Path.home() / ".gradle/caches/fabric-loom/26.2/minecraft-client.jar"
 OUT = pathlib.Path(__file__).resolve().parent.parent / "mcbuild/data/blocks.json"
 
-# Which face to sample, in order of preference. `top` first: a schematic is nearly always read from
-# above, and a block's top face is the colour Minecraft's own maps use.
+# COLOUR IS NOT DONE HERE ANY MORE. `tools/recolour.py` owns it, because one RGB per block was
+# wrong twice over: it ignored the biome tint the game applies (so every leaf, vine and grass block
+# came out grey - 31.7% of the island) and it collapsed the top and side faces into one number,
+# which cannot be right for both a floor and a statue. This module keeps the REGISTRY half - what
+# blocks exist and what states are legal - and delegates the colour half so the two cannot drift.
 FACE_ORDER = ("top", "all", "end", "side", "texture", "cross", "pattern", "front", "up")
 # Textures that say nothing about the block's colour.
 SKIP_TEX = ("overlay", "_stage", "particle")
@@ -75,6 +78,9 @@ def main() -> None:
     print(f"  with colour: {sum(1 for v in out.values() if 'rgb' in v)}")
     print(f"  without    : {len(no_color)}" + (f"  e.g. {no_color[:6]}" if no_color else ""))
     print(f"  states     : {sum(v['states'] for v in out.values())}")
+    # ...and the colour half, which lives in recolour.py so the tint and the two faces cannot be
+    # got right in one path and wrong in the other.
+    _recolour(a.out, a.jar)
 
 
 # ---------------------------------------------------------------- asset resolution
@@ -188,6 +194,22 @@ def _average(zf, tex_cache, path: str):
         out = None
     tex_cache[path] = out
     return out
+
+
+def _recolour(out_path: str, jar: str) -> None:
+    """Hand the colour half to tools/recolour.py, so a full extract and a colour-only refresh can
+    never disagree about what a block looks like."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "recolour", pathlib.Path(__file__).resolve().parent / "recolour.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    db = json.loads(pathlib.Path(out_path).read_text(encoding="utf-8"))
+    db, drift, tints = mod.recolour(jar, db)
+    pathlib.Path(out_path).write_text(json.dumps(db, separators=(",", ":"), sort_keys=True),
+                                      encoding="utf-8")
+    print(f"  recoloured: tint grass {tints['grass']} foliage {tints['foliage']}, "
+          f"{len(drift)} block(s) moved")
 
 
 if __name__ == "__main__":

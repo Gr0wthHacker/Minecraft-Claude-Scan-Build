@@ -1,0 +1,1048 @@
+{
+  "origin": {
+    "x": 97672,
+    "y": 202,
+    "z": 80300
+  },
+  "size": {
+    "x": 15,
+    "y": 35,
+    "z": 600
+  },
+  "generated_by": "parkrail",
+  "kind": "parkrail",
+  "bounds": [
+    172,
+    0,
+    186,
+    599
+  ],
+  "park_side": -1,
+  "track_a": 174,
+  "track_b": 184,
+  "centre_v": 179,
+  "island": [
+    176,
+    182
+  ],
+  "rail_y": 13,
+  "deck_y": 12,
+  "track_cells": 1206,
+  "corners": 4,
+  "iron_rails": 22,
+  "detector_rails": 18,
+  "power_sources": 153,
+  "brake_zones": 12,
+  "quiet_cells": 198,
+  "bay_half": 0,
+  "closed_circuit": true,
+  "piers": 40,
+  "pier_gates": 40,
+  "portals": 10,
+  "flush_lights": 354,
+  "lanterns": 30,
+  "deck_seats": 32,
+  "stations": [
+    {
+      "title": "FRONTIER HALT",
+      "land": "frontier",
+      "at_u": 77
+    },
+    {
+      "title": "MIDWAY CENTRAL",
+      "land": "midway",
+      "at_u": 279
+    },
+    {
+      "title": "PRISMWORKS END",
+      "land": "prismworks",
+      "at_u": 505
+    }
+  ],
+  "station_detail": [
+    {
+      "title": "FRONTIER HALT",
+      "land": "frontier",
+      "at_u": 77,
+      "platform": 27,
+      "treads": 36,
+      "lanterns": 10,
+      "stair_from_u": 79,
+      "stair_to_u": 90,
+      "buttons": 2,
+      "bells": 2,
+      "screens": 4,
+      "board": 2,
+      "name_signs": 2
+    },
+    {
+      "title": "MIDWAY CENTRAL",
+      "land": "midway",
+      "at_u": 279,
+      "platform": 27,
+      "treads": 36,
+      "lanterns": 10,
+      "stair_from_u": 266,
+      "stair_to_u": 277,
+      "buttons": 2,
+      "bells": 2,
+      "screens": 4,
+      "board": 2,
+      "name_signs": 2
+    },
+    {
+      "title": "PRISMWORKS END",
+      "land": "prismworks",
+      "at_u": 505,
+      "platform": 27,
+      "treads": 36,
+      "lanterns": 10,
+      "stair_from_u": 507,
+      "stair_to_u": 518,
+      "buttons": 2,
+      "bells": 2,
+      "screens": 4,
+      "board": 2,
+      "name_signs": 2
+    }
+  ],
+  "bay_detail": [
+    {
+      "title": "FRONTIER HALT",
+      "track": "a",
+      "at_u": 77,
+      "detector_u": 67
+    },
+    {
+      "title": "FRONTIER HALT",
+      "track": "b",
+      "at_u": 77,
+      "detector_u": 87
+    },
+    {
+      "title": "MIDWAY CENTRAL",
+      "track": "a",
+      "at_u": 279,
+      "detector_u": 269
+    },
+    {
+      "title": "MIDWAY CENTRAL",
+      "track": "b",
+      "at_u": 279,
+      "detector_u": 289
+    },
+    {
+      "title": "PRISMWORKS END",
+      "track": "a",
+      "at_u": 505,
+      "detector_u": 495
+    },
+    {
+      "title": "PRISMWORKS END",
+      "track": "b",
+      "at_u": 505,
+      "detector_u": 515
+    }
+  ],
+  "runs": [
+    [
+      0,
+      39
+    ],
+    [
+      40,
+      63
+    ],
+    [
+      64,
+      83
+    ],
+    [
+      84,
+      241
+    ],
+    [
+      242,
+      265
+    ],
+    [
+      266,
+      285
+    ],
+    [
+      286,
+      467
+    ],
+    [
+      468,
+      491
+    ],
+    [
+      492,
+      511
+    ],
+    [
+      512,
+      592
+    ],
+    [
+      593,
+      602
+    ],
+    [
+      603,
+      659
+    ],
+    [
+      660,
+      683
+    ],
+    [
+      684,
+      703
+    ],
+    [
+      704,
+      885
+    ],
+    [
+      886,
+      909
+    ],
+    [
+      910,
+      929
+    ],
+    [
+      930,
+      1087
+    ],
+    [
+      1088,
+      1111
+    ],
+    [
+      1112,
+      1131
+    ],
+    [
+      1132,
+      1195
+    ],
+    [
+      1196,
+      1205
+    ]
+  ],
+  "contract": "TWO one-way running lines the length of the corridor, joined at both ends by turnback curves into ONE CLOSED CIRCUIT, so two carts can never meet head-on; three island stations, each with a dead bay on each track that stops an arriving cart by itself and a momentary button that releases it; a detector rail and a bell at each bay's approach - and not one cell outside V172-186",
+  "renewal": {
+    "version": 2,
+    "stations": [
+      {
+        "land": "frontier",
+        "title": "FRONTIER HALT",
+        "entry": [
+          0,
+          2,
+          96
+        ],
+        "queue": [
+          [
+            4,
+            13,
+            70
+          ],
+          [
+            10,
+            13,
+            70
+          ]
+        ],
+        "boarding": [
+          [
+            3,
+            13,
+            77
+          ],
+          [
+            11,
+            13,
+            77
+          ]
+        ],
+        "exit": [
+          7,
+          13,
+          61
+        ],
+        "return": [
+          7,
+          2,
+          50
+        ],
+        "service": [
+          10,
+          1,
+          100
+        ],
+        "roof_peak": 24
+      },
+      {
+        "land": "midway",
+        "title": "MIDWAY CENTRAL",
+        "entry": [
+          0,
+          2,
+          260
+        ],
+        "queue": [
+          [
+            4,
+            13,
+            286
+          ],
+          [
+            10,
+            13,
+            286
+          ]
+        ],
+        "boarding": [
+          [
+            3,
+            13,
+            279
+          ],
+          [
+            11,
+            13,
+            279
+          ]
+        ],
+        "exit": [
+          7,
+          13,
+          295
+        ],
+        "return": [
+          7,
+          2,
+          306
+        ],
+        "service": [
+          10,
+          1,
+          256
+        ],
+        "roof_peak": 31
+      },
+      {
+        "land": "prismworks",
+        "title": "PRISMWORKS END",
+        "entry": [
+          0,
+          2,
+          524
+        ],
+        "queue": [
+          [
+            4,
+            13,
+            498
+          ],
+          [
+            10,
+            13,
+            498
+          ]
+        ],
+        "boarding": [
+          [
+            3,
+            13,
+            505
+          ],
+          [
+            11,
+            13,
+            505
+          ]
+        ],
+        "exit": [
+          7,
+          13,
+          489
+        ],
+        "return": [
+          7,
+          2,
+          478
+        ],
+        "service": [
+          10,
+          1,
+          528
+        ],
+        "roof_peak": 24
+      }
+    ],
+    "live_proof": "pending",
+    "fleet": {
+      "item": "minecart",
+      "count": 6,
+      "place_on": "each brake bay - see signals[].brake",
+      "first_proof": "run ONE cart round the whole circuit before stocking the rest",
+      "min_separation_cells": 30
+    },
+    "signals": [
+      {
+        "station": "FRONTIER HALT",
+        "track": "a",
+        "set": [
+          2,
+          13,
+          67
+        ],
+        "reset": [
+          2,
+          13,
+          87
+        ],
+        "memory": [
+          8,
+          7,
+          50
+        ],
+        "hold": [
+          2,
+          13,
+          37
+        ],
+        "brake": [
+          2,
+          13,
+          77
+        ],
+        "button": [
+          3,
+          14,
+          77
+        ],
+        "indicator": [
+          2,
+          10,
+          37
+        ],
+        "manual_clear": [
+          0,
+          7,
+          80
+        ],
+        "staff_panel": [
+          0,
+          2,
+          80
+        ],
+        "trigger": [
+          2,
+          13,
+          43
+        ],
+        "release": [
+          1,
+          13,
+          77
+        ],
+        "repeaters": 30,
+        "dwell_ticks": 120
+      },
+      {
+        "station": "FRONTIER HALT",
+        "track": "b",
+        "set": [
+          12,
+          13,
+          87
+        ],
+        "reset": [
+          12,
+          13,
+          67
+        ],
+        "memory": [
+          6,
+          7,
+          104
+        ],
+        "hold": [
+          12,
+          13,
+          117
+        ],
+        "brake": [
+          12,
+          13,
+          77
+        ],
+        "button": [
+          11,
+          14,
+          77
+        ],
+        "indicator": [
+          12,
+          10,
+          117
+        ],
+        "manual_clear": [
+          14,
+          7,
+          74
+        ],
+        "staff_panel": [
+          14,
+          2,
+          74
+        ],
+        "trigger": [
+          12,
+          13,
+          111
+        ],
+        "release": [
+          13,
+          13,
+          77
+        ],
+        "repeaters": 30,
+        "dwell_ticks": 120
+      },
+      {
+        "station": "MIDWAY CENTRAL",
+        "track": "a",
+        "set": [
+          2,
+          13,
+          269
+        ],
+        "reset": [
+          2,
+          13,
+          289
+        ],
+        "memory": [
+          8,
+          7,
+          252
+        ],
+        "hold": [
+          2,
+          13,
+          239
+        ],
+        "brake": [
+          2,
+          13,
+          279
+        ],
+        "button": [
+          3,
+          14,
+          279
+        ],
+        "indicator": [
+          2,
+          10,
+          239
+        ],
+        "manual_clear": [
+          0,
+          7,
+          282
+        ],
+        "staff_panel": [
+          0,
+          2,
+          282
+        ],
+        "trigger": [
+          2,
+          13,
+          245
+        ],
+        "release": [
+          1,
+          13,
+          279
+        ],
+        "repeaters": 30,
+        "dwell_ticks": 120
+      },
+      {
+        "station": "MIDWAY CENTRAL",
+        "track": "b",
+        "set": [
+          12,
+          13,
+          289
+        ],
+        "reset": [
+          12,
+          13,
+          269
+        ],
+        "memory": [
+          6,
+          7,
+          306
+        ],
+        "hold": [
+          12,
+          13,
+          319
+        ],
+        "brake": [
+          12,
+          13,
+          279
+        ],
+        "button": [
+          11,
+          14,
+          279
+        ],
+        "indicator": [
+          12,
+          10,
+          319
+        ],
+        "manual_clear": [
+          14,
+          7,
+          276
+        ],
+        "staff_panel": [
+          14,
+          2,
+          276
+        ],
+        "trigger": [
+          12,
+          13,
+          313
+        ],
+        "release": [
+          13,
+          13,
+          279
+        ],
+        "repeaters": 30,
+        "dwell_ticks": 120
+      },
+      {
+        "station": "PRISMWORKS END",
+        "track": "a",
+        "set": [
+          2,
+          13,
+          495
+        ],
+        "reset": [
+          2,
+          13,
+          515
+        ],
+        "memory": [
+          8,
+          7,
+          478
+        ],
+        "hold": [
+          2,
+          13,
+          465
+        ],
+        "brake": [
+          2,
+          13,
+          505
+        ],
+        "button": [
+          3,
+          14,
+          505
+        ],
+        "indicator": [
+          2,
+          10,
+          465
+        ],
+        "manual_clear": [
+          0,
+          7,
+          508
+        ],
+        "staff_panel": [
+          0,
+          2,
+          508
+        ],
+        "trigger": [
+          2,
+          13,
+          471
+        ],
+        "release": [
+          1,
+          13,
+          505
+        ],
+        "repeaters": 30,
+        "dwell_ticks": 120
+      },
+      {
+        "station": "PRISMWORKS END",
+        "track": "b",
+        "set": [
+          12,
+          13,
+          515
+        ],
+        "reset": [
+          12,
+          13,
+          495
+        ],
+        "memory": [
+          6,
+          7,
+          532
+        ],
+        "hold": [
+          12,
+          13,
+          545
+        ],
+        "brake": [
+          12,
+          13,
+          505
+        ],
+        "button": [
+          11,
+          14,
+          505
+        ],
+        "indicator": [
+          12,
+          10,
+          545
+        ],
+        "manual_clear": [
+          14,
+          7,
+          502
+        ],
+        "staff_panel": [
+          14,
+          2,
+          502
+        ],
+        "trigger": [
+          12,
+          13,
+          539
+        ],
+        "release": [
+          13,
+          13,
+          505
+        ],
+        "repeaters": 30,
+        "dwell_ticks": 120
+      }
+    ]
+  },
+  "railway_review": "PARK_RAILWAY_RENEWAL.md",
+  "railway_live_proof": "pending",
+  "anchor_status": "candidate; live proof pending",
+  "budget_blocks": 42000,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "dark_oak_trapdoor",
+        "oak_trapdoor",
+        "spruce_trapdoor"
+      ],
+      "light": [
+        "lantern",
+        "redstone_lamp",
+        "soul_lantern"
+      ],
+      "rail": [
+        "detector_rail",
+        "powered_rail",
+        "rail"
+      ],
+      "redstone": [
+        "comparator",
+        "dark_oak_button",
+        "detector_rail",
+        "oak_button",
+        "redstone_lamp",
+        "redstone_torch",
+        "redstone_wire",
+        "repeater",
+        "spruce_button",
+        "stone_button"
+      ],
+      "signage": [
+        "dark_oak_wall_sign",
+        "oak_wall_sign",
+        "spruce_wall_sign"
+      ],
+      "traversal": [
+        "ladder"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks",
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "bridge",
+      "construction",
+      "path",
+      "ride"
+    ],
+    "role_contracts": {
+      "bridge": "continuous walking deck, safe edge/clearance, and anchored supports",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Three distinct free stations on a two-track rim railway with independent exit stairs, sloped dispatch and approach holding."
+    },
+    "metrics": {
+      "blocks": 39220,
+      "materials": 49,
+      "dominant_material_share": 0.2859,
+      "light_blocks": 12,
+      "massing": {
+        "width": 15,
+        "height": 31,
+        "depth": 600,
+        "fill_ratio": 0.1406
+      },
+      "silhouette": {
+        "top": {
+          "area": 9000,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 338,
+          "fill_ratio": 0.6438
+        },
+        "side": {
+          "area": 6173,
+          "fill_ratio": 0.294
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.625,
+          0.3624,
+          0.0126
+        ],
+        "top_silhouette_perimeter": 1230,
+        "surface_faces_per_block": 1.6449
+      },
+      "material_counts": {
+        "stone_bricks": 11214,
+        "polished_blackstone_bricks": 9211,
+        "chiseled_stone_bricks": 2251,
+        "red_wool": 1821,
+        "smooth_stone": 1545,
+        "cyan_wool": 1534,
+        "deepslate_tiles": 1370,
+        "polished_deepslate": 1357,
+        "powered_rail": 1184,
+        "black_wool": 974,
+        "stone_brick_wall": 851,
+        "redstone_wire": 780
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "1152054ad2c32a6d4a98b05d1348b4d510528a92e9f430742703619911ebc497",
+    "generator_source_digest": "4c086f138bdb7dfe2673c03e699bd963987cfb3a5e999f2d7a5cbc82b23556f5",
+    "anchors": [
+      {
+        "name": "queue_entry",
+        "kind": "queue",
+        "position": [
+          4,
+          13,
+          286
+        ],
+        "facing": null,
+        "width": 1
+      },
+      {
+        "name": "boarding",
+        "kind": "board",
+        "position": [
+          4,
+          13,
+          279
+        ],
+        "facing": null,
+        "width": 1
+      },
+      {
+        "name": "ride_exit",
+        "kind": "ride_exit",
+        "position": [
+          7,
+          13,
+          295
+        ],
+        "facing": null,
+        "width": 1
+      },
+      {
+        "name": "service_access",
+        "kind": "maintenance",
+        "position": [
+          10,
+          1,
+          256
+        ],
+        "facing": null,
+        "width": 1
+      }
+    ],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": true,
+      "mechanics": [
+        "access",
+        "light",
+        "rail",
+        "redstone",
+        "signage",
+        "traversal"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 0.815211,
+    "blocks": 39220,
+    "blocks_per_second": 48110.24
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 4,
+    "roles": [
+      "bridge",
+      "path",
+      "ride"
+    ],
+    "blocks": 39220,
+    "mechanic_families": [
+      "access",
+      "light",
+      "rail",
+      "redstone",
+      "signage",
+      "traversal"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: bell",
+    "not in the provisional skyblock-1.19 list: blackstone",
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: cyan_stained_glass",
+    "not in the provisional skyblock-1.19 list: dark_oak_button",
+    "not in the provisional skyblock-1.19 list: dark_oak_trapdoor",
+    "not in the provisional skyblock-1.19 list: dark_oak_wall_sign",
+    "not in the provisional skyblock-1.19 list: deepslate_tiles",
+    "not in the provisional skyblock-1.19 list: detector_rail",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_brick_wall",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_deepslate",
+    "not in the provisional skyblock-1.19 list: polished_deepslate_slab",
+    "not in the provisional skyblock-1.19 list: polished_deepslate_stairs",
+    "not in the provisional skyblock-1.19 list: redstone_block",
+    "not in the provisional skyblock-1.19 list: redstone_lamp",
+    "not in the provisional skyblock-1.19 list: stone_slab"
+  ],
+  "file": "Park Rail.litematic",
+  "name": "Park Rail"
+}

@@ -1,0 +1,66 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 150,
+    "z": 29949
+  },
+  "size": {
+    "x": 30,
+    "y": 53,
+    "z": 71
+  },
+  "generated_by": "rimstair",
+  "kind": "rimstair",
+  "treads": 14,
+  "rails": 0,
+  "lanterns": 0,
+  "threshold": 0,
+  "landing": 0,
+  "facing": "south",
+  "dig": [
+    [
+      -24222,
+      202,
+      30019,
+      "stone_brick_stairs"
+    ],
+    [
+      -24222,
+      201,
+      30018,
+      "stone_brick_stairs"
+    ],
+    [
+      -24222,
+      200,
+      30017,
+      "stone_brick_stairs"
+    ],
+    [
+      -24222,
+      199,
+      30016,
+      "stone_brick_stairs"
+    ],
+    [
+      -24222,
+      198,
+      30015,
+      "stone_brick_stairs"
+    ],
+    [
+      -24222,
+      197,
+      30014,
+      "stone_brick_stairs"
+    ],
+    [
+      -24222,
+      196,
+      30013,
+      "stone_brick_stairs"
+    ]
+  ],
+  "file": "Court Stair.litematic",
+  "name": "Court Stair"
+}

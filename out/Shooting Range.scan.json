@@ -1,0 +1,376 @@
+{
+  "origin": {
+    "x": 97600,
+    "y": 202,
+    "z": 80398
+  },
+  "size": {
+    "x": 26,
+    "y": 13,
+    "z": 15
+  },
+  "generated_by": "arcade",
+  "kind": "range",
+  "footprint": [
+    15,
+    26
+  ],
+  "courses": [
+    -1,
+    11
+  ],
+  "land": "frontier",
+  "facing": "east",
+  "contract": "three discs; a hit of strength L on disc k lights the bottom L of that disc's 5 lamps and no other disc's, and only a hit of 5 or more on the FAR disc rings the bell and pays, once",
+  "unverified": [
+    "A TARGET'S OUTPUT IS AN INPUT YOU STATE. The simulator has no entities and cannot fire an arrow; that a bullseye really reads 15 and a rim hit really reads 1 is the game's own behaviour."
+  ],
+  "budget": {
+    "redstone_lamp": 15
+  },
+  "concealed": 56,
+  "visible_redstone": 0,
+  "width": 13,
+  "depth": 12,
+  "height": 16,
+  "lanes": 3,
+  "score": 5,
+  "targets": [
+    [
+      97620,
+      206,
+      80409
+    ],
+    [
+      97617,
+      206,
+      80405
+    ],
+    [
+      97614,
+      206,
+      80401
+    ]
+  ],
+  "lamps": [
+    [
+      [
+        97618,
+        206,
+        80408
+      ],
+      [
+        97617,
+        207,
+        80408
+      ],
+      [
+        97616,
+        208,
+        80408
+      ],
+      [
+        97615,
+        209,
+        80408
+      ],
+      [
+        97614,
+        210,
+        80408
+      ]
+    ],
+    [
+      [
+        97615,
+        206,
+        80404
+      ],
+      [
+        97614,
+        207,
+        80404
+      ],
+      [
+        97613,
+        208,
+        80404
+      ],
+      [
+        97612,
+        209,
+        80404
+      ],
+      [
+        97611,
+        210,
+        80404
+      ]
+    ],
+    [
+      [
+        97612,
+        206,
+        80400
+      ],
+      [
+        97611,
+        207,
+        80400
+      ],
+      [
+        97610,
+        208,
+        80400
+      ],
+      [
+        97609,
+        209,
+        80400
+      ],
+      [
+        97608,
+        210,
+        80400
+      ]
+    ]
+  ],
+  "tops": [
+    [
+      97614,
+      210,
+      80409
+    ],
+    [
+      97611,
+      210,
+      80405
+    ],
+    [
+      97608,
+      210,
+      80401
+    ]
+  ],
+  "bell": [
+    97608,
+    210,
+    80402
+  ],
+  "droppers": [
+    [
+      97602,
+      211,
+      80401
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97620,
+      206,
+      80409
+    ],
+    [
+      97617,
+      206,
+      80405
+    ],
+    [
+      97614,
+      206,
+      80401
+    ]
+  ],
+  "outputs": [
+    [
+      97608,
+      210,
+      80402
+    ],
+    [
+      97602,
+      211,
+      80401
+    ]
+  ],
+  "stock": {
+    "the dropper": "the prize a full-score shot on the far disc pays",
+    "the player": "arrows, or anything that hits a target block"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "dropper"
+      ],
+      "light": [
+        "lantern",
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "target"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "Shooting Range serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 1153,
+      "materials": 14,
+      "dominant_material_share": 0.3868,
+      "light_blocks": 17,
+      "massing": {
+        "width": 26,
+        "height": 13,
+        "depth": 15,
+        "fill_ratio": 0.2274
+      },
+      "silhouette": {
+        "top": {
+          "area": 390,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 215,
+          "fill_ratio": 0.6361
+        },
+        "side": {
+          "area": 173,
+          "fill_ratio": 0.8872
+        }
+      },
+      "material_counts": {
+        "cobblestone": 446,
+        "spruce_planks": 326,
+        "spruce_log": 268,
+        "stone_bricks": 51,
+        "redstone_wire": 21,
+        "redstone_lamp": 15,
+        "orange_wool": 11,
+        "comparator": 4,
+        "target": 3,
+        "lantern": 2,
+        "repeater": 2,
+        "spruce_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "1196e72a92620effdf6741301e61f1996f1c79d7bb84e198a30d492cc1adb088",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97627,
+        204,
+        80405
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1153,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: dropper",
+    "unsupported on skyblock-1.19: redstone_lamp",
+    "unsupported on skyblock-1.19: target"
+  ],
+  "file": "Shooting Range.litematic",
+  "name": "Shooting Range"
+}

@@ -1,0 +1,43 @@
+{
+  "name": "_scene_preview",
+  "file": "_scene_preview.litematic",
+  "format": "litematic",
+  "created": "2026-08-21T23:28:20.580092Z",
+  "player": "Enroniti",
+  "server": {
+    "name": "Unknown Server",
+    "ip": "skyblock.net"
+  },
+  "dimension": "minecraft:overworld",
+  "data_version": 4903,
+  "origin": {
+    "x": -24251,
+    "y": 0,
+    "z": 29949
+  },
+  "size": {
+    "x": 120,
+    "y": 138,
+    "z": 103
+  },
+  "player_pos": {
+    "x": -24200,
+    "y": 122,
+    "z": 30010
+  },
+  "air_margin": 2,
+  "total_volume": 3554015,
+  "non_air_blocks": 49029,
+  "palette_size": 61,
+  "tile_entities": 4,
+  "entities": 10,
+  "cut_from": "island.litematic",
+  "planned_from": [
+    "lowland_planned.litematic",
+    "Lowland Portal.litematic",
+    "Lowland Ruinway.litematic",
+    "Lowland Sanctum.litematic",
+    "Lowland Capybara Flee.litematic",
+    "Lowland Flamingo.litematic"
+  ]
+}

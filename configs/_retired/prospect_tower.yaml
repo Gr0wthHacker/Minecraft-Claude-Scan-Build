@@ -1,0 +1,17 @@
+name: Prospect Tower
+gen: park
+params:
+  land: frontier
+  width: 9
+  tiers: 4
+  facing: south
+  at:
+  - 97619
+  - 203
+  - 80403
+  kind: tower
+  title: Prospect Tower
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

@@ -1,0 +1,88 @@
+# PF PLATEAU PLAQUES - what each thing is, and why it is there.
+#
+# Jack: "theres still no sense of what to do or why any of its there."
+#
+# ---------------------------------------------------------------------------------------------
+# THE MEASUREMENT, WHICH IS BLUNT
+#
+# Over the shipped land, the SCENERY - the coaster, the ridge, the canopy, the overgrowth, the
+# sauropod, the pterosaur, the dig and the rim:
+#
+#     133,170 blocks   88% of the land's mass   8 signs   14 interactive blocks
+#
+# A guest walks past a forty-thousand-block mountain and a fifty-block dinosaur and is told
+# nothing about either. That is not a shortage of content, it is a shortage of LABELS, and this
+# land is the one theme where the label is also correct in-world: a working dig labels its finds,
+# because labelling them is how the science is done.
+#
+# ---------------------------------------------------------------------------------------------
+# EVERY SITE IS MEASURED, NOT CHOSEN
+#
+# Each plaque stands at the nearest cell to its subject's own CENTROID that is (a) lawn, (b) four
+# courses clear, and (c) within two of paving - so it is beside a walk a guest is already on, and
+# it faces that walk. The three that are twenty-plus blocks from their subject are the mountain,
+# the canopy and the pterosaur, and that distance is the point: there is no walk up a mountain, so
+# you read those at its foot and look up.
+name: PF Plateau Plaques
+gen: claimrow
+params:
+  kind: claims
+  lot: [200, 170]
+  at: [0, 0]
+  under: out/Park Complete.litematic
+  previous: out/PF Plateau Plaques.litematic
+  sy: 8
+  way: {u: 0, w: 0}
+  claims: []
+  pits: []
+  worked: 0
+  clear: 0
+  flora: jungle
+  plant: {step: 0, density: 0.0, kinds: []}
+  # FIFTEEN CHARACTERS A LINE. The generator RAISES past it rather than truncating: this park has
+  # shipped "MINE CART ESCAP", "and prize windo" and "ore from the ad", and a clip is invisible in
+  # every render here and obvious in the first screenshot.
+  plaques:
+    - at: [49, 93]
+      facing: south
+      lines: ["THE BONE BED", "ribs and a", "femur, in situ", "dig No 1-3 west"]
+    - at: [106, 93]
+      facing: south
+      lines: ["THE CART LINE", "ore run, now", "a ride", "queue: north"]
+    - at: [96, 98]
+      facing: north
+      lines: ["LOST PLATEAU", "jungle over an", "old workings", "stay on the way"]
+    - at: [117, 98]
+      facing: north
+      lines: ["WATCH THE SKY", "pteranodon", "perched up top", "nests: the rim"]
+    - at: [152, 130]
+      facing: east
+      lines: ["THE CUTTING", "cart line bores", "clean through"]
+    - at: [199, 40]
+      facing: south
+      lines: ["THE SAUROPOD", "50 blocks tall", "browsed the", "canopy up top"]
+    # V172 was refused - the ground there belongs to another design, and a plaque whose footing
+    # is somebody else's build is the floating-sign failure this park has shipped twice. V168 is
+    # the nearest cell the ground probe actually accepts.
+    - at: [168, 122]
+      facing: west
+      lines: ["THE RIM WALK", "cliff path", "pteranodon", "nests below"]
+  seed: 41
+  title: THE PLAQUES
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: filler
+  style: frontier
+  narrative: >
+    Seven specimen plaques through the Lost Plateau - a stone footing, a stake and a board angled
+    to the walk - each naming what stands in front of it, what was found there and what a guest
+    can do about it.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

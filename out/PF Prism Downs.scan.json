@@ -1,0 +1,219 @@
+{
+  "origin": {
+    "x": 97519,
+    "y": 203,
+    "z": 80688
+  },
+  "size": {
+    "x": 154,
+    "y": 34,
+    "z": 212
+  },
+  "generated_by": "downs",
+  "kind": "downs",
+  "lot": [
+    154,
+    212
+  ],
+  "at": [
+    19,
+    388
+  ],
+  "land": "prismworks",
+  "facing": "west",
+  "profile_axis": "u",
+  "refused": 0,
+  "parts": {
+    "ground": {
+      "cells": 87775,
+      "turf": 11586,
+      "rock": 6669,
+      "max": 17
+    },
+    "dressing": {
+      "bush": 1269,
+      "fern": 1145,
+      "tree": 1712,
+      "lichen": 41,
+      "glow": 55,
+      "carpet": 1043,
+      "debris": 21,
+      "rocks": 75
+    },
+    "steps": 210,
+    "hills": 18255,
+    "mean": 4.81
+  },
+  "contract": "the whole of Prismworks and its reach as gentle downland: ground swelling from nothing at the plot's edges to a crest against the well's collar, so the shaft is a hole in a hill rather than a hole in a plate. Turf where soil holds, the land's own basalt where it does not, azalea and fern over it, and every cell walkable from the street that bounds it - no step anywhere is more than one course.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "landmark",
+      "style": "prismworks",
+      "narrative": "Prismworks as downland: turf and azalea swelling gently from the Midway boundary and from every street to a crest against the well's collar, basalt showing where the ground is too steep to hold soil, small dells cut into the shoulders, and a stepped scarp at the rim so the shaft is a hole in a hill rather than a hole in a plate.\n"
+    },
+    "metrics": {
+      "blocks": 93045,
+      "materials": 23,
+      "dominant_material_share": 0.5952,
+      "light_blocks": 0,
+      "massing": {
+        "width": 153,
+        "height": 22,
+        "depth": 209,
+        "fill_ratio": 0.1323
+      },
+      "silhouette": {
+        "top": {
+          "area": 18326,
+          "fill_ratio": 0.5613
+        },
+        "front": {
+          "area": 1719,
+          "fill_ratio": 0.3283
+        },
+        "side": {
+          "area": 2356,
+          "fill_ratio": 0.3269
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.9782,
+          0.0218,
+          0.0
+        ],
+        "top_silhouette_perimeter": 6271,
+        "surface_faces_per_block": 0.7295
+      },
+      "material_counts": {
+        "smooth_basalt": 55379,
+        "moss_block": 11531,
+        "cobbled_deepslate": 5681,
+        "blackstone": 4024,
+        "deepslate": 3642,
+        "tuff": 2829,
+        "cobbled_deepslate_slab": 2292,
+        "fern": 1144,
+        "moss_carpet": 1043,
+        "azalea_leaves": 977,
+        "blackstone_slab": 943,
+        "azalea": 905
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "169526930d2572c00a773104ab270af9cc3037501fa443b82f446a5ea3fd8be4",
+    "generator_source_digest": "5a80cd8ff3242af25dcaf286f7338bfca33c4e76007adcbe39f5b9f7dc8c3ae6",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 63.491618,
+    "blocks": 93045,
+    "blocks_per_second": 1465.47
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "path"
+    ],
+    "blocks": 93045,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "scenic_support",
+    "player_verbs": [
+      "walk the downs",
+      "stand on the crest and look into the shaft",
+      "sit in a dell"
+    ],
+    "outcome": "Prismworks stops being a hole in a lawn.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: blackstone",
+    "not in the provisional skyblock-1.19 list: blackstone_slab",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate_slab",
+    "not in the provisional skyblock-1.19 list: deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate_tile_slab",
+    "not in the provisional skyblock-1.19 list: deepslate_tiles",
+    "not in the provisional skyblock-1.19 list: pearlescent_froglight",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_brick_slab",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: smooth_basalt",
+    "not in the provisional skyblock-1.19 list: tuff"
+  ],
+  "file": "PF Prism Downs.litematic",
+  "name": "PF Prism Downs"
+}

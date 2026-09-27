@@ -193,7 +193,15 @@ def check_supports(m: Model, ground_block: str | None = None) -> list[Problem]:
             pass
         elif n in ("lantern", "soul_lantern"):
             if p.get("hanging") == "true":
-                if not (_held("lantern", "above", nm(x, y + 1, z)) or _is_chain(nm(x, y + 1, z))):
+                # A HANGING LANTERN USES THE SAME CENTRE TEST AS A STANDING ONE, just on the
+                # block ABOVE: `LanternBlock.canSurvive` calls canSupportCenter on that block's
+                # DOWN face. A fence post and a wall both have a solid centre column, so a
+                # lantern hangs under either in game - this rejected 39 perfectly legal lamps
+                # whose arm is a fence, which is the same shape of error as the one this file
+                # already records about standing a lantern on a slab.
+                above = nm(x, y + 1, z)
+                if not (_held("lantern", "above", above) or _is_chain(above)
+                        or _center_support(above)):
                     out.append(Problem("lantern", x, y, z, "hanging from air"))
             elif not (_held("lantern", "below", nm(x, y - 1, z)) or _center_support(nm(x, y - 1, z))):
                 out.append(Problem("lantern", x, y, z, f"standing on {nm(x, y - 1, z)}"))
@@ -446,7 +454,11 @@ def check_climb(m: Model, *, max_step: float = 0.5, max_drop: float = 3.5) -> li
         base = math.ceil(h)
         return not any((x, base + k, z) in occ for k in (0, 1))
 
-    start = min((h, x, z) for (x, z), v in surf.items() for h in v)
+    # the lowest surface a player can STAND ON. A pier's bottom course has a surface too, and
+    # it is covered by the course above it; starting the walk there reports a stair that is
+    # perfectly walkable from its own pad as unclimbable.
+    standable = [(h, x, z) for (x, z), v in surf.items() for h in v if head(x, z, h)]
+    start = min(standable) if standable else min((h, x, z) for (x, z), v in surf.items() for h in v)
     seen = {(start[1], start[2], start[0])}
     q = collections.deque(seen)
     while q:

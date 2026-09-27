@@ -1,0 +1,738 @@
+[
+  {
+    "owner": "PF Broken Plateau",
+    "world": [
+      97542,
+      203,
+      80340
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Restore the ground layer lamp base/shaft; landscape yields to furniture."
+  },
+  {
+    "owner": "PF Broken Plateau",
+    "world": [
+      97542,
+      204,
+      80340
+    ],
+    "expected": [
+      "minecraft:moss_block",
+      []
+    ],
+    "replace": "air",
+    "reason": "Restore the ground layer lamp base/shaft; landscape yields to furniture."
+  },
+  {
+    "owner": "PF Park Green",
+    "world": [
+      97504,
+      203,
+      80369
+    ],
+    "expected": [
+      "minecraft:red_tulip",
+      []
+    ],
+    "replace": "air",
+    "reason": "Restore the ground layer lamp base/shaft; landscape yields to furniture."
+  },
+  {
+    "owner": "PF Midway Garden",
+    "world": [
+      97575,
+      203,
+      80664
+    ],
+    "expected": [
+      "minecraft:smooth_stone",
+      []
+    ],
+    "replace": "air",
+    "reason": "Restore the ground layer lamp base/shaft; landscape yields to furniture."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97621,
+      203,
+      80872
+    ],
+    "expected": [
+      "minecraft:smooth_basalt",
+      []
+    ],
+    "replace": "air",
+    "reason": "Restore the ground layer lamp base/shaft; landscape yields to furniture."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97629,
+      203,
+      80872
+    ],
+    "expected": [
+      "minecraft:moss_block",
+      []
+    ],
+    "replace": "air",
+    "reason": "Restore the ground layer lamp base/shaft; landscape yields to furniture."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97522,
+      203,
+      80707
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97609,
+      203,
+      80728
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97613,
+      203,
+      80728
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97633,
+      203,
+      80728
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97614,
+      203,
+      80729
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97634,
+      203,
+      80729
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97525,
+      204,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97591,
+      204,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97601,
+      204,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97613,
+      204,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97647,
+      204,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97608,
+      204,
+      80728
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97612,
+      204,
+      80728
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97613,
+      204,
+      80728
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97636,
+      204,
+      80728
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97526,
+      205,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97558,
+      205,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97592,
+      205,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97600,
+      205,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97601,
+      205,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97602,
+      205,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97612,
+      205,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97637,
+      205,
+      80727
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97637,
+      205,
+      80728
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97585,
+      205,
+      80729
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97599,
+      205,
+      80729
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97646,
+      205,
+      80729
+    ],
+    "expected": [
+      "minecraft:cobbled_deepslate",
+      []
+    ],
+    "replace": "air",
+    "reason": "Keep three courses of player clearance over the paved route."
+  },
+  {
+    "owner": "PF Frontier Scatter",
+    "world": [
+      97632,
+      203,
+      80328
+    ],
+    "expected": [
+      "minecraft:cobblestone",
+      []
+    ],
+    "replace": "moss_block",
+    "reason": "Give the planted trunk a soil pocket instead of a flower or paving block."
+  },
+  {
+    "owner": "PF Frontier Scatter",
+    "world": [
+      97636,
+      203,
+      80328
+    ],
+    "expected": [
+      "minecraft:cobblestone",
+      []
+    ],
+    "replace": "moss_block",
+    "reason": "Give the planted trunk a soil pocket instead of a flower or paving block."
+  },
+  {
+    "owner": "PF Park Green",
+    "world": [
+      97604,
+      203,
+      80478
+    ],
+    "expected": [
+      "minecraft:dandelion",
+      []
+    ],
+    "replace": "moss_block",
+    "reason": "Give the planted trunk a soil pocket instead of a flower or paving block."
+  },
+  {
+    "owner": "PF Water Claim Lake",
+    "world": [
+      97607,
+      202,
+      80486
+    ],
+    "expected": [
+      "minecraft:stone",
+      []
+    ],
+    "replace": "moss_block",
+    "reason": "Give the planted trunk a soil pocket instead of a flower or paving block."
+  },
+  {
+    "owner": "Welcome Court",
+    "world": [
+      97532,
+      203,
+      80584
+    ],
+    "expected": [
+      "minecraft:red_wool",
+      []
+    ],
+    "replace": "moss_block",
+    "reason": "Give the planted trunk a soil pocket instead of a flower or paving block."
+  },
+  {
+    "owner": "Welcome Court",
+    "world": [
+      97570,
+      203,
+      80616
+    ],
+    "expected": [
+      "minecraft:red_wool",
+      []
+    ],
+    "replace": "moss_block",
+    "reason": "Give the planted trunk a soil pocket instead of a flower or paving block."
+  },
+  {
+    "owner": "PF Water Wyrm Garden",
+    "world": [
+      97591,
+      202,
+      80707
+    ],
+    "expected": [
+      "minecraft:stone",
+      []
+    ],
+    "replace": "moss_block",
+    "reason": "Give the planted trunk a soil pocket instead of a flower or paving block."
+  },
+  {
+    "owner": "PF Lost Plateau",
+    "world": [
+      97579,
+      223,
+      80424
+    ],
+    "expected": [
+      "minecraft:jungle_leaves",
+      [
+        [
+          "distance",
+          "7"
+        ],
+        [
+          "persistent",
+          "true"
+        ],
+        [
+          "waterlogged",
+          "false"
+        ]
+      ]
+    ],
+    "replace": "jungle_log",
+    "reason": "Restore trunk segments overwritten by a neighbouring crown; connect to existing soil/stump."
+  },
+  {
+    "owner": "PF Lost Plateau",
+    "world": [
+      97579,
+      222,
+      80424
+    ],
+    "expected": [
+      "minecraft:jungle_leaves",
+      [
+        [
+          "distance",
+          "7"
+        ],
+        [
+          "persistent",
+          "true"
+        ],
+        [
+          "waterlogged",
+          "false"
+        ]
+      ]
+    ],
+    "replace": "jungle_log",
+    "reason": "Restore trunk segments overwritten by a neighbouring crown; connect to existing soil/stump."
+  },
+  {
+    "owner": "PF Lost Plateau",
+    "world": [
+      97579,
+      221,
+      80424
+    ],
+    "expected": [
+      "minecraft:jungle_leaves",
+      [
+        [
+          "distance",
+          "7"
+        ],
+        [
+          "persistent",
+          "true"
+        ],
+        [
+          "waterlogged",
+          "false"
+        ]
+      ]
+    ],
+    "replace": "jungle_log",
+    "reason": "Restore trunk segments overwritten by a neighbouring crown; connect to existing soil/stump."
+  },
+  {
+    "owner": "PF Lost Plateau",
+    "world": [
+      97598,
+      216,
+      80449
+    ],
+    "expected": [
+      "minecraft:flowering_azalea_leaves",
+      [
+        [
+          "distance",
+          "7"
+        ],
+        [
+          "persistent",
+          "true"
+        ],
+        [
+          "waterlogged",
+          "false"
+        ]
+      ]
+    ],
+    "replace": "jungle_log",
+    "reason": "Restore trunk segments overwritten by a neighbouring crown; connect to existing soil/stump."
+  },
+  {
+    "owner": "PF Lost Plateau",
+    "world": [
+      97598,
+      215,
+      80449
+    ],
+    "expected": [
+      "minecraft:jungle_leaves",
+      [
+        [
+          "distance",
+          "7"
+        ],
+        [
+          "persistent",
+          "true"
+        ],
+        [
+          "waterlogged",
+          "false"
+        ]
+      ]
+    ],
+    "replace": "jungle_log",
+    "reason": "Restore trunk segments overwritten by a neighbouring crown; connect to existing soil/stump."
+  },
+  {
+    "owner": "PF Prism Downs",
+    "world": [
+      97651,
+      207,
+      80712
+    ],
+    "expected": [
+      "minecraft:azalea_leaves",
+      [
+        [
+          "distance",
+          "1"
+        ],
+        [
+          "persistent",
+          "true"
+        ],
+        [
+          "waterlogged",
+          "false"
+        ]
+      ]
+    ],
+    "replace": "oak_log",
+    "reason": "Restore trunk segments overwritten by a neighbouring crown; connect to existing soil/stump."
+  },
+  {
+    "owner": "PF Park Green",
+    "world": [
+      97558,
+      203,
+      80566
+    ],
+    "expected": [
+      "minecraft:moss_carpet",
+      []
+    ],
+    "replace": "air",
+    "reason": "Clear soft ground cover beneath the new bunting support."
+  }
+]

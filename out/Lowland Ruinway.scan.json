@@ -1,0 +1,33 @@
+{
+  "origin": {
+    "x": -24205,
+    "y": 38,
+    "z": 30003
+  },
+  "size": {
+    "x": 55,
+    "y": 19,
+    "z": 28
+  },
+  "generated_by": "ruinway",
+  "kind": "ruinway",
+  "profile_view": "top",
+  "facing": [
+    1,
+    0
+  ],
+  "features_built": {
+    "slabs": 71,
+    "stairs": 26,
+    "gaps": 9,
+    "gatehouse": 73,
+    "colonnade": 18,
+    "overlook": 19,
+    "lip": 10,
+    "posts": 2,
+    "steps": 2,
+    "lantern_posts": 2
+  },
+  "file": "Lowland Ruinway.litematic",
+  "name": "Lowland Ruinway"
+}

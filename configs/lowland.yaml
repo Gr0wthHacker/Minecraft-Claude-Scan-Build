@@ -1,0 +1,91 @@
+# The ground far below the island - a third tier under the plate (Y201) and the void isle (Y86-110).
+#
+# Y40 is empty void in the 2026-08-18 capture: the lowest non-vine block anywhere in the world is
+# Y86, so this lands in clear air with ~46 blocks under the void isle. The only things it meets are
+# eight vine strands that dangle from the plate to bedrock - hence context_clear/verify_replaceable.
+#
+# THE SCENE IS SEPARATE. lowland_heron / lowland_flamingo / lowland_capybara_flee / lowland_bat are
+# NOT regenerated with this file and are deliberately left where they were. The landform below moved
+# the ground under all of them - the heron by -2, the capybara by +2 - so they are out of register
+# until they are re-sited, which is its own job. Do not treat their current `feet` as correct.
+#
+# The OUTLINE is not invented: it is the island's own column shadow, read out of the capture, holes
+# filled and reduced to one connected piece: 5,773 columns spanning 99x99, fully inside the scan
+# (nothing touches the border, so no side is clipped). Surface Y36-41, body down to Y24.
+name: Lowland
+gen: lowland
+params:
+  under: island.litematic
+  top_y: 40
+  relief: 3                 # the gentle roll UNDER the landform; the massif does the big moves
+  noise_scale: 11           # broad rolls, so large level areas survive for statues
+  # A LANDFORM, not a table. Ground climbs toward the south-east, falls across the middle and
+  # drowns under the void isle. Where each can go is measured: ceiling over the lowland runs 94-112
+  # in the centre-west (void isle Y86-102, ladybird Y104-121) against 138-999 in the east and
+  # south-east, so the massif rises where there is room and the basin - which is a hole, and does
+  # not care - takes the low-ceilinged ground.
+  massif:
+    dir: [1, 1]             # rising toward +x/+z: the south-east quarter
+    rise: 15
+    start: 0.42             # nothing happens below this along the axis: that band stays FLAT
+    rough: 4                # roughness that grows with the ramp, so only the high ground breaks up
+  basin:
+    at: [-24212, 30004]     # under the void isle, the lowest ceiling on the whole plate
+    r: 26
+    depth: 8
+    water_y: 37             # three under the nominal surface
+    # ICE, NOT WATER. A litematica printer places blocks out of your inventory and water is not a
+    # block - 1,111 cells of pond is 1,111 bucket trips. Ice is a block, stacks to 64, and breaking
+    # one without silk touch leaves a water SOURCE, so the whole sheet converts by mining it. Both
+    # courses are ice, not just the top: with only the top layer placed you would be back to
+    # bucketing the 430 cells underneath, and water falling from a source sheet is FLOWING water,
+    # not sources.
+    #
+    # The guard lanterns below stay, and now do a second job: a lantern is light 15, ice melts above
+    # block light 11, so the ice within about three blocks of a guard turns itself into water with
+    # no mining at all. After the sheet is water, the guards are back to their original job of
+    # keeping it that way.
+    fill: ice
+    max_depth: 2            # a pond over a visible bed, not a pit someone filled. And it is BOUNDED
+                            # by finish.hollow's shell: hollow keeps 3 courses measured from the
+                            # model's exterior and the water counts as mass, so a bed 4 down from
+                            # the surface is interior and gets carved - the pond then ships as a
+                            # skin of water floating over nothing, with the guards under it. Two
+                            # deep puts the bed third from the top, inside the shell.
+    guard: 7                # submerged lanterns: this water WILL freeze without them
+  rim_band: 10
+  rim_drop: 3               # the ground falls away at the edge rather than ending in a wall
+  depth: 16                 # layers under the surface in the middle
+  rim_depth: 3              # ... thinning to this at the rim
+  sub_depth: 2              # dirt between the soil and the rock
+  ragged: 0.10              # bites out of the edge, so it reads as land not as a stencil
+  # NO PLANTING PASS. Bonemeal does this job in the world faster than the printer can place it: the
+  # ground is `moss_block` and bonemeal on moss spreads it and grows moss carpet, short grass, ferns
+  # and azalea bushes for free. Placing 1,569 one-block plants by hand is 1,569 printer cells and a
+  # trip's worth of stock for something a stack of bonemeal does in a minute.
+  #
+  # The soil itself is untouched - moss_block, mossy_cobblestone, mossy_stone_bricks are the GROUND
+  # and are what bonemeal needs to have something to spread from.
+  carpet: 0
+  grass: 0
+  fern: 0
+  azalea: 0
+  flower: 0
+  trees: 6
+  vine_rate: 0.16
+  vine_len: [3, 9]
+  lantern_step: 9           # no daylight reaches Y40
+  seed: 0
+origin_lock: false          # LOUD: sits at Y24-47, ~105 blocks below every other lock corner
+finish:
+  cheapen: true
+  hollow: {shell: 3}
+  ground: false
+  drop_floaters: false
+  context_clear: [vine]     # the eight old strands pass straight through this space
+  verify_replaceable: [vine]
+  # Y0-70 cut of the newest scan. No existing band reached this low - island_void stops at Y60 -
+  # and the design has to be audited in context like everything else (rule 2). Re-cut with:
+  #   python -m mcbuild scan island --cut -24251 0 29949 -24149 70 30051 \
+  #     --out out/island_lower.litematic --name-out island_lower
+  verify_against: out/island_lower.litematic

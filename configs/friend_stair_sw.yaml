@@ -1,0 +1,26 @@
+# Friend island (2026-09-04): the SW corner's two notches joined by mirrored curved flights
+# that follow the rim outside the waterfall, meet at the curtain's middle on a stone pier, and
+# continue down as one stair. See mcbuild/gen/arcstair.py for the shape and the rules.
+name: Friend Stair SW
+gen: arcstair
+params:
+  under: out/friendisland.litematic
+  center: [-22400, -97400]              # the platform's centre cell, where the log spokes cross
+  corner: SW
+  deck_surface: 199.0
+  notch: [-16, -15, -5, -4]             # canonical NW layout; the corner is a sign flip of it
+  exit: [-16, -6]
+  r_in: 17                              # just outside the curtain's outer row (r 16.2 at its ends)
+  width: 3
+  pier: 15                              # pier centre 21 out along the diagonal, in the curtain's middle
+  tail_width: 3
+  tail_courses: 10                      # the single stair ends on a pad; nothing is below yet
+  torch_every: 4
+origin_lock: [-22430, 150, -97430]
+finish:
+  climb: true
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: [out/friendisland.litematic]

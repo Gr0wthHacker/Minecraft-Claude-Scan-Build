@@ -1,0 +1,102 @@
+# PF VANTAGE FRONTIER LOOKOUT - the Frontier's high point, and the west end of the park's axis.
+#
+# 17 x 17 at V130 / U0, in the exit-and-observation band behind the Trailhead Gate. Four flights
+# of eleven treads; the deck's walking surface is 44 courses over the lawn at world Y247.
+#
+# ------------------------------------------------------------------------------------------
+# THE SITE WAS MEASURED. Every column of V130-146 / U0-16 is free lawn - nothing built, no
+# paving, no verge, no lamp, no lamp arm - and the nearest street is the back promenade's own
+# verge one cell off the tower's west face, which is where its door is. The lot sits in the
+# programmed observation band (V130-153), which is what that band is FOR, and it is the only
+# free 17 x 17 in the Frontier that touches a guest street at all: the promenade is absent over
+# the coaster's column (U98-169) and the whole of the band behind it is eight cells from the
+# staff lane and nothing else.
+#
+# ------------------------------------------------------------------------------------------
+# WHAT YOU SEE FROM IT
+#
+# It stands at the park's WEST END and looks back down the whole length of it - the Trailhead
+# Gate and Boomtown below, the Mine Coaster's switchbacks filling the middle distance at
+# U99-169, then the Claim Line reach, the Midway with the Sky Lift and the Circus balloon, the
+# second reach, and 470 blocks away the Prism Ascent's spire with the Prism Summit's lit crown
+# beside it. The two towers are the two ends of one axis and each is the other's view.
+#
+# Nearer to, the deck is ten courses under the Mine Coaster's own top, so the ride is read
+# ACROSS rather than over: from up here the switchbacks are a drawing rather than a scaffold,
+# which is the one angle the coaster has never had.
+#
+# ------------------------------------------------------------------------------------------
+# THE CLIMB
+#
+#   ground   in through the west door off the promenade verge, under a lit jamb
+#   S1  y11  a room, a bench, a lantern, barred window slots on all four faces
+#   S2  y22  ...and again, turned 180 degrees
+#   S3  y33  THE LOGGIA: the whole south face open onto the coaster, balustrade at the sill
+#   S4  y44  the deck: half of it open to the weather, half of it a timber watch cabin with a
+#            hipped dark-oak roof, a grille window and a froglight
+#
+# The cabin is HALF the deck on purpose. A cabin filling it is a room with windows, and what a
+# lookout is for is standing outside in the wind; a deck with no shelter at all is a parapet.
+name: PF Vantage Frontier Lookout
+gen: park_vantage
+params:
+  kind: tower
+  land: frontier
+  at: [130, 0]
+  size: [17, 17]
+  rise: 11
+  storeys: 4
+  door: west            # onto the back promenade's verge at V129
+  crown: cabin
+  look: east            # back down the whole 600
+  loggia:
+    - {level: 3, face: south}
+  # **THE TOWER HAD ZERO VERBS.** Measured over the shipped land it is 15.3 blocks per column and
+  # 56 courses tall - the densest thing in the Frontier - and you climb it to find nothing at all.
+  # For an observation post over a plateau full of animals the answer is not a game: it is the
+  # board that tells you what you are looking AT, and the bell a lookout rings. Fifteen characters
+  # a line, which this park has clipped twice.
+  deck_board:
+    - ["THE PLATEAU", "north-east", "sauropod, rim"]
+    - ["THE BONE BED", "south-west", "dig No 1-3"]
+    - ["WATCH THE SKY", "pteranodon", "nests up top"]
+  deck_bell: true
+  seed: 7
+roles: [building]
+anchors:
+  - {name: street_front, kind: visual_front, position: [0, 1, 8], facing: west, width: 3}
+  - {name: entry, kind: entry, position: [0, 1, 8], facing: west, width: 3}
+  - {name: summit, kind: deck, position: [8, 44, 8], facing: up, width: 15}
+design:
+  purpose: landmark
+  hierarchy: supporting
+  style: frontier
+  focal_face: west
+  narrative: >
+    A timber-framed watch tower: stone-brick masonry with spruce pilasters at every fourth cell,
+    four courses of barred window at every storey, a chiseled string course at every floor, a
+    corbelled oversail, an open loggia on the south face looking onto the Mine Coaster, and a
+    deck forty-four courses over the lawn carrying a hipped-roof cabin on one half and open
+    parapet on the other.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [climb the stair, stop at the loggia, stand on the deck, shelter in the cabin]
+  outcome: >
+    The Frontier's only high place, and the west end of the park's long view: from the deck the
+    Mine Coaster reads as a drawing rather than a scaffold, and the Prism Summit's crown is
+    visible 470 blocks east down the spine.
+  reset: >
+    Nothing is consumed and no state is held. The stair is walkable in both directions.
+  service_access: >
+    None is needed and none is claimed: there is no plant and no mechanism in this geometry.
+  bypass: >
+    Entered from the promenade verge and walked past entirely without entering.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

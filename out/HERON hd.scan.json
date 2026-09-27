@@ -1,0 +1,30 @@
+{
+  "origin": {
+    "x": -24200,
+    "y": 37,
+    "z": 29990
+  },
+  "size": {
+    "x": 87,
+    "y": 122,
+    "z": 80
+  },
+  "generated_by": "heron",
+  "kind": "heron",
+  "scale": 1.9,
+  "facing": [
+    0,
+    1
+  ],
+  "features_built": {
+    "legs": 2,
+    "toes": 8,
+    "neck": 1,
+    "beak": 1,
+    "wing_courses": 22,
+    "crest": 2,
+    "eyes": 2
+  },
+  "file": "HERON hd.litematic",
+  "name": "HERON hd"
+}

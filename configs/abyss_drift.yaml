@@ -1,0 +1,45 @@
+# THE ABYSS DRIFT - the field the Abyss Squid swims through, filling the empty void under the
+# whole park. See the head of mcbuild/gen/abyssdrift.py for the why.
+#
+# Jack: "lets add other objects underneath in the empty gaps as appropriate, small rocks floating
+# or something else, think critically." Chosen: a jellyfish (its own design) and the WHOLE void.
+#
+# THE SITE IS THE PARK'S OWN SHADOW, Y100-190. 117,350 of 120,000 columns empty, pitch dark, and
+# seen only from the two Prism Well helices and the pool floor - so the field is graded: dense and
+# bright just outside the fall column, sparse dark silhouettes in the far south.
+#
+# IT HANGS IN VOID like the squid: every cell floats, so the in-context audit reports free-floating
+# clusters and that is correct. It excludes the well's r56 fall column, the squid's own footprint
+# (loaded from its litematic, plus clearance), and every park cell in the band.
+name: Abyss Drift
+gen: abyssdrift
+params:
+  seed: 11
+  at: [97500, 100, 80300]
+  size: [200, 91, 600]
+  well: [97590, 80815, 56]
+  squid: out/Abyss Squid.litematic
+  squid_clear: 6
+  park: out/Park Complete.litematic
+  park_clear: 4
+  avoid:
+    - out/Abyss Jelly.litematic     # keep the field off the jellyfish
+
+  # PRINTING SCAFFOLD. The field hangs free (194 islands, nothing to place against), so for
+  # printing every island is fused by an MST of connectors in a distinct block. Print the design,
+  # then `delete all moss_block` in game to strip every connector and leave the rocks. Set
+  # scaffold: false to build the clean art with no connectors.
+  scaffold: true
+  scaffold_block: moss_block
+
+# no `roles`: like the squid, this is a bespoke void field, not a construction/path/ride, and
+# the drift is deliberately NOT one connected silhouette, so `sculpture` would mis-audit it.
+
+finish:
+  cheapen: false          # every block is already cheap tier and 1.19; the palette is the squid's
+  hollow: false
+  ground: false
+  drop_floaters: false    # it hangs in the dead void - that is the design
+  verify_against: out/Park Complete.litematic
+
+origin_lock: false        # LOUD: it lives in the dead void at Y100-190, its own place

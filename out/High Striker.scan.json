@@ -1,0 +1,299 @@
+{
+  "origin": {
+    "x": 97563,
+    "y": 202,
+    "z": 80594
+  },
+  "size": {
+    "x": 15,
+    "y": 13,
+    "z": 12
+  },
+  "generated_by": "arcade",
+  "kind": "strength",
+  "footprint": [
+    15,
+    12
+  ],
+  "courses": [
+    -1,
+    11
+  ],
+  "land": "midway",
+  "facing": "south",
+  "contract": "a hit of strength L lights the bottom L of 8 lamps; only L >= 8 reaches the bell, and only that pays, once",
+  "unverified": [
+    "A TARGET'S OUTPUT IS AN INPUT YOU STATE - the simulator has no entities and cannot swing at it."
+  ],
+  "budget": {
+    "redstone_lamp": 8
+  },
+  "concealed": 40,
+  "visible_redstone": 0,
+  "width": 13,
+  "depth": 5,
+  "height": 20,
+  "rungs": 8,
+  "target": [
+    97574,
+    205,
+    80601
+  ],
+  "bell": [
+    97564,
+    212,
+    80601
+  ],
+  "lamps": [
+    [
+      97572,
+      205,
+      80602
+    ],
+    [
+      97571,
+      206,
+      80602
+    ],
+    [
+      97570,
+      207,
+      80602
+    ],
+    [
+      97569,
+      208,
+      80602
+    ],
+    [
+      97568,
+      209,
+      80602
+    ],
+    [
+      97567,
+      210,
+      80602
+    ],
+    [
+      97566,
+      211,
+      80602
+    ],
+    [
+      97565,
+      212,
+      80602
+    ]
+  ],
+  "top": [
+    97565,
+    212,
+    80601
+  ],
+  "droppers": [
+    [
+      97565,
+      213,
+      80595
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97574,
+      205,
+      80601
+    ]
+  ],
+  "outputs": [
+    [
+      97564,
+      212,
+      80601
+    ],
+    [
+      97565,
+      213,
+      80595
+    ]
+  ],
+  "stock": {
+    "the dropper": "the prize a maximum hit pays"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "dropper"
+      ],
+      "light": [
+        "redstone_lamp"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_lamp",
+        "redstone_wire",
+        "repeater",
+        "target"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "High Striker serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 257,
+      "materials": 12,
+      "dominant_material_share": 0.5992,
+      "light_blocks": 8,
+      "massing": {
+        "width": 15,
+        "height": 13,
+        "depth": 12,
+        "fill_ratio": 0.1098
+      },
+      "silhouette": {
+        "top": {
+          "area": 121,
+          "fill_ratio": 0.6722
+        },
+        "front": {
+          "area": 92,
+          "fill_ratio": 0.4718
+        },
+        "side": {
+          "area": 59,
+          "fill_ratio": 0.3782
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 154,
+        "blackstone": 42,
+        "oak_log": 18,
+        "redstone_wire": 14,
+        "white_wool": 12,
+        "redstone_lamp": 8,
+        "comparator": 2,
+        "oak_wall_sign": 2,
+        "repeater": 2,
+        "bell": 1,
+        "dropper": 1,
+        "target": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "2721499ec41fe058150abe9215e8ba90e9484101e42adea9dd011f39ab8bdaf0",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97570,
+        204,
+        80607
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 257,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dropper",
+    "unsupported on skyblock-1.19: redstone_lamp",
+    "unsupported on skyblock-1.19: target"
+  ],
+  "file": "High Striker.litematic",
+  "name": "High Striker"
+}

@@ -1,0 +1,317 @@
+{
+  "origin": {
+    "x": 97523,
+    "y": 203,
+    "z": 80731
+  },
+  "size": {
+    "x": 130,
+    "y": 25,
+    "z": 163
+  },
+  "generated_by": "park_frontage",
+  "kind": "park_frontage",
+  "land": "prismworks",
+  "pieces": [
+    {
+      "kind": "marquee",
+      "title": "PRISMWORKS",
+      "signs": 1,
+      "lamps": 4,
+      "span": 5,
+      "piers": 2,
+      "frontage": [
+        -3,
+        3
+      ],
+      "height": 10,
+      "at": [
+        24,
+        468
+      ],
+      "facing": "west",
+      "land": "prismworks",
+      "name": "Prismworks Gate"
+    },
+    {
+      "kind": "marquee",
+      "title": "THE PRISM WELL",
+      "signs": 1,
+      "lamps": 4,
+      "span": 5,
+      "piers": 2,
+      "frontage": [
+        -3,
+        3
+      ],
+      "height": 10,
+      "at": [
+        24,
+        524
+      ],
+      "facing": "west",
+      "land": "prismworks",
+      "name": "Prism Well"
+    },
+    {
+      "kind": "sight/pylon",
+      "height": 20,
+      "footprint": [
+        7,
+        7
+      ],
+      "at": [
+        58,
+        435
+      ],
+      "facing": "west",
+      "land": "prismworks",
+      "name": "Well Relay One"
+    },
+    {
+      "kind": "sight/pylon",
+      "height": 16,
+      "footprint": [
+        7,
+        7
+      ],
+      "at": [
+        86,
+        435
+      ],
+      "facing": "west",
+      "land": "prismworks",
+      "name": "Well Relay Two"
+    },
+    {
+      "kind": "sight/lens",
+      "height": 10,
+      "footprint": [
+        9,
+        3
+      ],
+      "at": [
+        110,
+        435
+      ],
+      "facing": "west",
+      "land": "prismworks",
+      "name": "Well Lens"
+    },
+    {
+      "kind": "sight/pylon",
+      "height": 24,
+      "footprint": [
+        7,
+        7
+      ],
+      "at": [
+        30,
+        534
+      ],
+      "facing": "west",
+      "land": "prismworks",
+      "name": "Rig Relay"
+    },
+    {
+      "kind": "sight/pylon",
+      "height": 19,
+      "footprint": [
+        7,
+        7
+      ],
+      "at": [
+        70,
+        590
+      ],
+      "facing": "west",
+      "land": "prismworks",
+      "name": "Crown Relay"
+    },
+    {
+      "kind": "portal/exit",
+      "title": "STAFF ONLY",
+      "signs": 1,
+      "lamps": 0,
+      "height": 6,
+      "at": [
+        151,
+        570
+      ],
+      "facing": "west",
+      "land": "prismworks",
+      "name": "Service Gallery staff gate"
+    }
+  ],
+  "piece_count": 8,
+  "signs": 8,
+  "refused_signs": [],
+  "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
+  "unverified": [
+    "not placed in game: every judgement here is off the shipped litematics and the repo's own renderer, which draws a fence, a wall and an end rod as full cubes"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "warped_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "prismworks",
+      "narrative": "Two slim signal arches mark the real Prismworks avenues. The Well owns its descent interfaces; roadside relays remain landscape accents, not entrances.\n"
+    },
+    "metrics": {
+      "blocks": 930,
+      "materials": 11,
+      "dominant_material_share": 0.3688,
+      "light_blocks": 22,
+      "massing": {
+        "width": 130,
+        "height": 25,
+        "depth": 163,
+        "fill_ratio": 0.0018
+      },
+      "silhouette": {
+        "top": {
+          "area": 202,
+          "fill_ratio": 0.0095
+        },
+        "front": {
+          "area": 311,
+          "fill_ratio": 0.0957
+        },
+        "side": {
+          "area": 347,
+          "fill_ratio": 0.0852
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.7194,
+          0.1914,
+          0.0892
+        ],
+        "top_silhouette_perimeter": 363,
+        "surface_faces_per_block": 2.2624
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 343,
+        "black_wool": 197,
+        "cyan_wool": 138,
+        "smooth_basalt": 117,
+        "light_blue_wool": 24,
+        "polished_blackstone_brick_slab": 24,
+        "soul_lantern": 22,
+        "pearlescent_froglight": 21,
+        "polished_blackstone_brick_stairs": 20,
+        "end_rod": 16,
+        "warped_wall_sign": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "18f9376bbe3a04526b065d2361841495ac0e9c2aae4ae9a92dc681b03b95ceab",
+    "generator_source_digest": "a489ef6ff8b881cb9b7606057100aabb1fac48a1ef3fd3114f5bc41a4e7b2ae8",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 62.884351,
+    "blocks": 930,
+    "blocks_per_second": 14.79
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 930,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "PF Front Prismworks.litematic",
+  "name": "PF Front Prismworks"
+}

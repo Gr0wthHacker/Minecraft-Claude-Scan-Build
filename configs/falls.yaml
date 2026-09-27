@@ -1,0 +1,60 @@
+# THE FALLS - the island's water, made legible from the plate to the harbor (2026-08-23).
+#
+# The fall was already there and it was an ACCIDENT. Measured off the 15:54 scan: the plate's
+# pond drains through a surface stream along X-24209 at Y203, steps to Y202 at Z29992, and at
+# Z29991 runs out of island - one column of water falling 107 courses, Y202 to Y96, into the
+# void isle's pond. No lip, no basin, no outlet: water leaving over moss.
+#
+# This design builds nothing that falls. It cuts the CHANNEL that lets the isle's cistern
+# spill, and Minecraft does the rest - which is why it costs so little. The chain then runs
+# plate pond -> stream -> head -> 107-course fall -> the isle's pond -> cut channel -> notch
+# -> ~60-course fall -> the lowland harbor, and the three levels of this island are joined by
+# one element for the first time.
+#
+# THE SITE WAS MEASURED, NOT CHOSEN:
+#   * the isle's pond is fully enclosed - 132 cells at Y99, not one with a clear drop under
+#     it, so there is nowhere it spills by itself
+#   * the isle's south rim is a thin SHELF - rock Y96-99, open void below Y95 - so the notch
+#     is four courses, not the ten the pond's own bed would have cost
+#   * the axolotl lies along the west bank (X-24246..-24221): every spill west of X-24216
+#     lands within 5 blocks of it, so the tail leaves from the SE corner
+#   * at X-24212 the fall hangs ~13 blocks off the Lowland Stair, so you descend beside it
+#
+# BUILD ORDER MATTERS AND THE NOTCH IS LAST. It is the plug: pull it before the channel is
+# dressed and you flood the trench you are standing in. `/cscan dig` lists every cell.
+name: Falls
+gen: falls
+params:
+  under: out/island_full.litematic
+
+  # the outfall on the plate rim: cheek piers flanking the mouth, and its bed dressed, so the
+  # stream leaves the island through a made opening rather than over an eroded moss edge
+  head: true
+  head_axis_x: -24209
+  head_lip_z: 29992
+  head_courses: 2
+
+  # the cistern channel, cut at the isle pond's own surface. One lane wide for the run (the
+  # cut stays small) opening to three at the apron, so the water arrives spread and the tail
+  # falls three wide - a 60-course thread one block wide does not read from the lowland floor.
+  cistern: true
+  water_y: 99
+  lanes: [-24213, -24212, -24211]
+  channel_from_z: 29997
+  apron_from_z: 30000
+  apron_to_z: 30001
+  notch_z: 30002
+  notch_depth: 4
+  open_above: 2
+
+# LOUD NOTE, per rule 1: this design does NOT use the global origin_lock. It spans Y98-203 -
+# the head sits on the plate rim and the cistern is cut a hundred courses below it - so the
+# Y150 lock cannot hold it and the below-island corner is dropped to Y90.
+origin_lock: [-24251, 90, 29949]
+
+finish:
+  cheapen: false          # water and dressed stone only; nothing here is colour-picked
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: [out/island_full.litematic]

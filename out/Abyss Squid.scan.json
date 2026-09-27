@@ -1,0 +1,168 @@
+{
+  "origin": {
+    "x": 97522,
+    "y": 98,
+    "z": 80485
+  },
+  "size": {
+    "x": 157,
+    "y": 102,
+    "z": 281
+  },
+  "generated_by": "squid",
+  "kind": "squid",
+  "scale": 1.0,
+  "facing": [
+    0,
+    1
+  ],
+  "keep_out": [
+    97590.0,
+    80815.0,
+    56.0
+  ],
+  "closest_to_keep_out": 58.6,
+  "refused_by_keep_out": 0,
+  "features_built": {
+    "mantle": 54044,
+    "head": 8603,
+    "fin": 13346,
+    "arm": 20055,
+    "tentacle": 4042,
+    "club": 1532,
+    "funnel": 498,
+    "beak": 13,
+    "coat": 25314,
+    "arm_stripe": 9246,
+    "sucker": 681,
+    "eye": 692,
+    "eye_organ": 60,
+    "photophore": 450,
+    "lichen": 0,
+    "total": 102120,
+    "mirror_shape_fixed": 366,
+    "mirror_paint_fixed": 1171,
+    "keep_out_cleared": 0
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 46882,
+      "materials": 7,
+      "dominant_material_share": 0.5897,
+      "light_blocks": 0,
+      "massing": {
+        "width": 115,
+        "height": 85,
+        "depth": 275,
+        "fill_ratio": 0.0174
+      },
+      "silhouette": {
+        "top": {
+          "area": 9633,
+          "fill_ratio": 0.2184
+        },
+        "front": {
+          "area": 3702,
+          "fill_ratio": 0.2312
+        },
+        "side": {
+          "area": 5483,
+          "fill_ratio": 0.1913
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.4809,
+          0.4734,
+          0.0457
+        ],
+        "top_silhouette_perimeter": 2992,
+        "surface_faces_per_block": 1.533
+      },
+      "material_counts": {
+        "mangrove_planks": 27647,
+        "red_wool": 6714,
+        "pink_wool": 5059,
+        "magenta_wool": 4008,
+        "black_wool": 2399,
+        "bone_block": 605,
+        "ochre_froglight": 450
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "0db7de7a453a2d47b90020e7adcd734901dd862d6ba18846d201e9040b531098",
+    "generator_source_digest": "0938e852d05e75b43a35a8f8a583734194bcfce44d5fe93b3e5689ffa881a1c0",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 68.010916,
+    "blocks": 46882,
+    "blocks_per_second": 689.33
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 46882,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: magenta_wool"
+  ],
+  "file": "Abyss Squid.litematic",
+  "name": "Abyss Squid"
+}

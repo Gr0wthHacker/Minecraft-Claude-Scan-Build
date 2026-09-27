@@ -1,0 +1,23 @@
+{
+  "origin": {
+    "x": 97599,
+    "y": 202,
+    "z": 80785
+  },
+  "size": {
+    "x": 13,
+    "y": 16,
+    "z": 14
+  },
+  "generated_by": "hollowmanor",
+  "kind": "deadtree",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "a tapering leaning trunk with six branches, every one of them walked one axis at a time so the whole tree is a single 6-connected piece",
+  "unverified": [],
+  "height": 15,
+  "branches": 6,
+  "roots": 4,
+  "file": "Dead Tree 1.litematic",
+  "name": "Dead Tree 1"
+}

@@ -1,0 +1,101 @@
+{
+  "kind": "prismworks/vault",
+  "signs": 5,
+  "pruned": 0,
+  "facing": "west",
+  "interfaces": [
+    "approach",
+    "entry",
+    "exit",
+    "service_access"
+  ],
+  "stations": [
+    {
+      "index": 1,
+      "input": [
+        11,
+        3,
+        11
+      ],
+      "stand": [
+        11,
+        1,
+        13
+      ],
+      "facing": "south"
+    },
+    {
+      "index": 2,
+      "input": [
+        27,
+        3,
+        11
+      ],
+      "stand": [
+        27,
+        1,
+        13
+      ],
+      "facing": "south"
+    },
+    {
+      "index": 3,
+      "input": [
+        19,
+        3,
+        30
+      ],
+      "stand": [
+        19,
+        1,
+        28
+      ],
+      "facing": "north"
+    }
+  ],
+  "puzzle_inputs": [
+    [
+      11,
+      3,
+      11
+    ],
+    [
+      27,
+      3,
+      11
+    ],
+    [
+      19,
+      3,
+      30
+    ]
+  ],
+  "state_panel": [
+    19,
+    5,
+    19
+  ],
+  "solo_fallback": [
+    9,
+    1,
+    30
+  ],
+  "requires_in_game": [
+    "three_input_completion_circuit",
+    "reset_behavior",
+    "solo_fallback_sequence",
+    "maintenance_isolation"
+  ],
+  "expensive_functional": {
+    "redstone_lamp": "shared state panel and per-station indicator"
+  },
+  "size": {
+    "x": 39,
+    "y": 24,
+    "z": 39
+  },
+  "generated_by": "prismworks",
+  "note": "review sidecar: Prismworks modules carry no world origin, the WorldSpec sites them",
+  "file": "Resonance Vault.litematic",
+  "name": "Resonance Vault"
+}

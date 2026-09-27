@@ -1,0 +1,92 @@
+# PF PRISM ASCENT - the land's headline, and one of three skyline dominants in the whole park.
+# 93 x 72 at V24 / U527, addressing the spine on the U563 spur.
+#
+# COLUMNAR AND PLANAR, WHICH IS WHAT THIS MEDIUM RENDERS NATIVELY. Everything this repo has
+# measured about voxel form says one thing: a straight taper and a flat sheet read instantly, and
+# compound volume does not - a jaguar at 2.6x and sixty thousand blocks failed exactly as the
+# twenty-seven block one did. So the Ascent is a four-stage tapering core, four PLANAR fin blades
+# whose reach shortens as they rise, and a lit open crown. Nothing about it is a lump.
+#
+# THE APPROACH IS THE COMPOSITION. A colonnaded causeway twenty-five courses long runs from the
+# lot line on the spur's own axis into a ring podium; the podium's middle is an open court and the
+# tower stands in it. You walk the axis, the podium opens, the spire is over your head.
+#
+# HEIGHT IS SET AGAINST WHAT IS ALREADY THERE. The tallest thing standing in the park today is the
+# Sky Lift at 74 courses over the lawn (world Y276, measured off out/Park Complete.litematic).
+# This tops out at 84, which is a dominant rather than a competitor. That is the number to move if
+# the park ever gains something taller, and it is the only number in this file with a rival.
+#
+# THE PARKOUR COURSE IS NOT IN HERE. PRISMWORKS_PARKOUR_BRIEF.md describes checkpoints, timing,
+# payment, plunge catches and a bypass gate; not one of those can be certified by a litematic and
+# this repo cut two finished casino games rather than ship a machine it could not judge. This
+# design is the SPIRE the course will be hung on, and it says so in requires_in_game.
+#
+# THE MACHINE LAND, PROPERLY DESIGNED (2026-09-02). Jack: "we still need to properly design the
+# prism area" - he could not tell it WAS Prismworks. The cause was measurable: every material
+# in the land sat between luminance 38 and 73 and every one of them was grey, so a ladder of six
+# greys still read as one hue and the buildings read as dark blocks. Two things fixed it, and
+# neither is ornament:
+#
+#   THE PLANT METAL. `waxed_copper_block` is L124 and CHEAP here where plain `copper_block` is
+#   expensive - a 79-point step AND the only real hue this land can buy. It is the cornice band
+#   on every building and the collar on every setback of the Ascent, and it is never a wall.
+#
+#   THE SIGNAL AS A SEQUENCE. The land's brief is precision and sequence, and what it shipped
+#   was scattered cyan that reads as speckle past ten blocks. Every pier now carries a
+#   projecting ladder - stone, a signal cell every fourth course, two of high, a lit head - and
+#   the Ascent's four blade edges are ONE CONTINUOUS line of light with a glow every eight, so
+#   the stages can be counted from the podium. Parapets carry a lightning-rod instrument array,
+#   which is what a machine land has where a fairground has flags.
+name: PF Prism Ascent
+gen: prismworks_builds
+params:
+  kind: ascent
+  at: [24, 527]
+  size: [93, 72]
+  height: 86
+  keep_clear: [[38, 0, 6], [79, 0, 6]]
+  seed: 11
+roles: [ride, building]
+anchors:
+  - {name: queue_entry, kind: queue, position: [0, 1, 36], facing: west, width: 7}
+  - {name: boarding, kind: entry, position: [26, 1, 36], facing: west, width: 7}
+  - {name: ride_exit, kind: ride_exit, position: [66, 1, 36], facing: east, width: 7}
+  - {name: service_access, kind: maintenance, position: [66, 1, 40], facing: east, width: 3}
+  - {name: street_front, kind: visual_front, position: [0, 1, 36], facing: west, width: 9}
+  - {name: crown, kind: deck, position: [46, 80, 36], facing: up, width: 9}
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A spire: a square core tapering through four stages from thirteen across to seven, each stage
+    landing on its own corbelled setback, four planar fin blades on the cardinal faces whose reach
+    shortens from twelve to two as they rise, and an open crown of posts, bars and froglight with
+    five end-rod finials. It stands in the court of a ring podium, reached from the spine by a
+    colonnaded causeway on the spur's own axis.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [walk the causeway, enter the podium court, stand under the spire, watch the crown]
+  outcome: >
+    The crown's signal ring stands eighty-four courses over the lawn and reads from the whole
+    park; from inside the podium court the four fins and the four setbacks are all visible at
+    once, which is the thing a photograph of it will show.
+  reset: >
+    Nothing is consumed and no state is held by this geometry. The causeway and the podium court
+    are re-enterable at any time and by any number of people at once.
+  service_access: >
+    The podium's rear portal on the U563 axis at V90 opens onto the exit band and the Forge Deck
+    behind it, which is where plant and staff circulation for this ride belongs.
+  bypass: >
+    The causeway is open at both ends and the podium is a ring: it can be walked round on the
+    outside, or through on the axis, without any part of the ride being entered.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

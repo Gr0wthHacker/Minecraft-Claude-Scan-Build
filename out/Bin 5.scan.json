@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97611,
+    "y": 202,
+    "z": 80803
+  },
+  "size": {
+    "x": 3,
+    "y": 4,
+    "z": 3
+  },
+  "generated_by": "streetfurniture",
+  "kind": "streetfurniture/bin",
+  "piece": "bin",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "a bin between two and three courses tall with a rim on top of it, standing on its own paved cell",
+  "unverified": [],
+  "style": "cauldron",
+  "height": 3,
+  "banded": false,
+  "seed": 128098083,
+  "file": "Bin 5.litematic",
+  "name": "Bin 5"
+}

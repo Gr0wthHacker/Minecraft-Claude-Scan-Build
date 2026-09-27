@@ -1,0 +1,86 @@
+{
+  "origin": {
+    "x": 97607,
+    "y": 202,
+    "z": 80620
+  },
+  "size": {
+    "x": 11,
+    "y": 7,
+    "z": 10
+  },
+  "generated_by": "ticketing",
+  "kind": "ticketing/lockers",
+  "land": "midway",
+  "facing": "west",
+  "contract": "6 numbered locker bays, two barrels each, with 7 clear courses of standing room in front of them",
+  "unverified": [],
+  "budget": {},
+  "width": 8,
+  "depth": 9,
+  "bays": 6,
+  "lockers": [
+    [
+      97615,
+      204,
+      80622
+    ],
+    [
+      97615,
+      205,
+      80622
+    ],
+    [
+      97615,
+      204,
+      80623
+    ],
+    [
+      97615,
+      205,
+      80623
+    ],
+    [
+      97615,
+      204,
+      80624
+    ],
+    [
+      97615,
+      205,
+      80624
+    ],
+    [
+      97615,
+      204,
+      80625
+    ],
+    [
+      97615,
+      205,
+      80625
+    ],
+    [
+      97615,
+      204,
+      80626
+    ],
+    [
+      97615,
+      205,
+      80626
+    ],
+    [
+      97615,
+      204,
+      80627
+    ],
+    [
+      97615,
+      205,
+      80627
+    ]
+  ],
+  "file": "Lockers.litematic",
+  "name": "Lockers"
+}

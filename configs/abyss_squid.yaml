@@ -1,0 +1,89 @@
+# THE ABYSS SQUID - the one thing under the theme park.
+#
+# Jack: "put something big underneath the theme park so the people doing parkour discover it,
+# I mean LARGE and something that could be viewed as swimming or flying through space."
+#
+# ---------------------------------------------------------------------------------------------
+# THE SITE, MEASURED OFF `out/Park Complete.litematic` BEFORE ANYTHING WAS DRAWN
+#
+#   Y100-190, over the park's whole 200x600 shadow:  117,350 of 120,000 columns EMPTY
+#   the Midway and both causeway gaps                0 blocks below Y196, all three
+#   everything that is down there                    within r60 of the Prism Well, plus twelve
+#                                                    columns of the Frontier's own shaft
+#
+# THE PARKOUR ALREADY ENDS IN IT, and that is the whole reason this design exists where it
+# does. The Prism Well is LINED ONLY TO Y187: below that its shaft is open void with nothing in
+# it but a 27x27 return column at r<=14 and the two descent helices at r19-23 and r31-35, each
+# about 150 cells, with a landing platform every eight courses. So a runner on the last EIGHTY-
+# SIX COURSES of `PF Crown Descent` and `PF Prism Descent` is falling through open sky looking
+# outward at nothing at all. That is the discovery frame and it was already there.
+#
+# AND IT IS PITCH DARK. 114,267 of those 120,000 columns have something overhead - 100% under
+# the Frontier, the Midway and both gaps, and only the well's own mouth is open. There is no
+# sky light down there at any hour, so the animal is its own only light source. That is not a
+# constraint being worked around, it is the reason a deep-sea cephalopod is the right subject:
+# the photophores are the design.
+#
+# ---------------------------------------------------------------------------------------------
+# WHY A SQUID - see the head of mcbuild/gen/squid.py. In one line: every part of it is a taper,
+# a sheet or a convex dome carrying a pattern, which are the three shapes this system provably
+# builds, and there is no compound volumetric muscle anywhere in it - which is the one thing
+# that retired eight mammals here and could not be rescued by scale.
+#
+# ---------------------------------------------------------------------------------------------
+# THE PLACEMENT IS A MEASUREMENT, NOT A CHOICE
+#
+#   at         the canvas corner. Content lands X97543..97656 / Y100..185 / Z80488..80761,
+#              which is inside the park's own placed shadow (X97500..97699) on every face and
+#              eight courses under the lowest park block over it (Y196).
+#   keep_out   THE FALL COLUMN. A runner who misses a landing falls eighty-six courses; a
+#              surface inside that column does not save one, it strands one sixty blocks out in
+#              the void with no way back. r56 is the well's own r52 lining plus four, and the
+#              siting was swept along Z until the generator refused ZERO cells - at 80491 it
+#              was cutting 1,443 of them off the tentacle clubs, silently, and a truncated club
+#              renders as a perfectly good short club.
+#
+# The achieved nearest approach is 59.5 blocks from the well's axis, which puts the nearest
+# tentacle club about twenty-five blocks off a runner on the outer helix. Close enough to loom,
+# outside anything they can fall onto.
+#
+# THE MANTLE TIP ENDS AT Z80488, fifty-one clear of the Frontier's own shaft (the only other
+# thing in the deep band, twelve columns at Z80399..80443). The animal therefore hangs under
+# Prismworks, the south causeway gap, the Midway and the north gap - four bands of park.
+#
+# ---------------------------------------------------------------------------------------------
+# NOT SET, AND EACH FOR A REASON
+#
+#   ground / drop_floaters   it hangs in open void. That is the point.
+#   cheapen                  every block in it is already cheap tier and 1.19.
+#   trim_buried              there is nothing down there to be buried in.
+#
+name: Abyss Squid
+gen: squid
+params:
+  seed: 7
+  at: [97522, 98, 80485]
+  keep_out: [97590, 80815, 56]   # the Prism Well's fall column: x, z, radius
+
+finish:
+  cheapen: false
+  # HOLLOW, ON JACK'S WORD THAT MOBS DO NOT SPAWN HERE. That was the only argument against it
+  # and it is his server to know: a 2-block shell carves 65,932 interior cells and leaves a
+  # 65,940-cell sealed dark cavity, which on a server that spawns mobs would be an unreachable
+  # mob farm quietly holding down the entity cap - CLAUDE.md already records ~3,700 columns of
+  # exactly that under the lowland massif as a leak "for another day". With spawning off it is
+  # simply 66,000 blocks nobody would ever have seen, on an animal that hangs sixty blocks from
+  # the nearest thing anyone can stand on.
+  #
+  #   solid          116,611     shell 4   78,062     shell 3   66,532     shell 2   50,679
+  #
+  # Shell 2 and it is still ONE connected piece - checked, not assumed. Nothing thinner than
+  # five across is touched, so every arm, every tentacle and both fins stay solid; what is
+  # carved is the inside of the mantle and the head, which is the only mass big enough to have
+  # an inside.
+  hollow: {shell: 2, ground: false}
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+
+origin_lock: false               # LOUD: it hangs in the dead void at Y100-185, its own place

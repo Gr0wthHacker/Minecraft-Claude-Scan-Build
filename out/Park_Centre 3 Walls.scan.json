@@ -1,0 +1,19 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 203,
+    "z": 80551
+  },
+  "size": {
+    "x": 86,
+    "y": 81,
+    "z": 99
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "dig": [],
+  "slice": true,
+  "note": "one build step; a SLICE of the whole, so its circuits are cut at the seam",
+  "file": "Park_Centre 3 Walls.litematic",
+  "name": "Park_Centre 3 Walls"
+}

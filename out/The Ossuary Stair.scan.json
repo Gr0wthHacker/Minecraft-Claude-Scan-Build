@@ -1,0 +1,158 @@
+{
+  "origin": {
+    "x": 97597,
+    "y": 183,
+    "z": 80813
+  },
+  "size": {
+    "x": 5,
+    "y": 22,
+    "z": 5
+  },
+  "generated_by": "stairwell",
+  "kind": "stairwell",
+  "center": [
+    97599,
+    80815
+  ],
+  "y_bottom": 183,
+  "y_top": 203,
+  "treads": 51,
+  "dig": [],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "The Ossuary Stair serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 401,
+      "materials": 5,
+      "dominant_material_share": 0.788,
+      "light_blocks": 7,
+      "massing": {
+        "width": 5,
+        "height": 22,
+        "depth": 5,
+        "fill_ratio": 0.7291
+      },
+      "silhouette": {
+        "top": {
+          "area": 24,
+          "fill_ratio": 0.96
+        },
+        "front": {
+          "area": 110,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 110,
+          "fill_ratio": 1.0
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 316,
+        "stone_brick_slab": 53,
+        "mossy_stone_brick_slab": 13,
+        "stone_brick_wall": 12,
+        "lantern": 7
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "3721274f17b89302f6e7bb113a1c1a6b6f7ba86e9ac2fc83e5cd26c43bf53470",
+    "generator_source_digest": "8fd66f92fdb6c55682e140d4ed54e017cb8750f2fa6593c5ab4fbba58b632713",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97604,
+        184,
+        80815
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 401,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
+  "file": "The Ossuary Stair.litematic",
+  "name": "The Ossuary Stair"
+}

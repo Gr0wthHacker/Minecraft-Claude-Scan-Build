@@ -1,0 +1,99 @@
+{
+  "origin": {
+    "x": 97625,
+    "y": 202,
+    "z": 80789
+  },
+  "size": {
+    "x": 3,
+    "y": 5,
+    "z": 3
+  },
+  "generated_by": "wayfinding",
+  "kind": "marker",
+  "land": "hollow",
+  "facing": "east",
+  "contract": "a nameplate for one attraction, standing beside its door",
+  "name": "Sign Clock Tower",
+  "signed": true,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 14,
+      "materials": 4,
+      "dominant_material_share": 0.6429,
+      "light_blocks": 0,
+      "massing": {
+        "width": 3,
+        "height": 5,
+        "depth": 3,
+        "fill_ratio": 0.3111
+      },
+      "silhouette": {
+        "top": {
+          "area": 9,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 8,
+          "fill_ratio": 0.5333
+        },
+        "side": {
+          "area": 7,
+          "fill_ratio": 0.4667
+        }
+      },
+      "material_counts": {
+        "cobbled_deepslate": 9,
+        "blackstone": 3,
+        "dark_oak_wall_sign": 1,
+        "deepslate_bricks": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "1e99a8a14ed52e5dcf6a9d4fa415c88daf6b3509a07c65964509f98cd2e220e3",
+    "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "file": "Sign Clock Tower.litematic"
+}

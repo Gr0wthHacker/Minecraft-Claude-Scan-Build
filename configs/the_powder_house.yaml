@@ -1,0 +1,30 @@
+name: The Powder House
+gen: frontiertown
+params:
+  land: frontier
+  facing: north
+  drift: 21
+  at:
+  - 97627
+  - 203
+  - 80392
+  kind: powderhouse
+  title: The Powder House
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: building
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97632
+    - 204
+    - 80389
+design:
+  purpose: building
+  hierarchy: supporting
+  style: frontier
+  narrative: The Powder House serves the frontier visitor journey.
+origin_lock: false

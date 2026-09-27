@@ -1,0 +1,62 @@
+# PF MIDWAY ROW - the strip of stalls between the Welcome Court and the wheel.
+#
+# Jack: *"lots of empty space still between the court now and the ferris wheel, we need to fill that
+# gap somehow."*
+#
+# THE HOLE IS MEASURED, NOT DESCRIBED. Read off `out/Park Complete.litematic`, V80-122 x U264-337
+# is **3,180 columns of bare lawn** - forty-three deep by seventy-four wide, bigger than most lots
+# in this park - and it exists because the water feature that filled it was withdrawn when Jack
+# asked for one fountain in the Midway rather than two:
+#
+#   "we have a center fountain, and then it just leads to a bigger fountain"
+#   "make sure we get rid of the other fountain there, we should only have 1"
+#
+# So whatever fills it may not be water, and the two passes before this one ruled out more lawn.
+#
+# THE LAND IS CALLED THE MIDWAY AND IT HAD NO MIDWAY. A midway is not a garden or a plaza - it is
+# the strip of stalls and sideshows you walk BETWEEN on the way from one ride to the next. This
+# park had counters at its edges (the Snack Window at U235, the Prize Point at U348) and nothing at
+# all on its own centre line, which is the one place every visitor walks.
+#
+# THE LOT IS V80-120 x U266-336 - the Cascade's own declared lot, so the depth schedule of Midway
+# column B is unchanged: 56 (court) + 41 (this) + 9 (verge) + 22 + 2 = its own 130, promenade
+# included. See `PARK_MIDWAY_CENTRE.md` for that audit; only what stands in the middle changed.
+#
+# `at` IS THE WORLD CORNER OF (V80, the first course above the lawn, U266). `Park Complete` is
+# anchored at 97500 190 80300 and its lawn course is Y202, so a lot's floor course is Y203.
+name: PF Midway Row
+gen: midwaybuild
+params:
+  kind: midway_row
+  lot: [80, 266, 120, 336]
+  at: [97580, 203, 80566]
+  height: 12
+  seed: 11
+  # THE SKY LIFT'S QUEUE, measured off `out/PF Front Midway.litematic` rather than assumed: 94
+  # columns at V108-120 x U269-279, in this lot's west back terrace. Named here, wanting one of
+  # its cells RAISES rather than shipping as an overlap nobody can see - and reading it from the
+  # config rather than from a literal in the generator is what stops a reservation outliving the
+  # thing it was made for, which is exactly what happened to the Welcome Court when the wheel moved.
+  blocked:
+    - [108, 0, 269, 120, 11, 279]
+roles: [building]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    The Midway's own midway: the Welcome Court's thirteen-wide walk carried on to the back
+    promenade, with four open-fronted stalls facing four more across it - hook a duck, hot dogs,
+    a coconut shy, candy floss, tin can alley, toffee apples, a ring toss and lemonade - each
+    under its own striped awning with a lit board over the counter, bunting strung across the
+    avenue in every gap between them, and a seating terrace of trees and benches behind each row
+    where what you bought is eaten. Nothing stands in the avenue, so the vista from the entry
+    gate still ends at the wheel's hub.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

@@ -1,0 +1,235 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80645
+  },
+  "size": {
+    "x": 76,
+    "y": 10,
+    "z": 40
+  },
+  "generated_by": "midgarden",
+  "kind": "path",
+  "build": "midway_garden",
+  "name": "PF Midway Garden",
+  "lot": [
+    24,
+    345,
+    99,
+    384
+  ],
+  "axis": 364,
+  "facing": "west",
+  "beds": [
+    [
+      26,
+      353,
+      40,
+      357
+    ],
+    [
+      44,
+      353,
+      58,
+      357
+    ],
+    [
+      62,
+      353,
+      72,
+      357
+    ],
+    [
+      83,
+      353,
+      97,
+      357
+    ],
+    [
+      26,
+      371,
+      40,
+      375
+    ],
+    [
+      44,
+      371,
+      58,
+      375
+    ],
+    [
+      62,
+      371,
+      72,
+      375
+    ],
+    [
+      83,
+      371,
+      97,
+      375
+    ]
+  ],
+  "paved": 940,
+  "lamps": 22,
+  "bed": 999,
+  "pergola": 92,
+  "benches": 8,
+  "trees": 8,
+  "contract": "a walk from V24 to V99 with a kerbed bed either side of it, a hedge with a way in every nine, and NO BUILDING anywhere in it",
+  "note": "no mechanism, nothing to stock; the games that stood here are retired - see the module docstring for why",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "The Midway's pleasure garden: a thirteen-wide walk from the east avenue to the helter skelter's forecourt, with a kerbed parterre either side of it under a clipped hedge - moss, blocks of wool and flowers between them - a specimen tree at the centre of each bed, benches on the verges, and four striped pergolas over the walk for the only vertical rhythm in it. The outer shoulders are left informal, where the ground layer's own wildflowers are. No building anywhere in it, and nothing that pretends to be a machine.\n"
+    },
+    "metrics": {
+      "blocks": 2455,
+      "materials": 19,
+      "dominant_material_share": 0.2477,
+      "light_blocks": 0,
+      "massing": {
+        "width": 76,
+        "height": 7,
+        "depth": 23,
+        "fill_ratio": 0.2006
+      },
+      "silhouette": {
+        "top": {
+          "area": 1500,
+          "fill_ratio": 0.4934
+        },
+        "front": {
+          "area": 199,
+          "fill_ratio": 0.2618
+        },
+        "side": {
+          "area": 88,
+          "fill_ratio": 0.22
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8094,
+          0.1906,
+          0.0
+        ],
+        "top_silhouette_perimeter": 530,
+        "surface_faces_per_block": 2.0415
+      },
+      "material_counts": {
+        "oak_leaves": 608,
+        "polished_blackstone_bricks": 417,
+        "smooth_stone": 394,
+        "moss_block": 280,
+        "stone_bricks": 231,
+        "stone": 148,
+        "red_wool": 92,
+        "white_wool": 80,
+        "oak_log": 40,
+        "oak_fence": 32,
+        "ochre_froglight": 22,
+        "oxeye_daisy": 21
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "d7b9cb8650fdf212093cb075f35412a45cdc610d9a940d3ea167e6eba0e33705",
+    "generator_source_digest": "ea357791195118c4ee9a4a0b88c405d6b0462857142e42caee612b3fb42e51b8",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 57.416989,
+    "blocks": 2455,
+    "blocks_per_second": 42.76
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 2455,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: cornflower",
+    "not in the provisional skyblock-1.19 list: oxeye_daisy",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Midway Garden.litematic"
+}

@@ -1,0 +1,16 @@
+{
+  "kind": "probe",
+  "name": "Diggings",
+  "facing": "west",
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80347
+  },
+  "size": {
+    "x": 53,
+    "y": 28,
+    "z": 46
+  },
+  "file": "_diggings.litematic"
+}

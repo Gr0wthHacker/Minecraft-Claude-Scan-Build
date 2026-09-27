@@ -1,0 +1,189 @@
+{
+  "origin": {
+    "x": 97601,
+    "y": 202,
+    "z": 80773
+  },
+  "size": {
+    "x": 13,
+    "y": 10,
+    "z": 13
+  },
+  "generated_by": "attractions",
+  "kind": "mirrormaze",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "a real maze: one solved spanning-tree route from the marked entrance to the marked exit, with genuine dead-end branches off it, never a plain corridor with two doors",
+  "unverified": [],
+  "width": 9,
+  "depth": 9,
+  "height": 5,
+  "cells_i": 4,
+  "cells_d": 4,
+  "panes": 18,
+  "lamps": 5,
+  "signed": true,
+  "entry_at": [
+    97603,
+    203,
+    80776
+  ],
+  "exit_at": [
+    97611,
+    203,
+    80782
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "landmark",
+      "style": "hollow",
+      "narrative": "Mirror Maze serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 525,
+      "materials": 8,
+      "dominant_material_share": 0.3219,
+      "light_blocks": 5,
+      "massing": {
+        "width": 13,
+        "height": 10,
+        "depth": 13,
+        "fill_ratio": 0.3107
+      },
+      "silhouette": {
+        "top": {
+          "area": 169,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 78,
+          "fill_ratio": 0.6
+        },
+        "side": {
+          "area": 76,
+          "fill_ratio": 0.5846
+        }
+      },
+      "material_counts": {
+        "polished_blackstone_bricks": 169,
+        "black_wool": 120,
+        "deepslate_bricks": 105,
+        "glass_pane": 90,
+        "polished_blackstone_brick_stairs": 18,
+        "blackstone": 16,
+        "soul_lantern": 5,
+        "dark_oak_wall_sign": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "c5c73a08a6969db175d5087f45cfda0d55f153a659c31c1e2a147777f0feead5",
+    "generator_source_digest": "662989f1252b380bad4c60655a86e154e6c876b6c5212831f64f7b3e9709de42",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "landmark",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97599,
+        204,
+        80779
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 525,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks",
+    "unsupported on skyblock-1.19: polished_blackstone_brick_stairs",
+    "unsupported on skyblock-1.19: polished_blackstone_bricks"
+  ],
+  "file": "Mirror Maze.litematic",
+  "name": "Mirror Maze"
+}

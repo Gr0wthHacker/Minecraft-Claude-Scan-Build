@@ -1,0 +1,33 @@
+name: Shooting Range
+gen: arcade
+params:
+  land: frontier
+  facing: east
+  at:
+  - 97624
+  - 203
+  - 80411
+  kind: range
+  title: Shooting Range
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: ride
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97627
+    - 204
+    - 80405
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: frontier
+  narrative: Shooting Range serves the frontier visitor journey.
+origin_lock: false
+expensive_allowance: 15
+expensive_reason: 15x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

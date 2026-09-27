@@ -1,0 +1,186 @@
+{
+  "origin": {
+    "x": 97596,
+    "y": 202,
+    "z": 80825
+  },
+  "size": {
+    "x": 9,
+    "y": 8,
+    "z": 3
+  },
+  "generated_by": "wayfinding",
+  "kind": "fingerpost",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
+  "arms": [
+    {
+      "direction": "west",
+      "dest": "Haunted Manor",
+      "sign_facing": "west",
+      "placed": true,
+      "sign_at": [
+        97596,
+        206,
+        80826
+      ]
+    },
+    {
+      "direction": "east",
+      "dest": "The Plummet",
+      "sign_facing": "east",
+      "placed": true,
+      "sign_at": [
+        97604,
+        207,
+        80826
+      ]
+    }
+  ],
+  "post_h": 6,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Manor Turn Post serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 24,
+      "materials": 6,
+      "dominant_material_share": 0.375,
+      "light_blocks": 1,
+      "massing": {
+        "width": 9,
+        "height": 8,
+        "depth": 3,
+        "fill_ratio": 0.1111
+      },
+      "silhouette": {
+        "top": {
+          "area": 15,
+          "fill_ratio": 0.5556
+        },
+        "front": {
+          "area": 18,
+          "fill_ratio": 0.25
+        },
+        "side": {
+          "area": 10,
+          "fill_ratio": 0.4167
+        }
+      },
+      "material_counts": {
+        "cobbled_deepslate": 9,
+        "blackstone": 6,
+        "dark_oak_fence": 4,
+        "dark_oak_wall_sign": 2,
+        "deepslate_bricks": 2,
+        "soul_lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "e8223c426946ffa9548f3df89fe1a3b98eaabe64171053caef426fb9bd4cbf81",
+    "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 24,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_fence",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks"
+  ],
+  "file": "Manor Turn Post.litematic",
+  "name": "Manor Turn Post"
+}

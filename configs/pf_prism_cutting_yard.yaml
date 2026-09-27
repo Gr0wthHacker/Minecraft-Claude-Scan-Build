@@ -1,0 +1,114 @@
+# PF PRISM CUTTING YARD - the ground behind the Foundry Gate, and the thing that explains the hole.
+#
+# ---------------------------------------------------------------------------------------------
+# NOTHING ON THE SURFACE EVER ACCOUNTED FOR A 110-WIDE DIG
+#
+# `PF Prism Well` cuts a mouth a hundred and ten across and a hundred courses deep through the
+# park's deck. Measured over the shipped park, the land around it says nothing about that at all:
+# Prismworks column A behind the Foundry Gate is 36 x 122 columns, **80% of it free ground with
+# 0.7% carrying anything twelve courses tall**, and every block of it is lawn.
+#
+# This is where the seam was taken out: benched faces with the vein showing in section, the cut
+# blanks stacked on their pallets, spoil thrown up behind, and a gantry line running east until
+# the mouth stops it. It is a WORKS and not a building - `PRISMWORKS_V2_PLAN.md` retired fourteen
+# buildings from this land and the answer to an empty lot is not a fifteenth.
+#
+# ---------------------------------------------------------------------------------------------
+# THE FACES STEP UP AWAY FROM THE MOUTH, WHICH IS THE ONLY WAY THIS CAN BE BUILT
+#
+# A quarry reads as ground stepping DOWN into the cut - and a litematic cannot express removal, so
+# a design that wanted that would have to dig the park's deck out from under itself. Facing south
+# with the rise growing as u decreases puts the low bench nearest the mouth and the high ground
+# behind it, which is the same picture from the same viewpoint and costs nothing to break.
+#
+# AND IT IS NOT WALL TO WALL. `gen/diggings.py` shipped that once - "a rock garden with a
+# corridor, which is not better than a street of shops, only greyer" - so two faces, three heaps
+# and the seam, on a lot that stays mostly open.
+name: PF Prism Cutting Yard
+gen: seam
+params:
+  kind: yard
+  lot: [106, 36]
+  at: [48, 430]
+  sy: 30
+  under: out/Park Complete.litematic
+  previous: out/PF Prism Cutting Yard.litematic
+  # THE PROMENADE RUNS THROUGH THIS LOT AT V122-128 AND THE WELL'S GALLERY BITES ITS EAST END.
+  # Both are walking surfaces with exactly the shape of buildable ground - a solid course with
+  # clear air over it - so both are named. `surface_cells` reads them off their own artifacts;
+  # a material test cannot tell the promenade's stone from this design's.
+  off_limits:
+    - out/Park Ways.litematic
+    - out/PF Prism Well.litematic
+  # the seam, continuing from the reach and heading for the mouth it was cut to reach
+  axis: [0, 0, 17, 35]
+  reach: 12.0
+  falloff: 0.85
+  grow: [0.9, 0.5]
+  lobes: 5
+  lobe_r: [6.0, 11.0]
+  lobe_wander: 6.0
+  lobe_floor: 0.24
+  pitch: 3
+  density: 0.9
+  # **SMALLER THAN THE REACH'S, AND THAT IS THE STORY.** This is where the vein was worked: the
+  # big pieces are the ones on the pallets, and what is left standing is what was not worth
+  # taking.
+  height: [8, 20]
+  clear: 1
+  rubble: true
+  trace: 2.5
+
+  # TWO BENCHED FACES with the vein showing in section - a cut face with no crystal in it is a
+  # quarry, and this land is not a quarry. `run: 3` puts a step every three cells, which is a
+  # bench you climb rather than a slope you slide down.
+  cuts:
+    - {v: 6, u: 3, dv: 30, du: 19, rise: 6, run: 3, facing: south}
+    - {v: 64, u: 5, dv: 26, du: 16, rise: 5, run: 3, facing: south}
+
+  # THE LINE THE CUT STONE LEAVES BY. It carries nothing and says so - the Frontier's elevated ore
+  # line was deleted on sight for piercing a building's wall five courses up, and this land
+  # already has the park railway on its rim. It runs east and STOPS where the mouth begins,
+  # which is reported rather than assumed.
+  gantry: {v: 45, u: 2, du: 33, height: 5}
+
+  # cut blanks, squared off and stacked. A shard in the ground is geology; a shard cut into a
+  # cube is somebody's afternoon, and it is the one prop that says this ground is worked.
+  stacks:
+    - [40, 8]
+    - [43, 14]
+    - [52, 7]
+    - [56, 13]
+    - [88, 9]
+  # spoil, thrown up behind the faces
+  spoil:
+    - [24, 26, 7, 5]
+    - [72, 25, 6, 4]
+    - [96, 14, 6, 4]
+  seed: 17
+roles: [path]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: prismworks
+  narrative: >
+    The cutting yard behind the Foundry Gate: two benched faces with the crystal vein showing in
+    section, cut blanks stacked on copper pallets, spoil heaps, and a gantry line running east
+    until the well's own mouth stops it.
+fun_contract:
+  enforce: true
+  class: scenic_support
+  player_verbs: [climb a bench, walk the gantry line, look into the cut]
+  spatial_job: >
+    It is the only thing in the land that accounts for the well being a DIG, and it fills the 36 x
+    122 of lawn behind the land's own threshold.
+  outcome: >
+    Prismworks stops being a hole in a lawn and becomes a hole somebody made.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

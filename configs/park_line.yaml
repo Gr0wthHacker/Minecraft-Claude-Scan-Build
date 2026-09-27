@@ -1,0 +1,80 @@
+# THE PARK LINE - the skyway and railway that join the three theme-park islands.
+#
+# SITING, ALL MEASURED OFF THE THREE SHIPPED ZONE DESIGNS rather than chosen:
+#
+#   * every park module of all three zones binned by X: content runs 97551..97642 and there is
+#     NOT ONE CELL at X >= 97643 in any zone, at any height, over the whole Z of every plot. The
+#     plots end at X 97649. So the corridor is X 97643..97648 with the track at 97646.
+#   * each zone's own paving reaches X 97638+ over a long Z run - left 80360..80439, centre
+#     80560..80639, right 80760..80839 - and all three plazas sit at X 97639, so a stair landing
+#     on X 97640..97642 is one cell from the zone's street.
+#   * the zones DO hold a little content at X 97640..97642: left z 80399..80423 (floor only),
+#     centre z 80563..80575, right z 80786..80808. The three stations are sited clear of those,
+#     and `avoid` makes the design yield the handful of floor cells that still touch.
+#   * the deck floor is Y206 and the rail Y207, four courses over the park's Y202 floor - which
+#     is exactly the four columns X 97640..97643 a four-tread flight needs, one course per cell.
+#
+# AND ONE KNOWN CONFLICT THAT IS NOT THIS DESIGN'S TO SETTLE. `Casino Complete` also stands on
+# newisle - X 97556..97643 / Z 80555..80643 - and it already SHARES 2,356 CELLS WITH
+# `Park_Centre Complete`, so the middle island currently holds two designs that cannot both be
+# built. Its east wall runs the whole plot at X 97643 (Y203-208) with a floor apron out to
+# X 97640 at Y203, which is exactly where a station stair has to land.
+#
+# The corridor was therefore moved one column east (track 97647, deck 97644..97649) until the
+# LINE ITSELF is clean: deck, track, piers, arches and towers all clear of the casino as well as
+# of the park. What remains is 37 cells, all of them the Midway station's own platform and
+# flight, at X 97640..97643 / Y203-206 / Z 80589..80607 - pinned by
+# `test_the_only_known_conflict_is_the_casino_and_it_is_BOUNDED` so it cannot grow quietly.
+# Resolving it to zero means deciding which of the casino and the park centre owns newisle,
+# which is Jack's call and not a silent edit.
+#
+# a=0 is z 80421 and the line runs SOUTH: frontier terminus -> midway -> hollow terminus.
+name: Park Line
+gen: transit
+params:
+  kind: line
+  axis: z
+  forward: 1
+  at: [97647, 207, 80421]
+  length: 357
+  land: midway
+  street_y: 202
+  deck_left: 3
+  deck_right: 2
+  bay: 12
+  arch_rise: 5
+  pier_depth: 9
+  portal_h: 4
+  power_every: 8
+  light_every: 8
+  railing_every: 2
+  band_blend: 24
+  title: THE SKYWAY
+  plot_from: out/newisle.litematic
+  # A CELL THE PARK ALREADY OWNS IS NOT OURS TO PLACE - and it is only ever the stair's pad and
+  # stringer that can touch one. The track and the deck yield to nothing; `_check` refuses the
+  # build outright if they would have to.
+  avoid:
+  - out/Park_Left Complete.litematic
+  - out/Park_Centre Complete.litematic
+  - out/Park_Right Complete.litematic
+  stations:
+  - at_a: 12
+    land: frontier
+    title: FRONTIER HALT
+    stair: -1
+    back: 7
+    board: [DEPARTURES, "south  MIDWAY", "then   HOLLOW", ""]
+  - at_a: 179
+    land: midway
+    title: MIDWAY CENTRAL
+    stair: -1
+    back: 7
+    board: [DEPARTURES, "north FRONTIER", "south   HOLLOW", ""]
+  - at_a: 347
+    land: hollow
+    title: HOLLOW HALT
+    stair: 1
+    back: 7
+    board: [DEPARTURES, "north  MIDWAY", "then FRONTIER", ""]
+origin_lock: false

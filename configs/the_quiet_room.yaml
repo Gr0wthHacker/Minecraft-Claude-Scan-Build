@@ -1,0 +1,33 @@
+name: The Quiet Room
+gen: arcade
+params:
+  land: hollow
+  facing: east
+  at:
+  - 97618
+  - 203
+  - 80798
+  kind: quiet
+  title: The Quiet Room
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+park_contract:
+  purpose: ride
+  hierarchy: supporting
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97621
+    - 204
+    - 80793
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: hollow
+  narrative: The Quiet Room serves the hollow visitor journey.
+origin_lock: false
+expensive_allowance: 3
+expensive_reason: 3x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

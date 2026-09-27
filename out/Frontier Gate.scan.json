@@ -1,0 +1,172 @@
+{
+  "origin": {
+    "x": 97591,
+    "y": 202,
+    "z": 80445
+  },
+  "size": {
+    "x": 9,
+    "y": 9,
+    "z": 5
+  },
+  "generated_by": "park",
+  "kind": "arch",
+  "land": "frontier",
+  "facing": "south",
+  "contract": "an opening you walk through, with the land's name over it",
+  "unverified": [],
+  "width": 7,
+  "depth": 3,
+  "height": 6,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "Frontier Gate serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 128,
+      "materials": 6,
+      "dominant_material_share": 0.3516,
+      "light_blocks": 2,
+      "massing": {
+        "width": 9,
+        "height": 9,
+        "depth": 5,
+        "fill_ratio": 0.316
+      },
+      "silhouette": {
+        "top": {
+          "area": 45,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 35,
+          "fill_ratio": 0.4321
+        },
+        "side": {
+          "area": 32,
+          "fill_ratio": 0.7111
+        }
+      },
+      "material_counts": {
+        "stone": 45,
+        "spruce_log": 36,
+        "stone_bricks": 23,
+        "spruce_planks": 21,
+        "lantern": 2,
+        "spruce_wall_sign": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "cb8474bd73aea134061af5b4480f0d323bd28b743eb8aefca7c7388c706df510",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97595,
+        204,
+        80451
+      ],
+      [
+        97595,
+        204,
+        80443
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 128,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
+  "file": "Frontier Gate.litematic",
+  "name": "Frontier Gate"
+}

@@ -1,0 +1,221 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80645
+  },
+  "size": {
+    "x": 76,
+    "y": 12,
+    "z": 40
+  },
+  "generated_by": "gamesrow",
+  "kind": "path",
+  "build": "games_row",
+  "name": "PF Games Row",
+  "lot": [
+    24,
+    345,
+    99,
+    384
+  ],
+  "axis": 364,
+  "facing": "west",
+  "bays": [
+    [
+      26,
+      354,
+      37,
+      357
+    ],
+    [
+      41,
+      349,
+      51,
+      357
+    ],
+    [
+      55,
+      354,
+      66,
+      357
+    ],
+    [
+      28,
+      371,
+      42,
+      384
+    ],
+    [
+      48,
+      371,
+      63,
+      375
+    ],
+    [
+      85,
+      353,
+      97,
+      357
+    ]
+  ],
+  "paved": 940,
+  "lamps": 22,
+  "facade": 154,
+  "booth": 995,
+  "bunting": 65,
+  "benches": 6,
+  "trees": 13,
+  "contract": "a walk from V24 to V99 between two lines of self-contained consoles, under one colonnade, taking no cell of any bay and none of the cross walk that crosses it",
+  "note": "six park_games consoles stand in this row; none of them is built here",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "The Midway's games street: a thirteen-wide walk from the east avenue to the helter skelter's forecourt, with three open-fronted consoles down one side and two down the other, a continuous striped awning on posts over each verge so the six read as one frontage rather than as six sheds, bunting strung across the walk between them, benches on the verges, and the prize counter at the far end past the cross walk - the natural next step. No building in it at all.\n"
+    },
+    "metrics": {
+      "blocks": 2724,
+      "materials": 11,
+      "dominant_material_share": 0.2272,
+      "light_blocks": 0,
+      "massing": {
+        "width": 76,
+        "height": 9,
+        "depth": 40,
+        "fill_ratio": 0.0996
+      },
+      "silhouette": {
+        "top": {
+          "area": 1305,
+          "fill_ratio": 0.4293
+        },
+        "front": {
+          "area": 427,
+          "fill_ratio": 0.4682
+        },
+        "side": {
+          "area": 249,
+          "fill_ratio": 0.5188
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.5275,
+          0.453,
+          0.0195
+        ],
+        "top_silhouette_perimeter": 1061,
+        "surface_faces_per_block": 2.3311
+      },
+      "material_counts": {
+        "oak_leaves": 619,
+        "stone_bricks": 519,
+        "white_wool": 403,
+        "smooth_stone": 394,
+        "polished_blackstone_bricks": 333,
+        "red_wool": 165,
+        "stone": 148,
+        "oak_log": 65,
+        "oak_fence": 50,
+        "ochre_froglight": 22,
+        "oak_stairs": 6
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "5ab0e2a9da5165bc40dd7d60596a6211cb202b27c7a659cdc6855931c933567e",
+    "generator_source_digest": "9febd1881374d038950f48a8ba161159699db31da21b83db418d604b97084a30",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 57.301846,
+    "blocks": 2724,
+    "blocks_per_second": 47.54
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 2724,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
+  ],
+  "file": "PF Games Row.litematic"
+}

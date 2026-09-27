@@ -1,0 +1,164 @@
+{
+  "origin": {
+    "x": -22430,
+    "y": 150,
+    "z": -97430
+  },
+  "size": {
+    "x": 51,
+    "y": 49,
+    "z": 27
+  },
+  "generated_by": "arcstair",
+  "kind": "arcstair",
+  "corner": "NE",
+  "center": [
+    -22400,
+    -97400
+  ],
+  "deck_surface": 199.0,
+  "steps": 8,
+  "sector_deg": 3.259,
+  "exit_deg": 200.56,
+  "meet_h": 194.5,
+  "landing_h": 194.5,
+  "notch_floor": [
+    4,
+    4
+  ],
+  "flight_cells": [
+    25,
+    23
+  ],
+  "pier": 99,
+  "pier_at": [
+    -15,
+    -15
+  ],
+  "tail_cells": 220,
+  "tail_spin": 1,
+  "tail_start": [
+    -1,
+    1
+  ],
+  "pad": 32,
+  "pad_h": 184.0,
+  "torches": 3,
+  "asymmetric_cells": 0,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 451,
+      "materials": 4,
+      "dominant_material_share": 0.4146,
+      "light_blocks": 0,
+      "massing": {
+        "width": 17,
+        "height": 16,
+        "depth": 17,
+        "fill_ratio": 0.0975
+      },
+      "silhouette": {
+        "top": {
+          "area": 129,
+          "fill_ratio": 0.4464
+        },
+        "front": {
+          "area": 110,
+          "fill_ratio": 0.4044
+        },
+        "side": {
+          "area": 110,
+          "fill_ratio": 0.4044
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.4368,
+          0.3614,
+          0.2018
+        ],
+        "top_silhouette_perimeter": 130,
+        "surface_faces_per_block": 2.4523
+      },
+      "material_counts": {
+        "stone_bricks": 187,
+        "spruce_slab": 168,
+        "stone_brick_slab": 93,
+        "wall_torch": 3
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "f82d224b93d5d4d56aae42cf7620839cea11ea51dd29aa78b154ea9117e1456a",
+    "generator_source_digest": "67248589b81c047e2e97f3867f9c5bedf7d8f400a61488679fe2e732a21534f6",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 0.629665,
+    "blocks": 451,
+    "blocks_per_second": 716.25
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 451,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "Friend Stair NE.litematic",
+  "name": "Friend Stair NE"
+}

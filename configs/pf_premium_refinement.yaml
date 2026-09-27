@@ -1,0 +1,261 @@
+name: PF Premium Refinement
+gen: park_refinement
+params:
+  pieces:
+  - name: garden south
+    kind: screen
+    at:
+    - 38
+    - 203
+    - 352
+    land: midway
+    text:
+    - FIELD NOTES
+    - SPECIMEN STUDY
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: garden north
+    kind: screen
+    at:
+    - 55
+    - 203
+    - 376
+    land: midway
+    text:
+    - FIELD NOTES
+    - SPECIMEN STUDY
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: Coaster field kit
+    kind: desk
+    at:
+    - 29
+    - 204
+    - 118
+    land: frontier
+    text:
+    - EXPEDITION
+    - FIELD KIT
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: Lab specimen desk
+    kind: desk
+    at:
+    - 147
+    - 203
+    - 73
+    land: frontier
+    text:
+    - FOSSIL LAB
+    - SPECIMEN STUDY
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: Arrival orientation
+    kind: board
+    at:
+    - 20
+    - 203
+    - 280
+    text:
+    - - WELCOME
+      - LOST PLATEAU
+      - NORTH AVENUE
+    - - PRISMWORKS
+      - SOUTH AVENUE
+      - MIDWAY AHEAD
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: arrival north
+    kind: posy
+    at:
+    - 27
+    - 204
+    - 283
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: arrival north
+    kind: posy
+    at:
+    - 28
+    - 204
+    - 279
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: arrival north
+    kind: posy
+    at:
+    - 29
+    - 204
+    - 285
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: arrival north
+    kind: posy
+    at:
+    - 30
+    - 204
+    - 281
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: arrival south
+    kind: posy
+    at:
+    - 32
+    - 204
+    - 314
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: arrival south
+    kind: posy
+    at:
+    - 33
+    - 204
+    - 320
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: arrival south
+    kind: posy
+    at:
+    - 35
+    - 204
+    - 318
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+  - name: arrival south
+    kind: posy
+    at:
+    - 37
+    - 204
+    - 316
+    contract:
+      purpose: Scenic furnishing beside existing public circulation
+      access: Existing adjacent public walk; no new route
+      return: Same public approach
+      service: From adjacent public walk during maintenance
+      scenarios:
+      - approach
+      - pause beside display
+      - continue along existing path
+      budget: 40
+      review: out/premium_refinement/greybox.png
+roles:
+- construction
+design:
+  purpose: path
+  hierarchy: supporting
+  style: midway
+  narrative: Small supported additions to existing beds and attraction verges.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false

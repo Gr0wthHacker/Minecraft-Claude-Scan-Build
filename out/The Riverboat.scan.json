@@ -1,0 +1,34 @@
+{
+  "origin": {
+    "x": 97552,
+    "y": 201,
+    "z": 80435
+  },
+  "size": {
+    "x": 34,
+    "y": 13,
+    "z": 14
+  },
+  "generated_by": "attractions",
+  "kind": "riverboat",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "moored beside REAL water (source blocks over a sealed solid bed), boarded by a genuinely walkable gangway - static, and honest about it",
+  "unverified": [],
+  "width": 9,
+  "length": 27,
+  "height": 10,
+  "signed": true,
+  "gangway_top": [
+    97582,
+    206,
+    80441
+  ],
+  "gangway_bottom": [
+    97585,
+    203,
+    80441
+  ],
+  "file": "The Riverboat.litematic",
+  "name": "The Riverboat"
+}

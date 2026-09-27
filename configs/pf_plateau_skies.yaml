@@ -1,0 +1,145 @@
+# PF PLATEAU SKIES - the one land in the park whose sky was empty.
+#
+# Jack, having walked it: *"add more sky elements that are disconnected e.g. maybe a high up plane
+# or something interesting."* Measured over the park as placed, cells standing above Y250:
+#
+#     Lost Plateau   1,260   ...538 of them the ridge's own canopy and vines, 691 the pterosaur on
+#                            its crag. ONE designed sky object in 34,000 columns, and it is PERCHED
+#     Midway         5,218   Wyrm Gate 4,488, Sky Lift 730
+#     Prismworks     6,025   Prism Well 3,318, Wyrm Gate 2,142, Prism Rig, Crown Descent
+#
+# 87% of the land's mass is below Y230 and its tallest cell is Y279 against a build limit of 320,
+# so every render from every bearing is the same picture: a dense green strip across the bottom
+# third and two thirds of empty blue over it. The measured skyline says it in one line - Y211 to
+# Y252 the whole way across, with a single spike at x97600-97620 which is the pterosaur's crag.
+#
+# THE GROUND CANNOT FIX IT: 27 free pads of 8x8 in the whole 600x200, and this land already holds
+# the park's two largest terrain designs. What it has none of is anything a guest looks UP at.
+#
+# ---------------------------------------------------------------------------------------------
+# THE FLOATING ISLES WERE BUILT AND THROWN OUT, ON THEME
+#
+# The first version of this hung three lenses of the ridge's own rock over the land - jungle on
+# their backs, vines off their rims - and they were good islands. Jack: *"I don't think floating
+# islands are on theme in this case. I like the plane and maybe we can add other elements."*
+#
+# He is right, and it is worth writing down WHY, because the build was clean and measured well.
+# **A FLOATING ISLAND IS A FANTASY TROPE AND THE LOST PLATEAU IS NOT A FANTASY.** It is a
+# palaeontology expedition camp on a remote tableland - Conan Doyle, not Skyblock - and the whole
+# premise of such a place is that it is REAL and merely unreachable. Rock that defies gravity says
+# "magic realm" and undoes the one thing the land is built on. The generator KEEPS them (`isles:`
+# is empty below, not deleted) because they would suit Prismworks, whose own fiction is a crystal
+# that does exactly this.
+#
+# WHAT REPLACES THEM IS THE LAND'S OWN SKY: the expedition's aircraft, and the animals it came to
+# find, sharing it. That is the Lost World's own image and it needs nothing invented for it.
+#
+# Sited off the headroom map, never by eye - the tightest block of the land is x97600-97620 /
+# z80400-80440 at 39-43 courses of clearance (the crag), and every piece here stands in a block
+# with 75 or more.
+name: PF Plateau Skies
+gen: skies
+params:
+  anchor: [97500, 203, 80300]      # V -> world X, U -> world Z, Y203 = the course above the lawn
+  lot: [200, 170]
+  at: [0, 0]
+  sy: 115                          # Y203..Y317, clear of the 320 limit with the fin's own height
+  seed: 41
+  # RETIRED, NOT DELETED - see the header. The three lenses at [55,62]/y264/r19, [152,92]/y277/r13
+  # and [96,32]/y291/r9 built cleanly, hollowed cleanly and are one line from coming back.
+  isles: []
+  # THE FLOCK. Three pteranodons on the wing, west to east and low to high so the group has DEPTH
+  # rather than being a row.
+  #
+  # **THIS IS THE LAND'S OWN ANIMAL, WHICH IS NOT THE SAME AS A REUSED ASSET.** Jack refused two of
+  # those on the causeway - *"get rid of the gecko and bat - those are used assets"* - and both were
+  # creatures lifted out of the lowland into a place with no claim on them. This land already has a
+  # pteranodon roosting on its summit and a nesting colony on its rim; adults on the wing over the
+  # plateau is that story finished rather than a second copy of an object.
+  #
+  # **AND NONE OF THEM CARRIES A CRAG**, which is what makes them read as a different thing from
+  # the one on the rock: the difference has to be the ATTITUDE, not only the altitude. Spread runs
+  # 0.84-0.92 against the roosting one's 0.72 - still short of the flat plate `gen/pterosaur.py`
+  # warns about at 1.0, and unmistakably not the same pose.
+  birds:
+    # **THE BIG ONE IS AN AZHDARCHID AND IT IS THE SKY'S MASS.** Sixty-eight blocks of span
+    # against the aircraft's forty-six: a real Quetzalcoatlus out-spans a light aeroplane, so the
+    # one object in this sky that is bigger than the machine is an ANIMAL - which is the Lost
+    # World's whole point and is what the floating rock was doing badly.
+    - at: [58, 78]                 # x97558, z80378 - over the land's lowest skyline
+      y: 260
+      span: 68
+      spread: 0.86
+      facing: west
+    - at: [150, 100]               # x97650, z80400 - east and higher
+      y: 276
+      span: 40
+      spread: 0.84
+      facing: south
+    - at: [60, 20]                 # x97560, z80320 - north, high: recession
+      y: 292
+      span: 28
+      spread: 0.92
+      facing: north
+    - at: [168, 150]               # x97668, z80450 - off the aircraft's starboard wing
+      y: 268
+      span: 24
+      spread: 0.90
+      facing: east
+  # THE AIRCRAFT. A 1920s survey biplane is both the Lost World's own vehicle and the shape this
+  # medium renders natively: wings are flat SHEETS, the fuselage a TAPER, struts and undercarriage
+  # COLUMNS, the cowling a disc. No joint anywhere describes compound muscle, which is what
+  # retired eight mammals and then a stegosaur after four rounds of polish.
+  #
+  # **LEVEL, AND THE BANK WAS BUILT AND SWEPT AND THROWN AWAY.** A roll makes a better attitude
+  # and a much worse aeroplane: a wing that climbs a fraction of a course per cell of side is a
+  # STAIRCASE, and at 46 cells of span every one of its steps is visible edge-on. Rendered at 0,
+  # 7 and 16 degrees side by side the answer is not close - at 16 the wings are a flight of stairs,
+  # at 7 they are slats, and at 0 they are two clean sheets with a fuselage between them and the
+  # aircraft reads instantly from every bearing including from directly below. The composition
+  # carries the motion instead: it is leaving the plateau with one of the flock alongside it.
+  #
+  # **IT SITS AT THE CARNIVAL END OF THE LAND, NOT IN THE MIDDLE OF IT.** Jack, looking at the
+  # placed park: *"the park complete plane should be moved towards the carnival and not be in the
+  # center of all the dinosaurs."* It was at z80358, dead centre of a band whose ground holds the
+  # sauropod, the bone bed, the nesting rim and a pteranodon on a crag, with the flock around it -
+  # so the one machine in a sky full of animals read as one more animal in the group. It is at
+  # z80439-80468 now: the land's last thirty columns before the causeway to the Midway.
+  #
+  # **AND IT FACES SOUTH, WHICH IS THE ONLY HEADING THE SITE ALLOWS AND ALSO THE BEST ONE.** With
+  # the nose east or west the 51-cell span runs along Z, and the open sky at this end is 22 columns
+  # wide - u148-169 - because the crag's own mass runs to u147 at Y277. Turned, the span runs along
+  # X and the aircraft needs 30 columns of Z rather than 51. What that buys is the view: a guest
+  # arriving from the carnival walks north under an aeroplane heading out the way they came, with
+  # the full wingspan spread across their sightline rather than pointing away down it.
+  #
+  # Measured against the land under it, the nearest cell of ground below any cell of the aircraft
+  # is 47 courses down - its tail passes east of the crag's shoulder rather than over its peak -
+  # and the causeway's own tallest thing in this band (the Rib Walk's cage, Y228) is 54 below.
+  plane:
+    at: [136, 152]
+    y: 286
+    facing: south
+    span: 46
+    bank: 0
+    gap: 5
+roles: [construction]
+design:
+  purpose: landmark
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    The expedition's survey biplane heading out over the causeway toward the fairground with the
+    smallest of the pteranodons off its wing, and three more of them holding the sky over the
+    plateau behind it - the animals the camp below came to find and the machine that got it
+    there, in the only part of this land a guest has to look up to see.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  # DISCONNECTED IS THE DESIGN. Every bird and the aircraft is its own piece in open air, so the
+  # floater sweep would take the whole thing; what has to be true is that each PIECE is whole,
+  # which `tests/test_skies.py` asserts by counting them rather than by demanding one.
+  drop_floaters: false
+  verify_against: out/plateau_sky_ctx.litematic
+origin_lock: false

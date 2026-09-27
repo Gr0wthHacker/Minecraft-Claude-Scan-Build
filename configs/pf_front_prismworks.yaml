@@ -1,0 +1,126 @@
+# PF FRONT PRISMWORKS - the grammar that turns Prismworks' buildings into attractions.
+#
+# The cold land, so nothing here is a fairground. Its marquees are apparatus rather than boards:
+# smooth basalt piers, a cyan signal band, a soul lantern, and the crown lit from inside with
+# pearlescent froglight - the same value ladder `prismworks_builds` gives the buildings behind
+# them (`polished_blackstone_bricks` 45 < `smooth_basalt` 73 < `light_blue_wool` 145), measured
+# ACROSS material families because inside one a ladder cannot exist by construction.
+#
+# TWO OF THE PARK'S FOUR MEASURED TROUGHS ARE IN THIS LAND. U520-539 has 25 built columns against
+# 1,668 free and U580-599 has 168 against 1,812: a visitor walks the last fifth of the park past
+# nothing at all. The signal pylons and the queue below stand in both, and both are tall, because
+# 95.5% of everywhere a guest can stand in this park is in the bottom ten courses and a three-
+# block prop cannot carry twenty blocks of walking.
+name: PF Front Prismworks
+gen: park_frontage
+params:
+  land: prismworks
+  anchor: [97500, 203, 80300]
+  seed: 43
+  pieces:
+    # 2026-09-14 capture audit: the v1 building spurs terminate in the Downs.
+    # These frames now cross the two surviving avenues beyond the spine plazas.
+    # Thin piers fit the verge; five clear cells frame each three-wide avenue.
+    - kind: marquee
+      name: Prismworks Gate
+      at: [24, 468]
+      span: 5
+      pier: 1
+      depth: 1
+      height: 6
+      board: 2
+      title: PRISMWORKS
+      lines: ["follow avenue", "to rim gallery"]
+    - kind: marquee
+      name: Prism Well
+      at: [24, 524]
+      span: 5
+      pier: 1
+      depth: 1
+      height: 6
+      title: THE PRISM WELL
+      lines: ["follow avenue", "to rim gallery"]
+    # The remote Descent queue and separate WELL ENTRY / WELL EXIT were v1
+    # interfaces with no connected destination. Retired; the Well's own rim
+    # access and descent instructions own these jobs.
+
+    # ---------------------------------------------------------------- the two empty bands
+    # A RELAY IS A LINE OF THE SAME THING, AND THAT IS WHY IT WORKS HERE. One tall pylon in a
+    # twenty-wide band is an object; three of them marching away down it, each shorter than the
+    # last, is a DIRECTION - and the two bands this land has to answer for are 70 and 100 courses
+    # deep, which is a long way to look into. Each line ends on a lens: something you only find
+    # by walking to it.
+    # **RE-SIGNED, NOT DEMOLISHED (2026-09-03).** All five named a building that is no longer
+    # in the park - `Foundry Gate`, `Prism Array` and `Prism Ascent` all left with Prismworks
+    # v1 - so a guest read "foundry relay", "array relay", "ascent relay" and there was no
+    # foundry, array or ascent to relay to. THE NUMBERING SAID IT OUT LOUD: it ran 1, 2, 3, 6,
+    # because signals 4 and 5 went with their modules.
+    #
+    # The structures stay, because they are doing measured work: SIGNAL 3 and SIGNAL 4 stand
+    # in this land's two empty bands (U520-539 carries 25 built columns against 1,668 free;
+    # U580-599 carries 168 against 1,812), and a relay LINE is what gives a seventy-course
+    # band a direction rather than an object. Only the captions were stale.
+    #
+    # THE SERIES NOW STARTS WHERE THE LAND DOES. `PF Signal Zero` is the floor of the Prism
+    # Well and it IS signal zero, so the relays march outward from it and every one names
+    # something a guest can walk to: the Well, the Rig over it, and the Crown Descent that
+    # carries the column on to Y300. The count runs 1, 2, 3, 4 with no gap left behind.
+    - kind: sight
+      name: Well Relay One
+      motif: pylon
+      at: [58, 435]
+      height: 16
+      title: SIGNAL 1
+      lines: ["well relay"]
+    - kind: sight
+      name: Well Relay Two
+      motif: pylon
+      at: [86, 435]
+      height: 12
+      title: SIGNAL 2
+      lines: ["well relay"]
+    - kind: sight
+      name: Well Lens
+      motif: lens
+      at: [110, 435]
+      radius: 3
+      title: SPARE LENS
+      lines: ["cast for the", "rig, unused"]
+    - kind: sight
+      name: Rig Relay
+      motif: pylon
+      at: [30, 534]
+      height: 20
+      title: SIGNAL 3
+      lines: ["rig relay"]
+    - kind: sight
+      name: Crown Relay
+      motif: pylon
+      at: [70, 590]
+      height: 15
+      title: SIGNAL 4
+      lines: ["crown relay"]
+
+    # ---------------------------------------------------------------- back of house
+    - kind: portal
+      name: Service Gallery staff gate
+      at: [151, 570]
+      mode: exit
+      title: STAFF ONLY
+      lines: ["service gallery", "", "no admittance"]
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: prismworks
+  narrative: >
+    Two slim signal arches mark the real Prismworks avenues. The Well owns its
+    descent interfaces; roadside relays remain landscape accents, not entrances.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

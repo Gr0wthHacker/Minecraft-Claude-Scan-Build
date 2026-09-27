@@ -1,0 +1,76 @@
+{
+  "origin": {
+    "x": -24224,
+    "y": 100,
+    "z": 29950
+  },
+  "size": {
+    "x": 13,
+    "y": 31,
+    "z": 59
+  },
+  "generated_by": "quadruped",
+  "kind": "jaguar",
+  "pose": "standing",
+  "designed": {
+    "withers height": 0.8214,
+    "leg (ground->belly)": 0.4643,
+    "body depth": 0.3571,
+    "body length": 1.0714,
+    "body width": 0.3404,
+    "neck length": 0.2942,
+    "head length": 0.3214,
+    "leg width": 0.1244
+  },
+  "feet": [
+    -24218,
+    100,
+    29982
+  ],
+  "facing": [
+    0,
+    1
+  ],
+  "height": 30,
+  "top_y": 130,
+  "features_built": {
+    "crown": 6,
+    "face": 8,
+    "tail": 33,
+    "eyes": 2
+  },
+  "anat_top_y": 128,
+  "asymmetry": {
+    "leg_phase": 0,
+    "head_turn": 0
+  },
+  "belly_y": 113,
+  "withers_y": 119.8,
+  "rump_y": 113,
+  "chest_y": 113,
+  "back_y": 123,
+  "neck_top_y": 123.8,
+  "shoulder_at": [
+    -24218.0,
+    119.8,
+    29995.0
+  ],
+  "neck_top_at": [
+    -24218.0,
+    123.8,
+    30002.2
+  ],
+  "along": {
+    "body": [
+      -15,
+      15
+    ],
+    "head": [
+      20,
+      29
+    ]
+  },
+  "collisions": 8,
+  "file": "JAG muscle.litematic",
+  "name": "JAG muscle"
+}

@@ -1,0 +1,5599 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80685
+  },
+  "size": {
+    "x": 146,
+    "y": 34,
+    "z": 45
+  },
+  "generated_by": "seam",
+  "kind": "seam_fracture",
+  "lot": [
+    146,
+    45
+  ],
+  "at": [
+    24,
+    385
+  ],
+  "land": "prismworks",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [
+    {
+      "at": [
+        41,
+        3,
+        32
+      ],
+      "facing": "south",
+      "lines": [
+        "THE SEAM",
+        "strike it",
+        "it answers"
+      ]
+    }
+  ],
+  "stairs": [
+    {
+      "at": [
+        12,
+        1,
+        40
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        13,
+        1,
+        39
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        14,
+        1,
+        38
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        15,
+        1,
+        37
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        16,
+        1,
+        36
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        19,
+        1,
+        37
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        20,
+        1,
+        38
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        21,
+        1,
+        39
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        21,
+        1,
+        41
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        22,
+        1,
+        40
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        50,
+        2,
+        30
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        51,
+        1,
+        29
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        51,
+        1,
+        31
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        52,
+        1,
+        28
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        52,
+        2,
+        32
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        53,
+        1,
+        27
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        53,
+        1,
+        33
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        54,
+        1,
+        26
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        54,
+        1,
+        34
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        55,
+        1,
+        27
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        55,
+        1,
+        33
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        56,
+        1,
+        28
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        56,
+        1,
+        32
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        57,
+        1,
+        29
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        57,
+        1,
+        31
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        30
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        28
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        27
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        29
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        26
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        30
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        25
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        31
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        26
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        30
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        64,
+        0,
+        28
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        21,
+        1,
+        41
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        22,
+        1,
+        40
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        23,
+        1,
+        39
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        24,
+        1,
+        38
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        25,
+        1,
+        37
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        26,
+        1,
+        38
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        27,
+        1,
+        39
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        28,
+        1,
+        40
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        29,
+        1,
+        41
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        4,
+        1,
+        41
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        5,
+        1,
+        40
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        6,
+        1,
+        39
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        7,
+        1,
+        38
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        8,
+        2,
+        37
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        9,
+        1,
+        38
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        10,
+        1,
+        39
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        11,
+        1,
+        40
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        12,
+        1,
+        41
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        110,
+        0,
+        8
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        111,
+        0,
+        7
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        111,
+        0,
+        9
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        112,
+        0,
+        6
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        112,
+        0,
+        10
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        113,
+        0,
+        5
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        113,
+        0,
+        11
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        114,
+        0,
+        4
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        114,
+        0,
+        12
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        115,
+        0,
+        5
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        115,
+        0,
+        11
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        116,
+        0,
+        6
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        116,
+        0,
+        10
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        117,
+        0,
+        7
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        117,
+        0,
+        9
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        118,
+        0,
+        8
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        104,
+        0,
+        11
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        104,
+        0,
+        15
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        105,
+        0,
+        10
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        105,
+        0,
+        16
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        106,
+        0,
+        9
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        106,
+        0,
+        17
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        107,
+        0,
+        10
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        107,
+        0,
+        16
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        108,
+        0,
+        11
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        108,
+        0,
+        15
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        109,
+        0,
+        12
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        109,
+        0,
+        14
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        110,
+        0,
+        13
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        37,
+        1,
+        26
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        38,
+        1,
+        25
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        38,
+        1,
+        27
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        39,
+        1,
+        24
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        39,
+        1,
+        28
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        40,
+        1,
+        23
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        40,
+        1,
+        29
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        41,
+        1,
+        24
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        41,
+        1,
+        28
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        42,
+        1,
+        25
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        42,
+        1,
+        27
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        43,
+        1,
+        26
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        5
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        125,
+        0,
+        4
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        125,
+        0,
+        6
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        126,
+        0,
+        3
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        126,
+        0,
+        7
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        127,
+        0,
+        8
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        128,
+        0,
+        3
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        128,
+        0,
+        7
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        129,
+        0,
+        4
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        129,
+        0,
+        6
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        22
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        21
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        23
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        19
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        25
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        63,
+        0,
+        21
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        31,
+        1,
+        28
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        32,
+        1,
+        27
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        32,
+        1,
+        29
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        33,
+        1,
+        26
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        33,
+        1,
+        30
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        34,
+        1,
+        25
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        34,
+        1,
+        31
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        35,
+        1,
+        26
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        35,
+        1,
+        30
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        36,
+        1,
+        27
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        36,
+        1,
+        29
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        37,
+        1,
+        28
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        92,
+        0,
+        17
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        93,
+        0,
+        16
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        95,
+        0,
+        20
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        96,
+        0,
+        13
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        96,
+        0,
+        21
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        97,
+        0,
+        14
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        97,
+        0,
+        20
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        98,
+        0,
+        15
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        98,
+        0,
+        19
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        138,
+        1,
+        6
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        139,
+        1,
+        5
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        139,
+        1,
+        7
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        140,
+        1,
+        4
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        140,
+        1,
+        8
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        141,
+        1,
+        3
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        141,
+        1,
+        9
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        142,
+        1,
+        4
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        142,
+        1,
+        8
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        143,
+        1,
+        5
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        143,
+        1,
+        7
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        144,
+        1,
+        6
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        52,
+        2,
+        36
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        53,
+        1,
+        35
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        53,
+        1,
+        37
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        54,
+        1,
+        34
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        54,
+        1,
+        38
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        55,
+        1,
+        33
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        55,
+        1,
+        39
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        56,
+        1,
+        32
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        56,
+        1,
+        40
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        57,
+        1,
+        33
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        57,
+        1,
+        39
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        34
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        38
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        35
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        37
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        36
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        45,
+        1,
+        26
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        46,
+        1,
+        25
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        46,
+        1,
+        27
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        47,
+        1,
+        24
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        47,
+        1,
+        28
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        48,
+        1,
+        23
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        48,
+        1,
+        29
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        49,
+        1,
+        24
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        49,
+        1,
+        28
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        50,
+        1,
+        25
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        50,
+        1,
+        27
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        51,
+        1,
+        26
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        24,
+        1,
+        29
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        25,
+        1,
+        28
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        25,
+        1,
+        30
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        26,
+        1,
+        27
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        26,
+        1,
+        31
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        27,
+        1,
+        26
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        27,
+        1,
+        32
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        28,
+        1,
+        27
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        28,
+        1,
+        31
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        29,
+        1,
+        28
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        29,
+        1,
+        30
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        30,
+        1,
+        29
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        118,
+        0,
+        9
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        119,
+        0,
+        8
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        119,
+        0,
+        10
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        120,
+        0,
+        7
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        120,
+        0,
+        11
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        121,
+        0,
+        6
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        121,
+        0,
+        12
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        122,
+        0,
+        7
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        122,
+        0,
+        11
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        123,
+        0,
+        8
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        123,
+        0,
+        10
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        9
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        33,
+        1,
+        41
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        34,
+        1,
+        40
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        35,
+        1,
+        39
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        36,
+        1,
+        38
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        37,
+        1,
+        39
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        38,
+        1,
+        40
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        39,
+        1,
+        41
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        93,
+        0,
+        10
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        94,
+        0,
+        9
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        95,
+        0,
+        8
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        96,
+        0,
+        7
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        96,
+        0,
+        13
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        97,
+        0,
+        8
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        97,
+        0,
+        12
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        98,
+        0,
+        9
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        98,
+        0,
+        11
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        110,
+        0,
+        16
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        111,
+        0,
+        15
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        111,
+        0,
+        17
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        112,
+        0,
+        14
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        112,
+        0,
+        18
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        113,
+        0,
+        13
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        113,
+        0,
+        19
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        114,
+        0,
+        14
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        114,
+        0,
+        18
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        115,
+        0,
+        15
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        115,
+        0,
+        17
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        116,
+        0,
+        16
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        133,
+        1,
+        6
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        133,
+        1,
+        10
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        134,
+        1,
+        5
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        134,
+        1,
+        11
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        135,
+        1,
+        6
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        135,
+        1,
+        10
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        136,
+        1,
+        7
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        136,
+        1,
+        9
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        137,
+        1,
+        8
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        39,
+        1,
+        22
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        40,
+        1,
+        21
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        40,
+        1,
+        23
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        41,
+        1,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        41,
+        1,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        42,
+        1,
+        19
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        42,
+        1,
+        25
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        43,
+        1,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        43,
+        1,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        44,
+        1,
+        21
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        44,
+        1,
+        23
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        45,
+        1,
+        22
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        47,
+        1,
+        22
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        48,
+        1,
+        21
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        48,
+        1,
+        23
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        49,
+        1,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        49,
+        1,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        50,
+        1,
+        19
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        50,
+        1,
+        25
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        51,
+        1,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        51,
+        1,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        52,
+        1,
+        21
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        52,
+        1,
+        23
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        53,
+        1,
+        22
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        56,
+        1,
+        18
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        57,
+        1,
+        17
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        57,
+        1,
+        19
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        16
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        20
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        15
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        21
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        16
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        20
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        17
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        19
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        18
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        20,
+        1,
+        27
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        21,
+        1,
+        26
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        21,
+        1,
+        28
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        22,
+        1,
+        25
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        22,
+        1,
+        29
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        23,
+        1,
+        24
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        23,
+        1,
+        30
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        24,
+        1,
+        25
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        24,
+        1,
+        29
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        25,
+        1,
+        26
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        25,
+        1,
+        28
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        26,
+        1,
+        27
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        106,
+        0,
+        20
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        107,
+        0,
+        19
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        107,
+        0,
+        21
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        108,
+        0,
+        18
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        108,
+        0,
+        22
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        109,
+        0,
+        17
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        109,
+        0,
+        23
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        110,
+        0,
+        18
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        110,
+        0,
+        22
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        111,
+        0,
+        19
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        111,
+        0,
+        21
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        112,
+        0,
+        20
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        139,
+        1,
+        12
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        140,
+        1,
+        11
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        140,
+        1,
+        13
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        141,
+        1,
+        10
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        141,
+        1,
+        14
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        142,
+        1,
+        9
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        142,
+        1,
+        15
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        143,
+        1,
+        10
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        143,
+        1,
+        14
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        144,
+        1,
+        11
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        145,
+        1,
+        12
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        120,
+        0,
+        15
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        121,
+        0,
+        14
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        121,
+        0,
+        16
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        122,
+        0,
+        13
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        122,
+        0,
+        17
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        123,
+        0,
+        12
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        123,
+        0,
+        18
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        13
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        17
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        125,
+        0,
+        14
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        125,
+        0,
+        16
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        126,
+        0,
+        15
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        114,
+        0,
+        19
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        115,
+        0,
+        18
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        115,
+        0,
+        20
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        116,
+        0,
+        17
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        116,
+        0,
+        21
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        117,
+        0,
+        16
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        117,
+        0,
+        22
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        118,
+        0,
+        17
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        118,
+        0,
+        21
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        119,
+        0,
+        18
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        119,
+        0,
+        20
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        120,
+        0,
+        19
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        32,
+        1,
+        21
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        33,
+        1,
+        20
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        33,
+        1,
+        22
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        34,
+        1,
+        19
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        34,
+        1,
+        23
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        35,
+        1,
+        18
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        35,
+        1,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        36,
+        1,
+        19
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        36,
+        1,
+        23
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        37,
+        1,
+        20
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        37,
+        1,
+        22
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        38,
+        1,
+        21
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        15,
+        1,
+        28
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        16,
+        1,
+        27
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        16,
+        1,
+        29
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        17,
+        1,
+        26
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        17,
+        1,
+        30
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        18,
+        1,
+        25
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        18,
+        1,
+        31
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        19,
+        1,
+        26
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        19,
+        1,
+        30
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        20,
+        1,
+        27
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        20,
+        1,
+        29
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        21,
+        1,
+        28
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        39
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        38
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        40
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        37
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        41
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        36
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        63,
+        0,
+        37
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        63,
+        0,
+        41
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        64,
+        0,
+        38
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        64,
+        0,
+        40
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        65,
+        0,
+        39
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        104,
+        0,
+        23
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        104,
+        0,
+        27
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        105,
+        0,
+        28
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        106,
+        0,
+        23
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        106,
+        0,
+        27
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        107,
+        0,
+        24
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        107,
+        0,
+        26
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        108,
+        0,
+        25
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        48,
+        1,
+        17
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        49,
+        1,
+        16
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        49,
+        1,
+        18
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        50,
+        1,
+        15
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        50,
+        1,
+        19
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        51,
+        1,
+        14
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        51,
+        1,
+        20
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        52,
+        1,
+        15
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        52,
+        1,
+        19
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        53,
+        1,
+        16
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        53,
+        1,
+        18
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        54,
+        1,
+        17
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        109,
+        0,
+        23
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        110,
+        0,
+        22
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        110,
+        0,
+        24
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        111,
+        0,
+        21
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        111,
+        0,
+        25
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        112,
+        0,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        112,
+        0,
+        26
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        113,
+        0,
+        21
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        113,
+        0,
+        25
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        114,
+        0,
+        22
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        114,
+        0,
+        24
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        115,
+        0,
+        23
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        18
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        125,
+        0,
+        17
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        125,
+        0,
+        19
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        126,
+        0,
+        16
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        126,
+        0,
+        20
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        127,
+        0,
+        15
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        127,
+        0,
+        21
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        128,
+        0,
+        16
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        128,
+        0,
+        20
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        129,
+        0,
+        17
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        129,
+        0,
+        19
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        27,
+        1,
+        22
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        28,
+        1,
+        21
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        28,
+        1,
+        23
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        29,
+        1,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        29,
+        1,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        30,
+        1,
+        19
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        30,
+        1,
+        25
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        31,
+        1,
+        20
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        31,
+        1,
+        24
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        32,
+        1,
+        21
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        32,
+        1,
+        23
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        33,
+        1,
+        22
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        87,
+        0,
+        4
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        88,
+        0,
+        3
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        88,
+        0,
+        5
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        89,
+        0,
+        6
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        90,
+        0,
+        7
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        91,
+        0,
+        6
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        92,
+        0,
+        3
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        92,
+        0,
+        5
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        93,
+        0,
+        4
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        12
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        11
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        59,
+        0,
+        13
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        10
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        14
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        9
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        15
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        10
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        14
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        63,
+        0,
+        11
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        63,
+        0,
+        13
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        64,
+        0,
+        12
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        95,
+        0,
+        32
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        96,
+        0,
+        29
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        96,
+        0,
+        33
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        97,
+        0,
+        28
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        97,
+        0,
+        34
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        98,
+        0,
+        29
+      ],
+      "facing": "south",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        98,
+        0,
+        33
+      ],
+      "facing": "north",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        8,
+        1,
+        41
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        9,
+        1,
+        41
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        16,
+        1,
+        39
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        30,
+        1,
+        39
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        53,
+        1,
+        27
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        57,
+        1,
+        25
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        58,
+        0,
+        31
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        25
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        60,
+        0,
+        26
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        61,
+        0,
+        24
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        62,
+        0,
+        29
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        63,
+        0,
+        30
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        65,
+        0,
+        28
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        87,
+        0,
+        17
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        88,
+        0,
+        16
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        93,
+        0,
+        19
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        95,
+        0,
+        15
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        95,
+        0,
+        19
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        95,
+        0,
+        20
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        96,
+        0,
+        20
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        97,
+        0,
+        12
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        97,
+        0,
+        14
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        106,
+        0,
+        15
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        107,
+        0,
+        11
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        107,
+        0,
+        15
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        108,
+        0,
+        11
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        110,
+        0,
+        14
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        116,
+        0,
+        7
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        120,
+        0,
+        6
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        121,
+        0,
+        6
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        121,
+        0,
+        11
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        122,
+        0,
+        5
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        123,
+        0,
+        5
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        123,
+        0,
+        6
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        4
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        6
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        9
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        124,
+        0,
+        10
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        125,
+        0,
+        9
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        134,
+        1,
+        2
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        135,
+        1,
+        2
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        137,
+        2,
+        0
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        141,
+        1,
+        4
+      ],
+      "facing": "east",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    },
+    {
+      "at": [
+        142,
+        1,
+        0
+      ],
+      "facing": "west",
+      "half": "bottom",
+      "block": "polished_blackstone_brick_stairs"
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "walk": {
+      "legs": 1,
+      "cells": 75
+    },
+    "spoil": 0,
+    "seam": {
+      "shards": [
+        {
+          "at": [
+            17,
+            40
+          ],
+          "h": 27,
+          "r0": 4,
+          "cells": 451,
+          "heave": 42
+        },
+        {
+          "at": [
+            54,
+            30
+          ],
+          "h": 21,
+          "r0": 3,
+          "cells": 252,
+          "heave": 39
+        },
+        {
+          "at": [
+            61,
+            28
+          ],
+          "h": 17,
+          "r0": 2,
+          "cells": 124,
+          "heave": 22
+        },
+        {
+          "at": [
+            25,
+            41
+          ],
+          "h": 21,
+          "r0": 3,
+          "cells": 178,
+          "heave": 23
+        },
+        {
+          "at": [
+            8,
+            41
+          ],
+          "h": 18,
+          "r0": 3,
+          "cells": 84,
+          "heave": 25
+        },
+        {
+          "at": [
+            114,
+            8
+          ],
+          "h": 18,
+          "r0": 3,
+          "cells": 219,
+          "heave": 40
+        },
+        {
+          "at": [
+            106,
+            13
+          ],
+          "h": 18,
+          "r0": 3,
+          "cells": 202,
+          "heave": 36
+        },
+        {
+          "at": [
+            40,
+            26
+          ],
+          "h": 16,
+          "r0": 2,
+          "cells": 113,
+          "heave": 25
+        },
+        {
+          "at": [
+            127,
+            5
+          ],
+          "h": 17,
+          "r0": 2,
+          "cells": 126,
+          "heave": 22
+        },
+        {
+          "at": [
+            61,
+            22
+          ],
+          "h": 17,
+          "r0": 2,
+          "cells": 114,
+          "heave": 21
+        },
+        {
+          "at": [
+            34,
+            28
+          ],
+          "h": 16,
+          "r0": 2,
+          "cells": 113,
+          "heave": 24
+        },
+        {
+          "at": [
+            96,
+            17
+          ],
+          "h": 18,
+          "r0": 3,
+          "cells": 186,
+          "heave": 32
+        },
+        {
+          "at": [
+            141,
+            6
+          ],
+          "h": 15,
+          "r0": 2,
+          "cells": 107,
+          "heave": 24
+        },
+        {
+          "at": [
+            56,
+            36
+          ],
+          "h": 18,
+          "r0": 3,
+          "cells": 219,
+          "heave": 42
+        },
+        {
+          "at": [
+            48,
+            26
+          ],
+          "h": 16,
+          "r0": 2,
+          "cells": 113,
+          "heave": 26
+        },
+        {
+          "at": [
+            27,
+            29
+          ],
+          "h": 15,
+          "r0": 2,
+          "cells": 107,
+          "heave": 25
+        },
+        {
+          "at": [
+            121,
+            9
+          ],
+          "h": 17,
+          "r0": 2,
+          "cells": 126,
+          "heave": 24
+        },
+        {
+          "at": [
+            36,
+            41
+          ],
+          "h": 16,
+          "r0": 2,
+          "cells": 95,
+          "heave": 15
+        },
+        {
+          "at": [
+            96,
+            10
+          ],
+          "h": 15,
+          "r0": 2,
+          "cells": 105,
+          "heave": 21
+        },
+        {
+          "at": [
+            113,
+            16
+          ],
+          "h": 16,
+          "r0": 2,
+          "cells": 113,
+          "heave": 25
+        },
+        {
+          "at": [
+            134,
+            8
+          ],
+          "h": 14,
+          "r0": 2,
+          "cells": 89,
+          "heave": 22
+        },
+        {
+          "at": [
+            42,
+            22
+          ],
+          "h": 14,
+          "r0": 2,
+          "cells": 94,
+          "heave": 24
+        },
+        {
+          "at": [
+            50,
+            22
+          ],
+          "h": 14,
+          "r0": 2,
+          "cells": 94,
+          "heave": 24
+        },
+        {
+          "at": [
+            59,
+            18
+          ],
+          "h": 14,
+          "r0": 2,
+          "cells": 93,
+          "heave": 27
+        },
+        {
+          "at": [
+            23,
+            27
+          ],
+          "h": 13,
+          "r0": 2,
+          "cells": 93,
+          "heave": 25
+        },
+        {
+          "at": [
+            109,
+            20
+          ],
+          "h": 13,
+          "r0": 2,
+          "cells": 93,
+          "heave": 24
+        },
+        {
+          "at": [
+            142,
+            12
+          ],
+          "h": 12,
+          "r0": 2,
+          "cells": 88,
+          "heave": 23
+        },
+        {
+          "at": [
+            123,
+            15
+          ],
+          "h": 12,
+          "r0": 2,
+          "cells": 88,
+          "heave": 25
+        },
+        {
+          "at": [
+            117,
+            19
+          ],
+          "h": 13,
+          "r0": 2,
+          "cells": 93,
+          "heave": 24
+        },
+        {
+          "at": [
+            35,
+            21
+          ],
+          "h": 12,
+          "r0": 2,
+          "cells": 88,
+          "heave": 24
+        },
+        {
+          "at": [
+            18,
+            28
+          ],
+          "h": 13,
+          "r0": 2,
+          "cells": 93,
+          "heave": 25
+        },
+        {
+          "at": [
+            62,
+            39
+          ],
+          "h": 12,
+          "r0": 2,
+          "cells": 88,
+          "heave": 23
+        },
+        {
+          "at": [
+            105,
+            25
+          ],
+          "h": 12,
+          "r0": 2,
+          "cells": 76,
+          "heave": 20
+        },
+        {
+          "at": [
+            51,
+            17
+          ],
+          "h": 12,
+          "r0": 2,
+          "cells": 88,
+          "heave": 24
+        },
+        {
+          "at": [
+            112,
+            23
+          ],
+          "h": 12,
+          "r0": 2,
+          "cells": 88,
+          "heave": 26
+        },
+        {
+          "at": [
+            127,
+            18
+          ],
+          "h": 11,
+          "r0": 2,
+          "cells": 75,
+          "heave": 24
+        },
+        {
+          "at": [
+            30,
+            22
+          ],
+          "h": 12,
+          "r0": 2,
+          "cells": 88,
+          "heave": 24
+        },
+        {
+          "at": [
+            90,
+            4
+          ],
+          "h": 11,
+          "r0": 2,
+          "cells": 72,
+          "heave": 20
+        },
+        {
+          "at": [
+            61,
+            12
+          ],
+          "h": 11,
+          "r0": 2,
+          "cells": 75,
+          "heave": 24
+        },
+        {
+          "at": [
+            97,
+            31
+          ],
+          "h": 11,
+          "r0": 2,
+          "cells": 71,
+          "heave": 19
+        }
+      ],
+      "splinters": 15,
+      "tallest": 27,
+      "cells": 5898
+    },
+    "trace": {
+      "width": 3.0,
+      "veins": 171,
+      "cells": 367
+    },
+    "lookout": {
+      "at": [
+        40,
+        31
+      ],
+      "size": [
+        11,
+        11
+      ],
+      "deck": 2,
+      "notes": 7,
+      "signed": true,
+      "cells": 300
+    }
+  },
+  "contract": "the Prism Reach, which was 96.3% ankle height and whose only content was the bare floor of a building that moved to the rim: the crystal seam breaking through the plate, growing from splinters at the Midway edge to full shards at the Prismworks threshold, with a lane off the spine through it to a note-block rail among the biggest of them. Nothing over 30 courses, so the well's collar keeps the land's silhouette.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "signage": [
+        "warped_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "prismworks",
+      "narrative": "The crystal vein the prism well was cut to reach, breaking through the reach's dark plate: splinters at the Midway edge growing to leaning, lit shards at the Prismworks threshold, the deck heaved and broken at every foot, and a lane off the spine to a note-block rail among the biggest of them.\n"
+    },
+    "metrics": {
+      "blocks": 5877,
+      "materials": 17,
+      "dominant_material_share": 0.5363,
+      "light_blocks": 0,
+      "massing": {
+        "width": 146,
+        "height": 29,
+        "depth": 42,
+        "fill_ratio": 0.033
+      },
+      "silhouette": {
+        "top": {
+          "area": 1397,
+          "fill_ratio": 0.2126
+        },
+        "front": {
+          "area": 1261,
+          "fill_ratio": 0.254
+        },
+        "side": {
+          "area": 637,
+          "fill_ratio": 0.4163
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.9328,
+          0.0655,
+          0.0017
+        ],
+        "top_silhouette_perimeter": 2447,
+        "surface_faces_per_block": 2.0875
+      },
+      "material_counts": {
+        "cyan_wool": 3152,
+        "light_blue_wool": 1165,
+        "polished_blackstone_brick_stairs": 393,
+        "polished_blackstone_bricks": 265,
+        "smooth_basalt": 190,
+        "tuff": 131,
+        "pearlescent_froglight": 99,
+        "cobbled_deepslate_slab": 97,
+        "deepslate_tiles": 89,
+        "white_wool": 85,
+        "polished_blackstone_brick_slab": 70,
+        "amethyst_cluster": 39
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "e5663a66fb183ed925825a8ae27aa71aa8ac2fd27f1f673bf0ddccd650e958d7",
+    "generator_source_digest": "95141cecb3c48e3d00a114eb8bf66bcbbb6401ec87bfb39207fc66e12edb48a8",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 61.505318,
+    "blocks": 5877,
+    "blocks_per_second": 95.55
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "path"
+    ],
+    "blocks": 5877,
+    "mechanic_families": [
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "route",
+    "player_verbs": [
+      "walk into the seam",
+      "strike a crystal",
+      "look down the reach"
+    ],
+    "outcome": "The walk from the Midway into Prismworks stops being a car park with a railway behind it.\n",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: amethyst_cluster",
+    "not in the provisional skyblock-1.19 list: blackstone",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate_slab",
+    "not in the provisional skyblock-1.19 list: deepslate_brick_wall",
+    "not in the provisional skyblock-1.19 list: deepslate_tiles",
+    "not in the provisional skyblock-1.19 list: pearlescent_froglight",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_brick_slab",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_brick_stairs",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_deepslate",
+    "not in the provisional skyblock-1.19 list: smooth_basalt",
+    "not in the provisional skyblock-1.19 list: tuff",
+    "not in the provisional skyblock-1.19 list: warped_wall_sign"
+  ],
+  "file": "PF Prism Fracture.litematic",
+  "name": "PF Prism Fracture"
+}

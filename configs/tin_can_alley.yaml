@@ -1,0 +1,18 @@
+name: Tin Can Alley
+gen: casino
+params:
+  land: frontier
+  outcomes: 3
+  pit: 2
+  facing: west
+  booth: true
+  at:
+  - 97631
+  - 203
+  - 80433
+  kind: duel
+  title: Tin Can Alley
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

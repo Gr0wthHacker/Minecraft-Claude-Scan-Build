@@ -5,14 +5,14 @@
     "z": 29949
   },
   "size": {
-    "x": 63,
-    "y": 49,
-    "z": 72
+    "x": 66,
+    "y": 47,
+    "z": 73
   },
   "generated_by": "sorter",
   "kind": "sorter",
   "run": "z+",
-  "lanes": 4,
+  "lanes": 8,
   "skipped": [
     [
       -24190,
@@ -22,35 +22,33 @@
     [
       -24190,
       195,
-      30013
-    ],
-    [
-      -24190,
-      195,
-      30015
-    ],
-    [
-      -24190,
-      195,
       30016
-    ],
-    [
-      -24190,
-      195,
-      30017
-    ],
-    [
-      -24190,
-      195,
-      30021
     ]
   ],
   "cells": [
     [
       -24190,
       195,
+      30013,
+      "stone"
+    ],
+    [
+      -24190,
+      195,
       30014,
       "oak_log"
+    ],
+    [
+      -24190,
+      195,
+      30015,
+      "oak_sapling"
+    ],
+    [
+      -24190,
+      195,
+      30017,
+      "moss_block"
     ],
     [
       -24190,
@@ -69,30 +67,61 @@
       195,
       30020,
       "string"
+    ],
+    [
+      -24190,
+      195,
+      30021,
+      "ink_sac"
     ]
   ],
+  "source": "item_filter.schem (a working reference build), lane copied cell for cell",
   "filter_stock": [
     {
       "lane": 0,
-      "item": "oak_log",
+      "item": "stone",
       "target": 1,
       "filler": 4
     },
     {
       "lane": 1,
-      "item": "bone",
+      "item": "oak_log",
       "target": 1,
       "filler": 4
     },
     {
       "lane": 2,
-      "item": "arrow",
+      "item": "oak_sapling",
       "target": 1,
       "filler": 4
     },
     {
       "lane": 3,
+      "item": "moss_block",
+      "target": 1,
+      "filler": 4
+    },
+    {
+      "lane": 4,
+      "item": "bone",
+      "target": 1,
+      "filler": 4
+    },
+    {
+      "lane": 5,
+      "item": "arrow",
+      "target": 1,
+      "filler": 4
+    },
+    {
+      "lane": 6,
       "item": "string",
+      "target": 1,
+      "filler": 4
+    },
+    {
+      "lane": 7,
+      "item": "ink_sac",
       "target": 1,
       "filler": 4
     }

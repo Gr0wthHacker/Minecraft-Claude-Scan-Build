@@ -1,0 +1,159 @@
+{
+  "origin": {
+    "x": 97637,
+    "y": 143,
+    "z": 80357
+  },
+  "size": {
+    "x": 5,
+    "y": 62,
+    "z": 5
+  },
+  "generated_by": "stairwell",
+  "kind": "stairwell",
+  "center": [
+    97639,
+    80359
+  ],
+  "y_bottom": 143,
+  "y_top": 203,
+  "treads": 153,
+  "dig": [],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Mine Works Stair serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 1143,
+      "materials": 5,
+      "dominant_material_share": 0.8294,
+      "light_blocks": 15,
+      "massing": {
+        "width": 5,
+        "height": 62,
+        "depth": 5,
+        "fill_ratio": 0.7374
+      },
+      "silhouette": {
+        "top": {
+          "area": 24,
+          "fill_ratio": 0.96
+        },
+        "front": {
+          "area": 310,
+          "fill_ratio": 1.0
+        },
+        "side": {
+          "area": 310,
+          "fill_ratio": 1.0
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 948,
+        "stone_brick_slab": 129,
+        "mossy_stone_brick_slab": 39,
+        "lantern": 15,
+        "stone_brick_wall": 12
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "2c11fba95a021c30e7253e0dd1d5031302fd964d3135a52176fbb36d2f11c67c",
+    "generator_source_digest": "8fd66f92fdb6c55682e140d4ed54e017cb8750f2fa6593c5ab4fbba58b632713",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97644,
+        144,
+        80359
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1143,
+    "mechanic_families": [
+      "light"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
+  "file": "The Mine Works Stair.litematic",
+  "name": "The Mine Works Stair"
+}

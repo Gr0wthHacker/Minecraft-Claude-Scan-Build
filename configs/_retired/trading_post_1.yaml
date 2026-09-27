@@ -1,0 +1,17 @@
+name: Trading Post 1
+gen: park
+params:
+  land: frontier
+  width: 7
+  depth: 5
+  facing: east
+  at:
+  - 97588
+  - 203
+  - 80426
+  kind: stall
+  title: Trading Post 1
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

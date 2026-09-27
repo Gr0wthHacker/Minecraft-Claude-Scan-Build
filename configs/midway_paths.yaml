@@ -1,0 +1,789 @@
+name: Midway Paths
+gen: park
+params:
+  land: midway
+  facing: east
+  routes:
+  - a:
+    - 97553
+    - 80600
+    b:
+    - 97637
+    - 80600
+    width: 5
+    role: main_spine
+    lamps: true
+    name: east-west spine
+  - a:
+    - 97595
+    - 80553
+    b:
+    - 97595
+    - 80647
+    width: 5
+    role: main_spine
+    lamps: true
+    name: north-south spine
+  - a:
+    - 97618
+    - 80589
+    b:
+    - 97618
+    - 80611
+    width: 3
+    role: secondary
+    name: Arrival Court east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97563
+    - 80595
+    b:
+    - 97563
+    - 80605
+    width: 3
+    role: secondary
+    name: Box Office east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97563
+    - 80609
+    b:
+    - 97563
+    - 80619
+    width: 3
+    role: secondary
+    name: Entry Queue east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97563
+    - 80614
+    b:
+    - 97563
+    - 80600
+    width: 3
+    role: secondary
+    name: Entry Queue east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97571
+    - 80584
+    b:
+    - 97571
+    - 80592
+    width: 3
+    role: secondary
+    name: Turnstiles east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97571
+    - 80588
+    b:
+    - 97571
+    - 80600
+    width: 3
+    role: secondary
+    name: Turnstiles east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97629
+    - 80640
+    b:
+    - 97631
+    - 80640
+    width: 3
+    role: exit
+    name: The Big Wheel south frontage
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97630
+    - 80640
+    b:
+    - 97595
+    - 80640
+    width: 3
+    role: secondary
+    name: The Big Wheel south join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97618
+    - 80576
+    b:
+    - 97618
+    - 80624
+    width: 3
+    role: secondary
+    name: The Big Wheel west frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97594
+    - 80614
+    b:
+    - 97596
+    - 80614
+    width: 3
+    role: secondary
+    name: The Monument north frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97562
+    - 80571
+    b:
+    - 97562
+    - 80573
+    width: 3
+    role: secondary
+    name: Park Gate east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97562
+    - 80572
+    b:
+    - 97562
+    - 80600
+    width: 3
+    role: secondary
+    name: Park Gate east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97594
+    - 80557
+    b:
+    - 97596
+    - 80557
+    width: 3
+    role: secondary
+    name: Frontier Arch south frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97572
+    - 80643
+    b:
+    - 97574
+    - 80643
+    width: 3
+    role: secondary
+    name: Hollow Arch north frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97573
+    - 80643
+    b:
+    - 97595
+    - 80643
+    width: 3
+    role: secondary
+    name: Hollow Arch north join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97603
+    - 80585
+    b:
+    - 97605
+    - 80585
+    width: 3
+    role: exit
+    name: Carousel south frontage
+    lamps: true
+    lamp_every: 4
+  - a:
+    - 97604
+    - 80585
+    b:
+    - 97595
+    - 80585
+    width: 3
+    role: secondary
+    name: Carousel south join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97585
+    - 80561
+    b:
+    - 97585
+    - 80579
+    width: 3
+    role: secondary
+    name: Carousel west frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97585
+    - 80570
+    b:
+    - 97585
+    - 80600
+    width: 3
+    role: secondary
+    name: Carousel west join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97571
+    - 80637
+    b:
+    - 97571
+    - 80639
+    width: 3
+    role: secondary
+    name: Fireworks east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97571
+    - 80638
+    b:
+    - 97571
+    - 80600
+    width: 3
+    role: secondary
+    name: Fireworks east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97589
+    - 80554
+    b:
+    - 97589
+    - 80569
+    width: 3
+    role: secondary
+    name: Plinko east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97589
+    - 80561
+    b:
+    - 97589
+    - 80600
+    width: 3
+    role: secondary
+    name: Plinko east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97579
+    - 80608
+    b:
+    - 97579
+    - 80621
+    width: 3
+    role: secondary
+    name: Food Court east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97579
+    - 80614
+    b:
+    - 97579
+    - 80600
+    width: 3
+    role: secondary
+    name: Food Court east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97585
+    - 80583
+    b:
+    - 97585
+    - 80585
+    width: 3
+    role: secondary
+    name: The Terrace east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97585
+    - 80584
+    b:
+    - 97585
+    - 80600
+    width: 3
+    role: secondary
+    name: The Terrace east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97623
+    - 80637
+    b:
+    - 97635
+    - 80637
+    width: 3
+    role: secondary
+    name: Prize Counter north frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97629
+    - 80637
+    b:
+    - 97595
+    - 80637
+    width: 3
+    role: secondary
+    name: Prize Counter north join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97564
+    - 80607
+    b:
+    - 97574
+    - 80607
+    width: 3
+    role: secondary
+    name: High Striker south frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97569
+    - 80607
+    b:
+    - 97595
+    - 80607
+    width: 3
+    role: secondary
+    name: High Striker south join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97576
+    - 80629
+    b:
+    - 97576
+    - 80631
+    width: 3
+    role: secondary
+    name: Midway Post east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97576
+    - 80630
+    b:
+    - 97576
+    - 80600
+    width: 3
+    role: secondary
+    name: Midway Post east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97621
+    - 80599
+    b:
+    - 97621
+    - 80601
+    width: 3
+    role: secondary
+    name: Midway Map east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97621
+    - 80615
+    b:
+    - 97621
+    - 80617
+    width: 3
+    role: secondary
+    name: Park Notices east frontage
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97621
+    - 80616
+    b:
+    - 97621
+    - 80600
+    width: 3
+    role: secondary
+    name: Park Notices east join
+    lamps: true
+    lamp_every: 5
+  - a:
+    - 97553
+    - 80553
+    b:
+    - 97587
+    - 80553
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97591
+    - 80553
+    b:
+    - 97592
+    - 80553
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97598
+    - 80553
+    b:
+    - 97637
+    - 80553
+    width: 3
+    role: service
+    name: service road north
+  - a:
+    - 97553
+    - 80647
+    b:
+    - 97592
+    - 80647
+    width: 3
+    role: service
+    name: service road south
+  - a:
+    - 97598
+    - 80647
+    b:
+    - 97637
+    - 80647
+    width: 3
+    role: service
+    name: service road south
+  - a:
+    - 97553
+    - 80553
+    b:
+    - 97553
+    - 80597
+    width: 3
+    role: service
+    name: service road west
+  - a:
+    - 97553
+    - 80603
+    b:
+    - 97553
+    - 80647
+    width: 3
+    role: service
+    name: service road west
+  - a:
+    - 97637
+    - 80553
+    b:
+    - 97637
+    - 80597
+    width: 3
+    role: service
+    name: service road east
+  - a:
+    - 97637
+    - 80603
+    b:
+    - 97637
+    - 80647
+    width: 3
+    role: service
+    name: service road east
+  - a:
+    - 97600
+    - 80582
+    b:
+    - 97616
+    - 80582
+    width: 3
+    role: service
+    name: Arrival Court service yard
+  - a:
+    - 97600
+    - 80582
+    b:
+    - 97598
+    - 80582
+    width: 3
+    role: service
+    name: Arrival Court service yard
+  - a:
+    - 97600
+    - 80582
+    b:
+    - 97600
+    - 80553
+    width: 3
+    role: service
+    name: Arrival Court service link
+  - a:
+    - 97556
+    - 80592
+    b:
+    - 97560
+    - 80592
+    width: 3
+    role: service
+    name: Box Office service yard
+  - a:
+    - 97556
+    - 80592
+    b:
+    - 97553
+    - 80592
+    width: 3
+    role: service
+    name: Box Office service yard
+  - a:
+    - 97556
+    - 80592
+    b:
+    - 97556
+    - 80553
+    width: 3
+    role: service
+    name: Box Office service link
+  - a:
+    - 97556
+    - 80606
+    b:
+    - 97561
+    - 80606
+    width: 3
+    role: service
+    name: Entry Queue service yard
+  - a:
+    - 97556
+    - 80606
+    b:
+    - 97553
+    - 80606
+    width: 3
+    role: service
+    name: Entry Queue service yard
+  - a:
+    - 97556
+    - 80606
+    b:
+    - 97556
+    - 80647
+    width: 3
+    role: service
+    name: Entry Queue service link
+  - a:
+    - 97630
+    - 80560
+    b:
+    - 97637
+    - 80560
+    width: 3
+    role: service
+    name: The Big Wheel service yard
+  - a:
+    - 97630
+    - 80560
+    b:
+    - 97621
+    - 80560
+    width: 3
+    role: service
+    name: The Big Wheel service yard
+  - a:
+    - 97630
+    - 80560
+    b:
+    - 97630
+    - 80553
+    width: 3
+    role: service
+    name: The Big Wheel service link
+  - a:
+    - 97621
+    - 80570
+    b:
+    - 97621
+    - 80583
+    width: 3
+    role: service
+    name: Carousel service yard
+  - a:
+    - 97621
+    - 80570
+    b:
+    - 97621
+    - 80557
+    width: 3
+    role: service
+    name: Carousel service yard
+  - a:
+    - 97621
+    - 80570
+    b:
+    - 97637
+    - 80570
+    width: 3
+    role: service
+    name: Carousel service link
+  - a:
+    - 97569
+    - 80563
+    b:
+    - 97569
+    - 80574
+    width: 3
+    role: service
+    name: Plinko service yard
+  - a:
+    - 97569
+    - 80563
+    b:
+    - 97569
+    - 80553
+    width: 3
+    role: service
+    name: Plinko service yard
+  - a:
+    - 97569
+    - 80563
+    b:
+    - 97553
+    - 80563
+    width: 3
+    role: service
+    name: Plinko service link
+  - a:
+    - 97620
+    - 80644
+    b:
+    - 97620
+    - 80647
+    width: 3
+    role: service
+    name: Prize Counter service yard
+  - a:
+    - 97620
+    - 80644
+    b:
+    - 97620
+    - 80642
+    width: 3
+    role: service
+    name: Prize Counter service yard
+  - a:
+    - 97620
+    - 80644
+    b:
+    - 97637
+    - 80644
+    width: 3
+    role: service
+    name: Prize Counter service link
+  obstacles:
+  - - 97584
+    - 80584
+    - 97616
+    - 80616
+  - - 97551
+    - 80594
+    - 97561
+    - 80606
+  - - 97551
+    - 80608
+    - 97561
+    - 80620
+  - - 97551
+    - 80583
+    - 97569
+    - 80593
+  - - 97621
+    - 80562
+    - 97639
+    - 80638
+  - - 97579
+    - 80617
+    - 97611
+    - 80649
+  - - 97551
+    - 80563
+    - 97560
+    - 80581
+  - - 97591
+    - 80551
+    - 97599
+    - 80555
+  - - 97569
+    - 80645
+    - 97577
+    - 80649
+  - - 97588
+    - 80557
+    - 97619
+    - 80583
+  - - 97552
+    - 80626
+    - 97568
+    - 80649
+  - - 97571
+    - 80552
+    - 97587
+    - 80574
+  - - 97563
+    - 80606
+    - 97577
+    - 80624
+  - - 97571
+    - 80576
+    - 97582
+    - 80592
+  - - 97622
+    - 80639
+    - 97638
+    - 80649
+  - - 97563
+    - 80594
+    - 97577
+    - 80605
+  - - 97569
+    - 80626
+    - 97574
+    - 80634
+  - - 97617
+    - 80595
+    - 97619
+    - 80605
+  - - 97617
+    - 80613
+    - 97619
+    - 80619
+  at:
+  - 97595
+  - 203
+  - 80600
+  kind: paths
+  title: Midway Paths
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: path
+  hierarchy: supporting
+  land: midway
+  requires_path: false
+design:
+  purpose: path
+  hierarchy: supporting
+  style: midway
+  narrative: Midway Paths serves the midway visitor journey.
+origin_lock: false

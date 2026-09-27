@@ -1,0 +1,84 @@
+# PF CROWN DESCENT - the sky run: two hundred courses from the crown to the pool.
+#
+# Jack: "its probably a shame that side of the landscape just falls down, should we be building
+# this straight up as well so its a really complete big circuit". The well only ever went DOWN,
+# and 117 courses of clear headroom stood over the mouth doing nothing - measured, only 36 cells
+# occupied the whole airspace above the deck inside r50.
+#
+# NOT A TOWER BESIDE A HOLE. A spire next to a well is two objects and two objects is what this
+# land was rebuilt to stop being. The return column is already the spine the helix winds around,
+# so it carries on to Y300 and the SAME spiral continues up out of the mouth. The deck stops
+# being the start of the ride and becomes its middle: the gallery stands between a course that
+# comes out of the sky and one that disappears into the ground.
+#
+# R19 CONSTANT, AND IT IS A SAFETY NUMBER RATHER THAN A SHAPE. Every landing must sit inside the
+# mouth's own cylinder, because a miss outside r50 lands on the lawn at Y203 from ninety courses
+# up. Inside it, a miss at ANY height falls straight down the well into the pool that is already
+# there - one failure mode for two hundred courses of run, and it is the dramatic one.
+#
+# AND IT IS THE INNER HELIX NOW, WHICH IS WHAT MAKES THE TOWER WORK. At r30 it orbited a
+# nine-wide stick eight blocks out and read as loose wire; at r19 it wraps a ten-wide drum
+# with four blocks of daylight between, which is a spiral ON a tower rather than a wire
+# near a post. The deck run took the outside in exchange, at r31.
+#
+# AND IT IS THE OUTER OF TWO. `PF Prism Descent` runs the inside of the void at r20 tapering to
+# r14 from the deck. Two concentric rings of landings below the deck, plainly apart, both landing
+# in the same water: a runner can tell which line they are on. Two helices at the same radius
+# could not be told apart at all, which is why this one does not taper into the other's band.
+#
+# 2.2 TURNS, WHICH IS WHAT A CONSTANT RADIUS COSTS. A cone buys turns as it tightens - the deck
+# run gets 3.3 out of a hundred courses that way - and this one cannot taper, so it buys them
+# with LENGTH instead: 198 courses at r30 is about 4.7 laps of travel against the deck run's 3.3.
+name: PF Crown Descent
+gen: parkour
+params:
+  under: out/prism_deck.litematic
+  centre: [97590, 80815]
+  bounds: [97542, 80767, 97638, 80863]
+  y_top: 298
+  y_bottom: 100
+  radius: 21
+  radius_flex: [0, 2, -2, 4, -4]
+  advance: [23.0, 19.0, 16.0, 13.0, 11.0, 9.5, 8.0, 6.5, 5.0, 4.0, 3.0]
+  gap_rotate: true
+  start_from: [97568, 300, 80815]     # the crown pier head at r22, clear of the ribs
+  start_angle: 180
+  rhythm: [ledge, ledge, gate, ledge, ledge, plunge, ledge, ledge, gate, rest]
+  plunge_drop: [12, 14, 10, 16, 11]
+  seed: 9
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A spiralling parkour descent of two hundred courses at a constant radius of thirty, from a
+    railed pier on the column's crown at Y300, down through the park deck and on into the void
+    to the pool at Y95 - the outer of the well's two concentric runs, and the park's tallest thing.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [ride the column to the crown, walk the pier, jump, descend two hundred courses, land in the pool]
+  outcome: >
+    You cross the whole vertical range of the park in one run, in sight of the gallery for the
+    middle of it, and land in the pool a hundred courses under the island.
+  reset: >
+    Nothing is consumed and no state is held. A miss falls into the same pool as a finish, so the
+    run is immediately repeatable from the lift.
+  service_access: >
+    The column carries staff and guests alike and stops at the deck as well as the crown.
+  bypass: >
+    The gallery, the practice loop and the deck run are all usable while this is being run, and
+    the lift stops at the deck so nobody has to ride to the crown to leave.
+requires_in_game:
+  - every landing is makeable, not merely legal - gap, drop and headroom together
+  - the first jump off the crown pier lands on the first ledge
+  - a miss at the very top still falls inside the pool rather than onto the apron
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false      # the whole course hangs in void: that is what a parkour run IS
+  verify_against: [out/prism_deck.litematic]
+origin_lock: false

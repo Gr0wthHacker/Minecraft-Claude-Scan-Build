@@ -1,0 +1,177 @@
+# THE ISLAND NIGHT - the lighting pass for the whole island, solved rather than sprinkled
+# (2026-08-23). The lowland glow did this for one scene; this is the same operation from the
+# lowland floor to the plate, and it uses the SAME generator because it is the same operation.
+#
+# WHAT THE PROPAGATION FOUND. Block light was propagated through the whole assumed-final world
+# (the 15:54 capture, everything accepted as complete, plus the Falls) and the walking surface
+# classified - topmost standable cell per column, never the lowest, which is the classifier
+# that has now misled this project three times. Of 6,851 walkable cells, 1,420 were spawnable:
+#
+#   1,067 open to the sky   dark only at night
+#     353 enclosed          dark day and night - the real problem
+#
+# AND THE DARK WAS MOSTLY NOT FLOOR. It was the TOPS OF SCULPTURES: the ladybird 361 cells, the
+# owl 121, the bat 38, the gecko 20, the axolotl's back, plus tree canopies. Light placed where
+# a player walks never reaches a crown, and a spawnable crown puts a zombie on the artwork.
+#
+# THE RULE THAT SHAPED THE SOLVE: light reaches 14 blocks, so a sculpture can almost always be
+# lit from ORDINARY GROUND standing near it. Cost encodes that - ground is cheap, a coat is
+# dear - so the greedy cover lands on an animal only where nothing else can reach. 107 fixtures
+# take the whole island to ZERO spawnable surface cells, verified by re-propagation and pinned
+# in tests/test_island_night.py.
+#
+# ONE IDIOM PER SURFACE, all of them already spoken on this island:
+#   turf          -> ochre froglight, FLUSH (the cell is dug): Jack's own, 39 already placed
+#   worked stone  -> lantern, warm, above Y100
+#   blackstone    -> soul lantern: the underworld is cold, and the gradient is the point
+#   a living coat -> glow lichen, face-down
+#
+# WHY LICHEN LANDS WHERE IT DOES, MEASURED NOT GUESSED. The guess was that lichen hides on the
+# ladybird's black spots. The colour DB says the opposite: glow_lichen is a mid grey-green
+# (112,131,122), so against black wool it is a pale blotch (dLum 105) and against the leaf it
+# vanishes (lime 32, green 27). Cost rises with the square of that contrast, which is what
+# moved the lichen off the shell and onto the leaf it sits on.
+#
+# THE ONE GROUP TO DELETE IF YOU DISLIKE IT: 14 of the 26 lichen are on the ladybird and its
+# leaf, because it hangs in the void with no ground within reach of its shell. Empty that part
+# of `lichen` and 361 cells go dark again - stated here so the trade is yours and not silent.
+name: Island Night
+gen: lowglow
+params:
+  under: out/island_full.litematic
+  # solved against a world that already has the Falls cut, the Thicket planted and the
+  # Enrichment hung and the Run's 77 pads placed. Stairs and dripstone are not passable so
+  # both move the classifier; the Run adds 550 walkable cells and needs NO extra fixture,
+  # because every landing on the Run IS a froglight - which it has to be, since when the
+  # night pass solved those ledges instead it put 14 lanterns in the cells you must land on:
+  # pointed dripstone is not passable, so a stalagmite can move the surface classifier
+  froglights:
+    - [-24247, 202, 30027]
+    - [-24246, 202, 30013]
+    - [-24232, 37, 29994]
+    - [-24229, 37, 29995]
+    - [-24221, 97, 29978]
+    - [-24219, 38, 30023]
+    - [-24214, 190, 30006]
+    - [-24206, 35, 30010]
+    - [-24205, 98, 30005]
+    - [-24203, 202, 29994]
+    - [-24202, 41, 30034]
+    - [-24202, 202, 29961]
+    - [-24198, 202, 29961]
+    - [-24196, 37, 29951]
+    - [-24196, 96, 29979]
+    - [-24195, 97, 29983]
+    - [-24192, 202, 29966]
+    - [-24192, 202, 29967]
+    - [-24183, 40, 29983]
+    - [-24178, 44, 30017]
+    - [-24178, 151, 29972]
+    - [-24178, 151, 29973]
+    - [-24178, 151, 29976]
+    - [-24178, 151, 29978]
+    - [-24175, 205, 29998]
+    - [-24173, 40, 29994]
+    - [-24169, 40, 29987]
+    - [-24165, 45, 30006]
+    - [-24159, 193, 29983]
+    - [-24154, 202, 30034]
+  souls:
+    - [-24228, 38, 30011]
+    - [-24224, 28, 30013]
+    - [-24211, 29, 29990]
+    - [-24211, 92, 29991]
+    - [-24208, 92, 29987]
+    - [-24207, 89, 29991]
+    - [-24205, 94, 29992]
+    - [-24204, 24, 30005]
+    - [-24204, 93, 29987]
+    - [-24203, 30, 29988]
+    - [-24203, 93, 29990]
+    - [-24194, 32, 29979]
+    - [-24194, 61, 29976]
+    - [-24189, 52, 29982]
+    - [-24186, 29, 29989]
+    - [-24186, 39, 30034]
+    - [-24186, 50, 29961]
+    - [-24183, 33, 29973]
+    - [-24183, 40, 30034]
+    - [-24178, 34, 30013]
+    - [-24175, 42, 30036]
+    - [-24173, 37, 30024]
+    - [-24171, 67, 30030]
+    - [-24171, 68, 30028]
+    - [-24169, 39, 30025]
+    - [-24160, 43, 30027]
+    - [-24158, 44, 30026]
+  lanterns:
+    - [-24244, 198, 30026]
+    - [-24244, 204, 30026]
+    - [-24244, 214, 30017]
+    - [-24237, 196, 30014]
+    - [-24236, 196, 30019]
+    - [-24224, 101, 29992]
+    - [-24216, 100, 29978]
+    - [-24208, 192, 30036]
+    - [-24208, 204, 29993]
+    - [-24199, 197, 29971]
+    - [-24197, 199, 29958]
+    - [-24194, 197, 30037]
+    - [-24183, 152, 30035]
+    - [-24179, 139, 30044]
+    - [-24177, 198, 29966]
+    - [-24167, 192, 30003]
+    - [-24167, 192, 30010]
+    - [-24164, 198, 30038]
+    - [-24157, 199, 29995]
+    - [-24155, 195, 30041]
+    - [-24154, 212, 30011]
+    - [-24153, 194, 29984]
+    - [-24151, 201, 30037]
+  lichen:
+    - [-24246, 46, 30010]
+    - [-24231, 43, 30000]
+    - [-24228, 45, 30003]
+    - [-24219, 112, 29978]
+    - [-24203, 212, 29996]
+    - [-24192, 121, 30043]
+    - [-24189, 127, 30044]
+    - [-24188, 183, 29965]
+    - [-24183, 118, 30042]
+    - [-24180, 123, 30043]
+    - [-24172, 163, 29976]
+    - [-24171, 158, 29984]
+    - [-24170, 158, 29964]
+    - [-24170, 161, 29969]
+    - [-24170, 162, 29980]
+    - [-24166, 157, 29966]
+    - [-24166, 164, 29974]
+    - [-24162, 162, 29970]
+    - [-24162, 164, 29977]
+    - [-24160, 156, 29968]
+    - [-24160, 156, 29983]
+    - [-24157, 161, 29974]
+    - [-24156, 155, 29972]
+    - [-24155, 154, 29975]
+    - [-24154, 213, 30036]
+
+# LOUD NOTE, per rule 1: this design does NOT use the global origin_lock. It spans Y29-214,
+# the whole inhabited island, so the Y150 lock cannot hold it.
+origin_lock: [-24251, 20, 29949]
+
+finish:
+  cheapen: false          # every fixture is chosen by idiom, never by colour
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: [out/island_full.litematic]
+  # BUILD THIS LAST, and it is a hard dependency rather than a preference. The night pass is a
+  # FIXPOINT solved against the finished world: a fixture standing in a surface cell makes that
+  # cell impassable, so the topmost standable block moves down and a spot that was hidden becomes
+  # a real spawn. Pointed dripstone is the one plant here that is not passable, so the Thicket
+  # moves the surface under this solution, and the Falls opens water that was rock.
+  #
+  # This is written down here because until now it was written down only in prose. `/cscan follow
+  # all` walked the tracked list as it came and could have solved the night against a world two
+  # designs short of finished; `Designs.inBuildOrder` reads this list and orders the run.
+  after: [Falls, Lowland Thicket]

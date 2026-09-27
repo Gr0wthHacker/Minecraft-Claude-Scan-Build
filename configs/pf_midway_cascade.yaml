@@ -1,0 +1,61 @@
+# PF MIDWAY CASCADE - the park's centrepiece, in the fifty blocks the wheel moved back to make.
+#
+# Jack: *"move the wheel back and lets fill the area between with something more interesting"*, then
+# *"we have other lakes though, we cant have tons of lakes and water, its repetitive, it should
+# instead be a big water fountain sculpture or something unique and enjoyable."*
+#
+# THE LOT IS V80-120 x U266-336 - 41 deep by 71 wide - and it exists because `Sky Lift` moved from
+# V80 to V130 in `tools/park_lots.PLACEMENT`. Column B's depth schedule now reads 56 + 41 + 9 + 22
+# + 2 = its own 130, promenade included. See `PARK_MIDWAY_CENTRE.md` for the audit.
+#
+# WHY NOT A LAKE. Measured off `out/Park Complete.litematic`, the park holds 3,377 water blocks in
+# five places, and the nearest to this lot is not the Claim Lake - it is the 228 cells in the
+# Welcome Court's own fountain, forty blocks in front. A second sheet of water here would have been
+# the Midway's third. So the water is VERTICAL and it is on an object.
+#
+# `at` IS THE FRONT-LEFT FLOOR CORNER AND `at.y` IS 204, NOT 203. `civic` lays its pad at h=-1, one
+# under `at.y`, and `tools/park_place.py` stands every lot module's y0 on the ground layer's floor
+# course, which is Y203 - the first course above the Y202 lawn. Set to 203 the design verifies
+# against a world one course below where the placer puts it. The Carousel was got wrong this way
+# first; it is the same arithmetic here.
+#
+#   at.x 97580 = V80, the lot's front            at.z 80566 = U266, the lot's west edge
+#   centre_i -1 puts the fountain's axis on U300 - the gate's doors, the Welcome Court's walk and
+#   the Sky Lift's hub are all on it, and the lot's own middle (U301) is one cell off it.
+name: PF Midway Cascade
+gen: civic
+params:
+  kind: cascade
+  land: midway
+  facing: west          # the front looks back down the axis toward the entry gate
+  at: [97580, 204, 80566]
+  width: 71             # U266-336
+  depth: 41             # V80-120
+  centre_i: -1          # so the axis is U300 and not the lot's own centre
+  title: THE CASCADE
+  seed: 7
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # the lawn's decorative moss carpet is covered where the pad and the walk arms stand on it
+  verify_replaceable: [moss_carpet]
+# FIVE NOTE BLOCKS, DECLARED. `note_block` is expensive tier on this economy and the chime is the
+# reason the design exists in the shape it does - the park holds ZERO of them in 273,356 blocks, so
+# this is the first sound in it. Same posture as `island_run.yaml`'s thirteen slime: where the
+# expensive material IS the feature, it is declared with its reason rather than smuggled.
+expensive_allowance: 5
+roles: [building]
+design:
+  purpose: landmark
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    An arcaded drum of eight piers standing in a moat, wearing a ring of waterfalls that fall nine
+    courses from a bowl corbelled clear of the piers - with a dry chamber inside it you walk into
+    over two causeways on the cross axis, and a five-note chime on the wall you can play. The
+    eleven-wide axis walk splits into two arms and rejoins beyond it, so the wheel behind is never
+    hidden and nobody on their way to it is pushed about by falling water.
+origin_lock: false

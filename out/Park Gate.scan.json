@@ -1,0 +1,190 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 202,
+    "z": 80563
+  },
+  "size": {
+    "x": 10,
+    "y": 10,
+    "z": 19
+  },
+  "generated_by": "park",
+  "kind": "gate",
+  "land": "midway",
+  "facing": "west",
+  "contract": "a threshold: lanes through the front wall and matching ones through the back, so a visitor passes through the building rather than past it",
+  "unverified": [],
+  "width": 15,
+  "depth": 6,
+  "height": 7,
+  "lanes": 3,
+  "lane_i": [
+    5,
+    7,
+    9
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "oak_fence_gate"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Park Gate serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 558,
+      "materials": 9,
+      "dominant_material_share": 0.3405,
+      "light_blocks": 2,
+      "massing": {
+        "width": 10,
+        "height": 10,
+        "depth": 19,
+        "fill_ratio": 0.2937
+      },
+      "silhouette": {
+        "top": {
+          "area": 190,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 66,
+          "fill_ratio": 0.66
+        },
+        "side": {
+          "area": 148,
+          "fill_ratio": 0.7789
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 190,
+        "white_wool": 174,
+        "blackstone": 125,
+        "stone_brick_stairs": 30,
+        "oak_log": 24,
+        "stone_brick_slab": 6,
+        "oak_wall_sign": 4,
+        "oak_fence_gate": 3,
+        "lantern": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "dc2a46805c5fcfe40163b0354b450e940ea01cb7955f8ce46926b5703b6c3d4e",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97549,
+        204,
+        80572
+      ],
+      [
+        97562,
+        204,
+        80572
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 558,
+    "mechanic_families": [
+      "access",
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: oak_fence_gate"
+  ],
+  "file": "Park Gate.litematic",
+  "name": "Park Gate"
+}

@@ -1,0 +1,82 @@
+# THE LOWLAND STAIR - the spiral continues past the islet, all the way down (2026-08-22).
+#
+# Jack's ask, verbatim intent: the spiral staircase keeps going down to the lowlands. Same
+# idiom as the Root Stair it continues - slab-only treads (bottom then top, 0.5 a rise), a
+# radial spoke wedge per half-step, wall-and-lantern rail - and now the SAME AXIS: Jack's
+# review said the offset continuation did not align with the actual stair, so it screws
+# straight down the taproot's line through a WELL dug in the shop islet's floor (dig_above +
+# the dig list; the shop's barrels and their floor are never dug, the well passes beneath
+# them). The harbor light moved to the west bank to clear the landing. One screw, one axis,
+# deck to lowland floor.
+name: Lowland Stair
+gen: spiral
+params:
+  under: out/island_full.litematic
+  around: out/Lowland Root.litematic
+  center: [-24200, 30018]
+  y0: 41                     # first tread a half-step off the landing moss (ground 39-41 there)
+  y1: 150                    # top slab surface Y151 = the shelf's south level; the well's
+                             # mouth opens there and the old stair's landing is a short walk
+                             # across the islet top
+  clearance: 2
+  min_radius: 4.5            # PINNED to max_inner: the root ends at Y95 and below its tip the
+                             # profile is empty, so an unpinned floor would snap the ribbon from
+                             # 4.5 to 3.0 in one course
+  dig_above: 140             # the well: the islet's floor may be dug, the lowland's never
+  headroom: 3
+  dig_only: [cobblestone, mossy_cobblestone, stone, stone_bricks, mossy_stone_bricks,
+             cracked_stone_bricks, moss_block, smooth_stone, andesite, diorite, granite]
+  # the audit found the first well taking 21 cells of the Atelier Court's FLOOR - stone
+  # brick and smooth stone by name, somebody's workshop by position. A dig must know what
+  # the rock belongs to, not only what it is.
+  dig_forbid: [out/Atelier Court.litematic, out/Root Stair.litematic, out/Taproot.litematic,
+               out/Lowland Root.litematic]
+  max_inner: 4.5             # see gen/spiral.py: the grip bend must not widen the helix
+  start_angle: 5.4           # RE-SWEPT with dig_forbid live (63 angles, composite walk with
+                             # the well dug and the islet carved): reaches the shelf, ZERO
+                             # atelier contact, 570 landing cells, 106 dig cells
+  direction: 1               # the Root Stair's spin, continued
+  width: 4
+  slab: stone_brick_slab
+  slab_alt: mossy_stone_brick_slab
+  alt_rate: 0.35
+  rail: stone_brick_wall
+  # THE STONE CHANGES AS THE WORLD DOES, dithered thirds, 122 -> 71 -> 48 in measured
+  # luminance: island stone brick at the shelf, deepslate through the twilight, the quarter's
+  # blackstone to the ground - and the light goes cold with it, warm lanterns above, soul
+  # lanterns below, which is the quarter's own colour system met halfway down.
+  bands:
+    - {from_y: 115, slab: stone_brick_slab, alt: mossy_stone_brick_slab,
+       rail: stone_brick_wall, lantern: lantern}
+    - {from_y: 78,  slab: deepslate_brick_slab, alt: cobbled_deepslate_slab,
+       rail: deepslate_brick_wall, lantern: lantern}
+    - {from_y: -999, slab: polished_blackstone_brick_slab, alt: blackstone_slab,
+       rail: polished_blackstone_brick_wall, lantern: soul_lantern}
+  lantern_every: 12
+  seed: 0
+origin_lock: false           # LOUD: spans Y39-151 from the lowland moss to the islet rim
+finish:
+  # trim_buried is OFF on purpose: it strips capture-owned cells and would eat the well's
+  # own treads (the dug cells ARE capture-owned until the player digs them). The generator
+  # self-trims instead - below dig_above a solid cell keeps its tread away.
+  climb: false               # the isolated gate cannot pass here BY CONSTRUCTION: the top
+                             # courses terminate against the shop islet's designed rock, so in
+                             # isolation the ribbon has holes. The walk that matters is the
+                             # COMPOSITE one, pinned in tests/test_lowland_stair.py
+  cheapen: true
+  hollow: false
+  ground: false
+  drop_floaters: false
+  # Shop Islet is NOT deferred to any more: the well claims its cells and the islet design
+  # is carved to match (see its config note) - the stair wins these, stated, built first
+  defer_to: [out/Lowland.litematic, out/Atelier Court.litematic,
+             out/Lowland Root.litematic, out/Root Stair.litematic,
+             out/Lowland Ruinway.litematic,
+             out/Lowland Portal.litematic, out/Lowland Hamlet.litematic,
+             out/Lowland Turtle.litematic, out/Castle Bridge.litematic]
+  context_clear: [vine]
+  # the islet's lens rocks clear under the treads during verify - they are the dig
+  verify_replaceable: [cobblestone, mossy_cobblestone, stone, stone_bricks,
+                       mossy_stone_bricks, cracked_stone_bricks, moss_block, smooth_stone]
+  verify_dig_above: true
+  verify_against: out/island_full.litematic

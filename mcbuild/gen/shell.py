@@ -9,13 +9,24 @@ blocks and a back or a flank comes out as a staircase. A slab is half a block, w
 possible doubling of resolution on exactly the cells where the staircase shows - the ones sitting
 proud of their neighbours.
 
-WHY SLABS AND NOT STAIRS. Stairs would cut convex corners better than a slab can, and the geometry
-here is ready for them. They are not used because a stair is DIRECTIONAL, `facing` is easy to get
-backwards, and a mirrored stair on every edge of a statue would be invisible in our own renderer -
-which draws from the same colour table it would mirror. The capture holds ten stair blocks and none
-of them records its state, so there was no evidence to settle the convention from. A slab has only
-`type=top|bottom`: there is no way to orient it wrongly. Add stairs when the convention can be
-confirmed in game, not from memory - `_STAIR_NOTE` below says what to check.
+SLABS AND NOW STAIRS. `slab_shell` doubles the resolution of a HORIZONTAL step; `stair_shell` does
+the same for the one-course steps a slab cannot reach - the wall between two courses of a flank, and
+the underside of an overhang. Measured on a lofted animal that is where the roughness actually lives:
+87 cells sat proud enough for a slab, 82 were a one-course rise a stair could ramp, and 67 more were
+the same thing under the belly.
+
+**THE TWO REASONS THIS SAID "NOT STAIRS" ARE BOTH GONE, and the paragraph outlived them.** It said a
+stair is directional with no evidence to settle the convention from, because "the capture holds ten
+stair blocks and none of them records its state". That reading was wrong and CLAUDE.md records the
+correction: the capture holds 463 stairs and their states are in the palette NBT - the earlier look
+had read the bare NAME list, which drops properties. Read properly off Jack's own flight the rule is
+`A FLIGHT THAT ASCENDS TOWARD D HAS EVERY TREAD facing=D, half=bottom`, so THE TALL SIDE IS THE
+FACING, and `tests/test_stairhead.py` asserts it rather than anyone eyeballing it. It also said a
+mirrored stair would be invisible in our own renderer - true when it was written, and
+`render3d.subdivide` has drawn stairs and slabs at their real shape since the frog's toes went in.
+
+What has NOT changed is that a stair can be got backwards and a picture cannot check it, so a caller
+gets the geometry and the test suite gets the assertion.
 
 WHY THE MATERIAL LIST IS SO SHORT. `blocks.available()` is currently a no-op - the server allowlist
 is provisional and `enforce` is false - so it answers True for `pale_oak_slab`, a 1.21 block, on a
@@ -34,12 +45,24 @@ import pathlib
 
 from .. import blocks
 
-_STAIR_NOTE = """To add stairs, confirm ONE thing in game: place `oak_stairs[facing=east,half=bottom]`
-and look at which side is full height. Then the rule here is 'stair facing the OPEN side', and the
-`facing` value follows from that observation - do not infer it from this file."""
+#: SETTLED, and not from memory: read off four consecutive treads of Jack's own flight at
+#: X-24213..-24210 / Y195-198 / Z30028, all `facing=east, half=bottom`, each one course up and one
+#: step east. A flight that ascends toward D has every tread facing D, so the TALL SIDE IS THE
+#: FACING. `tests/test_stairhead.py` and `tests/test_render3d_shapes.py` both pin it.
+_STAIR_NOTE = """The tall side of a stair is its `facing`. A flight ascending toward D has every
+tread facing=D, half=bottom. Built the other way the risers face into the descent and it cannot be
+walked up - and our renderer drew both identically until `render3d.subdivide`, so this is asserted
+in tests rather than eyeballed."""
+
+#: (dx, dz) -> the compass name of that step. Cell coordinates here are WORLD-ALIGNED - every
+#: generator in this repo builds its canvas on the world's own axes - so a lateral neighbour's
+#: direction is a compass direction directly, with no frame to go through.
+_COMPASS = {(0, -1): "north", (0, 1): "south", (1, 0): "east", (-1, 0): "west"}
 
 # Beyond this RGB distance a partial is not worth having: the geometry gain does not pay for a
 # visible colour seam down the animal's back. Such a cell simply stays a full block.
+MAX_HUE_SHIFT = 25
+#: ...and how far the red-minus-blue balance may move: see `slab_for`.
 MAX_SHIFT = 30.0
 
 
@@ -119,21 +142,110 @@ def slab_for(name: str, max_shift: float = MAX_SHIFT, witnesses: tuple = ()) -> 
 
     This is the known-wrong note about top-face sampling turning into a real defect rather than a
     theoretical one. When the colour DB grows side-face colours, this restriction can be lifted.
+
+    **AND A SUBSTITUTE MAY NOT FLIP THE HUE FAMILY, however near it measures.** Euclidean distance
+    in RGB has no idea which channel is winning: `dripstone_block` is (134,108,93) - warm tan, red
+    over blue by 41 - and its nearest trusted slab is `mossy_stone_brick_slab` at (115,121,105),
+    which is GREEN-GREY with red over blue by 10. That is 26 apart and well inside the shift
+    budget, and it painted a fifth of a warm brown animal's most-seen surfaces cool green. A
+    partial is the same material seen thinner; it must not change what the material IS. Comparing
+    red-minus-blue is the cheapest test that catches it and it turns down nothing that was right:
+    `brown_wool` -> `spruce_slab` differs by 7 and `light_gray_wool` -> `andesite_slab` by 8.
     """
     if blocks.kind(name) == "rotated_pillar":
         return None
     want = blocks.color(name)
     if not want:
         return None
+    warmth = want[0] - want[2]
     best, bd = None, 1e9
     for s in trusted_slabs(tuple(witnesses)):
         c = blocks.color(s)
         if not c or blocks.kind(s) == "rotated_pillar":
             continue
+        if abs((c[0] - c[2]) - warmth) > MAX_HUE_SHIFT:
+            continue
         d = math.dist(want, c)
         if d < bd:
             best, bd = s, d
     return best if bd <= max_shift else None
+
+
+def stair_for(name: str, max_shift: float = MAX_SHIFT, witnesses: tuple = ()) -> str | None:
+    """The trusted stair closest in measured colour to `name`, or None.
+
+    Derived from `slab_for`'s answer rather than matched a second time by a second rule, so the
+    stair and the slab on one animal can never disagree about what its coat is nearest to - and so
+    the `rotated_pillar` refusal, which is the whole reason a log-coated build gets no partials at
+    all, is inherited rather than re-implemented.
+
+    **THE EXISTENCE CHECK IS THE REGISTRY, NOT A TABLE.** Most slab families have a stair and some
+    do not: `petrified_oak_slab` and `smooth_stone_slab` have none, and a hand-written map would be
+    a memory of Minecraft's block list, which is rule 11's exact failure.
+    """
+    sl = slab_for(name, max_shift, witnesses)
+    if not sl or not sl.endswith("_slab"):
+        return None
+    st = sl[: -len("_slab")] + "_stairs"
+    return st if blocks.exists(st) else None
+
+
+def stair_shell(cells, skin, base: str, *, max_shift: float = MAX_SHIFT, under: bool = True,
+                floor_y: int | None = None, skip=()) -> dict:
+    """{cell: (block name, props)} for the cells worth turning into a RAMP.
+
+    A slab halves a cell that is proud of everything around it, which smooths a step ACROSS the
+    grain. What it cannot touch is the commonest step of all on a lofted body: the one-course wall
+    where the section narrows, or where the belly draws up under the animal. That is a stair.
+
+        TOP    the top is open and EXACTLY ONE lateral neighbour is solid one course UP.
+               `half=bottom`, facing that neighbour - so the full-height side is the mass it
+               grows out of and the block ramps down to the open air.
+        UNDER  the bottom is open and exactly one lateral neighbour is solid one course DOWN.
+               `half=top`, facing that neighbour - the eaves case, and 27% of the download
+               corpus's stairs against none of ours.
+
+    EXACTLY ONE, and that is the whole gate. Two higher neighbours facing each other is a GROOVE
+    and two at right angles is an inside corner, where a stair reads as damage rather than as a
+    chamfer (`gen/enrich.py`'s own rule); none at all is a plateau, which is `slab_shell`'s job.
+    A cell gets at most one treatment, and `skip` is for cells a caller has drawn something on -
+    the frog's rule that a face or a toe is a DRAWING and a partial through one is a hole in it.
+
+    **THE UNDERSIDE PASS IS ON HERE WHERE `slab_shell`'s IS OFF, and the difference is real.** A
+    top SLAB removes half a cell and reads as a gap wherever the thing being cut is thin - it once
+    cut visible slots through the elephant's ears. A `half=top` STAIR removes a quarter and leaves
+    the full depth on the side the mass continues, so it fills a corner rather than opening one.
+    The thickness guard is kept anyway, and the ground course is never touched or a foot hovers.
+    """
+    S = cells if isinstance(cells, (set, frozenset)) else set(cells)
+    banned = set(skip)
+    wit = tuple(sorted({base, *skin.values()}))
+    if floor_y is None and S:
+        floor_y = min(y for _x, y, _z in S)
+    out = {}
+    for c in sorted(S):
+        if c in banned:
+            continue
+        x, y, z = c
+        for sign, half in ((1, "bottom"), (-1, "top")):
+            if sign < 0 and not under:
+                continue
+            if (x, y + sign, z) in S:
+                continue                                    # this face is not exposed
+            if (x, y - sign, z) not in S:
+                continue                                    # nothing behind it: a wisp, not a step
+            if sign < 0 and (y <= floor_y + 1 or (x, y - 2 * sign, z) not in S):
+                continue                                    # the ground, or too thin to cut
+            side = [(dx, dz) for (dx, dz) in _COMPASS
+                    if (x + dx, y + sign, z + dz) in S]
+            if len(side) != 1:
+                continue                                    # plateau, groove or inside corner
+            st = stair_for(skin.get(c, base), max_shift, wit)
+            if not st:
+                continue
+            out[c] = (st, {"facing": _COMPASS[side[0]], "half": half, "shape": "straight"})
+            break
+    return out
 
 
 def slab_shell(cells, skin, base: str, *, max_shift: float = MAX_SHIFT,

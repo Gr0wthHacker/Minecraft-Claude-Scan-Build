@@ -1,0 +1,76 @@
+# Sky Lift Sloth - the HERO-scale setpiece (M4/M9).
+#
+# configs/sloth.yaml keeps the 684-block anatomy prototype. This is the
+# production variant: a shaggy sloth slung under a real lift gantry, with all
+# twelve claws wrapped round the gantry's own cables. The truss is part of the
+# setpiece, not a separate prop, and there is no free-hanging branch.
+#
+# THE SIZE IS A CEILING AND THE BUDGET IS A FLOOR, which is the opposite way
+# round from how they read in the ledger. 46 x 23 in plan is the LOT - the
+# setpiece hangs beside the Sky Lift and may not grow into the ride - so the
+# canvas fills it exactly at 46 long and 22 deep and stops. The 3,500-5,000
+# block band is a floor, because the failure being fixed is an underbuilt
+# prototype; blocks above it are legitimate only where they buy anatomy, the
+# gantry, or a silhouette somebody can see. This build is 5,300, and the
+# ~1,300 above the previous pass went into the gantry's soffit lattice
+# (transverse braces, plan X-braces on both chord courses, two purlins and a
+# centre catwalk), layered fur tufts two and three cells deep, and longer
+# four-station limbs. None of it is interior mass.
+#
+# Paste with the truss chords bearing on the Sky Lift's external support; the
+# whole assembly is one 6-connected piece, so nothing here needs the world
+# under it. The hero view is from BELOW - Welcome Court approach and the Sky
+# Lift return - which is why the face lives on the head's forward-and-down
+# quadrant rather than on its front.
+#
+# RECORDED VISUAL REVIEW (2026-09-02; out/look_Sky_Lift_Sloth_from_below.png,
+# _close.png, _orbit.png). PASSES from below. The pale mask reads as a mask at
+# the close underside view and on the low 25-degree Welcome Court approach:
+# two separate black eye patches with white between them, a snub nose, a mouth
+# line, and dark stripes sweeping back off each eye. The claws read as hooks
+# wrapped over the cables in the plan and in the low three-quarter. The gantry
+# soffit reads as a braced lattice rather than a bare rail, and the coat's
+# hanging tufts break the underside into fur. MARGINAL at ~3x distance, where
+# it is a shaggy mass under a gantry rather than a nameable sloth - a property
+# of hanging it twenty blocks up, and what the close underside view answers.
+#
+# Four earlier passes are recorded in the generator, each a real defect: the
+# first hero body was r=5.7 and swallowed all four limbs; the first claw was
+# four cells that came apart into three fence clusters; the A-frame hangers
+# were diagonals and shipped as 24 three-cell strays in a build that still
+# reported one 4,347-block mass; and the first dense coat greyed the skull so
+# the mask had nothing to read against.
+#
+# NOT reviewed here: COLOUR. render3d draws with the same database the palette
+# picker optimises against, so judge the wool and moss in game.
+name: Sky Lift Sloth
+gen: sloth
+params:
+  hero: true
+  size: [46, 30, 24]       # 46 long x 22 deep of content: the lot, exactly
+  seed: 0
+finish:
+  cheapen: false
+  hollow: false            # hollowing an animal this size severs the limbs
+  drop_floaters: false
+  ground: false
+design:
+  purpose: sculpture
+  hierarchy: landmark
+  style: natural
+  narrative: >-
+    A hero-scale sloth slung under the Sky Lift gantry, read from underneath:
+    hammock body under layered moss-and-pale fur tufts, a large pale mask with
+    paired eyes, snub nose and smile, four long limbs, and twelve hooked claws
+    wrapped round the lift cables.
+  quality:
+    min_blocks: 3500
+    min_materials: 7
+  enforce: true
+  visual_review: true
+animal_contract:
+  enforce: true
+  min_blocks: 3500
+  min_materials: 7
+  required_features:
+    [truss, cables, body, head, face, mask, eyes, nose, smile, limbs, claws, shag]

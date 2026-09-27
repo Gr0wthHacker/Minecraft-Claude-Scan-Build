@@ -1,0 +1,158 @@
+# PF WYRM GATE - the bone skull straddling the rim railway, the track through its mouth.
+#
+# Jack: "are we able to place the skull so that the mouth 'opens' around the railway, the back of
+# the skeleton is towards the void and the mouth gap is where the railway passes through sideways"
+#
+# ---------------------------------------------------------------------------------------------
+# HIS ORIENTATION IS THE ONLY ONE THAT FITS, AND IT IS A MEASUREMENT
+#
+# The skull's mouth is a real gap - 32 wide, 18 courses tall, between the mandible, the palate and
+# the two jaw rami - and it is a tunnel along the FACE'S OWN NORMAL: open front to back, closed
+# left and right. So a railway can cross it two ways:
+#
+#   * face along the line, train out of the mouth head-on. Needs the 54-wide axis across V, which
+#     is V144-199 at best: it eats the Midway's inner band and the face addresses the track.
+#   * face across the line, train through the mouth sideways. The 54-wide axis runs along U, the
+#     40-deep axis across V, the face looks in at the park from V172 and the back of the cranium
+#     stands at V195, four short of the plot edge.
+#
+# The second is Jack's arrangement and the only one that puts the face where the park can see it.
+#
+# ---------------------------------------------------------------------------------------------
+# THE JAW IS EXACTLY AS DEEP AS THE RAILWAY IS WIDE, AND THAT DECIDES EVERYTHING
+#
+# The corridor is V172-186: two tracks at V174 and V184, a nine-wide central promenade between
+# them, a parapet at each edge and an arcade under the deck. The jaw rami are thirteen deep. There
+# is no column of jaw outside the railway to stand on - so the skull touches NOTHING the railway
+# made, and is carried from the rim instead:
+#
+#   * NOTHING OF THE SKULL STANDS IN THE SEVEN COURSES Y211-217 anywhere across the corridor - the
+#     box girder, the rails, and the headroom a walker on the promenade and a rider in a cart each
+#     need. Overlap 0 is a property of the construction, and the railway can be regenerated under
+#     it. The two walks it crosses at the plate are bored rather than blocked.
+#   * IT CARRIES ITSELF FROM THE FRONT. The face stands four columns clear of the corridor, so the
+#     jaw rami run unbroken from the plate to the cranium outside the railway's band - which is
+#     also why the train reads as being INSIDE the mouth rather than in front of a skull.
+#
+# ---------------------------------------------------------------------------------------------
+# IT IS SUNK SIX COURSES, AND THE SINK IS SET BY THE GARDEN IN ITS MOUTH
+#
+# THE ASSET IS NOT A BARE SKULL. Its jaw holds a diorama - terraces, trees, a pond, steps and a
+# golden shrine - and that garden is exactly where a railway wants to be. Measured: the garden
+# stands in the skull's own y7-13, so at six courses down it sits at Y204-210 - the whole of it
+# UNDER the girder, intact, and visible from the line's arcade. Any less and the deck slices its
+# trees off; any more and the palate drops into the rider's own clearance. What the sink costs is
+# the bottom six courses of the diorama's base, which fall below the park's plate and are trimmed,
+# so the skull reads as embedded in the rim to the gum line.
+#
+# THE TRAP IN THE GARDEN IS NOT SHIPPED. The ruins are booby-trapped: 77 TNT and eight stone
+# pressure plates round the chest and the gold block. That is a fine thing in somebody's own
+# diorama and not a thing to hang over a working railway, so both are dropped by name and the
+# count is recorded. Nothing else in the garden is touched.
+#
+# ---------------------------------------------------------------------------------------------
+# THE SITE IS THE ONE MAST-FREE WINDOW ON THE REACH
+#
+# The line carries a lamp mast every sixty columns - U361 and U421 either side - and its stations
+# at U77/279/505. The skull is 54 wide, so U366-419 is the window: 33 columns of it in the Prism
+# Reach and 21 on the Midway's own rim, which is where `Wyrm's Crossing` already stood. Measured
+# over the shipped park, the corridor's tallest cell in that window is Y216 and the rim strip at
+# V187-199 is bare moss plate - 858 cells at Y202 and 35 carpets at Y203, nothing else.
+name: PF Wyrm Gate
+gen: wyrmgate
+params:
+  kind: wyrm_gate
+  source: reference/bone_ruins_skull.litematic
+  # 270 PUTS THE FACE AT LOW V, WHICH IS THE PARK - and 90, which shipped first, puts it at the
+  # void. Jack, on that build: "the skull is oriented the wrong way, we can be looking at the back
+  # of a flat skull, it loses its meaning." He was right, and the mistake is instructive: the test
+  # under it asserted that the CRANIUM starts at the model's low-V edge, which is true of `rotate:
+  # 90` and says nothing about which end of the cranium the face is on. Rendered from both sides
+  # the answer is not arguable - from high V it is a brow, two socketed eyes, a nasal and a palate;
+  # from low V it is the open back of the vault with the garden inside it - so the test measures
+  # THAT now, and our renderer draws a skull facing either way identically.
+  rotate: 270
+  # the export's own crop debris: four fragments in its `z <= 5` slice, forty-seven courses up
+  prune: 8
+  lot: [47, 54]
+  # THE MOUTH IS A RECESS, NOT A THROUGH-TUNNEL, and that is what sets this number. Measured over
+  # the turned model, column by column: the skull's body starts at its own V+19 and the mouth's
+  # own band is open from there to about V+30 - eleven or twelve columns of cavity behind the face
+  # - and solid behind that. The railway's corridor is FIFTEEN wide, so the mouth cannot contain
+  # all of it: at V153 the recess covers V172-183, which is twelve of the fifteen and includes the
+  # near track at V174 in open air, and the far track at V184 runs through a bore in the jaw's own
+  # mass. The nineteen columns in front (V153-171) are the diorama's own stepped forecourt, which
+  # lands on the lawn in front of the face where an approach belongs.
+  at: [153, 366]
+  sink: 6
+  # THE RAILWAY IS LOADED AND REFUSED CELL FOR CELL. `rail_at` is its own sidecar origin.
+  rail: out/Park Rail.litematic
+  rail_at: [172, 202, 0]
+  corridor: [172, 186]
+  deck: 215
+  # the girder's own soffit to two courses over the deck: the box girder, the rails, the
+  # promenade's headroom and the rider's. Nothing of the skull may stand in these seven courses
+  # anywhere across the corridor.
+  girder: [211, 217]
+  # the clearance rises three courses at the corridor's centre, so what the cut leaves behind is an
+  # ARCH rather than a sawn plane. A rider's whole view of this design is that soffit.
+  arch: 3
+  # the line's own walk under the viaduct, threading past each pier's five-wide core. It is one of
+  # the two passages the pier already leaves, and the jaw is bored for it.
+  keep_clear:
+    # the line's own arcade: the park-side passage each pier already leaves beside its five-wide core
+    - {v0: 172, v1: 176, y0: 203, y1: 207}
+    # `Park Ways`' rim boundary line in front of the viaduct - a paved course carrying fence posts,
+    # which the jaw's front lip stands astride. Measured: 54 paved cells at Y202 and 9 posts at
+    # Y203-204 in this window.
+    - {v0: 170, v1: 170, y0: 203, y1: 206}
+  # NO SPUR. It was written because the first placement - face flush with the corridor at V172 -
+  # left the whole upper skull with nothing under it: the jaw is thirteen deep, the corridor is
+  # fifteen wide, and every column of jaw was inside it. Standing the face four columns forward
+  # solved the same problem with the asset's own bone instead of six thousand cells of rock, which
+  # is the better answer. The machinery stays in the generator for whoever needs it.
+  spur: null
+  min_component: 32
+  # froglights set INTO the mouth's roof over the deck, and into the ground the skull shades on
+  # both sides of the corridor. Measured over the finished composite: 460 standable cells inside
+  # this footprint stood at block light zero BEFORE the design existed - the rim behind the railway
+  # is nobody's guest path and the park's night pass grades a column by its topmost standable cell -
+  # and the finished gate leaves 80 - 54 in deep shade on the ground and 26 on the skull's
+  # own crown, which is open to the sky - and NONE of them on the deck.
+  lamp_every: 7
+  rim_lamp_every: 5
+  spur_lamp_every: 13
+  seed: 41
+roles: [path]
+design:
+  purpose: landmark
+  hierarchy: landmark
+  style: prismworks
+  narrative: >
+    The wyrm's skull, half-buried in the rim and clamped over the rim railway: the face looks in
+    at the park, the back of the cranium stands over the void, and both tracks run through the
+    open mouth between the jaws.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [ride through the mouth, walk the promenade under the palate, look up at the face]
+  outcome: >
+    The one thing on the whole line that happens TO a rider rather than beside them: the train
+    runs into a skull's mouth and out the far side of it.
+  reset: >
+    Nothing is consumed and no state is held.
+  service_access: >
+    None is needed and none is claimed - there is no mechanism in this geometry. Every cell of the
+    railway's own track, promenade, parapet and arcade is untouched.
+  bypass: >
+    The line's own promenade passes under the palate at full width; the mouth can also simply be
+    looked at from the park, which is what the face is turned toward.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # the ground layer's own scatter on the rim strip: 35 moss carpets at Y203 and nothing else
+  verify_replaceable: [moss_carpet]
+origin_lock: false

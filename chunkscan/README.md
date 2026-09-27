@@ -3,7 +3,11 @@
 Client-side Fabric mod (Minecraft 26.2). Dumps the chunks the server has sent you into a
 Litematica schematic **with air included**, plus a JSON sidecar with the world coordinates —
 so `mcbuild` (and anyone you share the file with) has exact ground truth of the island.
-Sends nothing to the server; works on any multiplayer server.
+Scanning reads the client world. The build, restock, movement and other automation commands send normal game interactions to the server.
+
+For the 0.8 audit, 0.8.1 changes and live acceptance gates, see [AUTOPLACEMENT_AUDIT.md](AUTOPLACEMENT_AUDIT.md).
+
+Automatic building: `/cscan follow <design>` starts the built-in printer and replenishment loop; `/cscan autofly on` enables travel. Use `/cscan why` to inspect it and `/cscan stop` to stop. Place the `.litematic` and its `.scan.json` origin sidecar together in `schematics`; register island bounds for island-specific storage. The candidate still requires in-game validation.
 
 ## In game
 

@@ -1,0 +1,201 @@
+{
+  "origin": {
+    "x": 97500,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 187,
+    "y": 16,
+    "z": 600
+  },
+  "generated_by": "parkgreen",
+  "kind": "parkgreen",
+  "lot": [
+    187,
+    600
+  ],
+  "at": [
+    0,
+    0
+  ],
+  "facing": "west",
+  "profile_axis": "u",
+  "refused": 0,
+  "parts": {
+    "pieces": 999,
+    "cells": 16900,
+    "by_kind": {
+      "rock": 145,
+      "meadow": 300,
+      "bed": 169,
+      "hedge": 148,
+      "shrub": 138,
+      "tree": 99
+    },
+    "by_land": {
+      "frontier": 854,
+      "reach": 3186,
+      "midway": 11739,
+      "prismworks": 1121
+    },
+    "open_min": 2,
+    "open_full": 4,
+    "kept": 2454,
+    "trees": 99,
+    "tree_clear": 3
+  },
+  "contract": "shrubbery, flowers and accents on the park's UNCLAIMED lawn: every cell stands on a column whose own ground course is moss and whose neighbourhood within `path_clear` is moss too, so nothing is placed on paving, against a kerb, or on anything anybody uses. The density is the measured distance from the column to the nearest built or planted thing, so a verge is left as a verge and the dead middles get the material. It never replaces a standing block - its own earlier drifts included, bar the moss carpet it declares replaceable - and no two ornamental trees stand closer than `tree_clear`.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "filler",
+      "style": "midway",
+      "narrative": "Shrubbery, flower beds, clipped hedges, ornamental trees and boulders on the park's unclaimed lawn - rough meadow on the verges, real planted stands in the dead middles, and each land planting its own species so the greenery agrees with the paving it sits against.\n"
+    },
+    "metrics": {
+      "blocks": 12181,
+      "materials": 30,
+      "dominant_material_share": 0.3674,
+      "light_blocks": 0,
+      "massing": {
+        "width": 185,
+        "height": 8,
+        "depth": 600,
+        "fill_ratio": 0.0137
+      },
+      "silhouette": {
+        "top": {
+          "area": 7166,
+          "fill_ratio": 0.0639
+        },
+        "front": {
+          "area": 801,
+          "fill_ratio": 0.2677
+        },
+        "side": {
+          "area": 1520,
+          "fill_ratio": 0.1583
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.9049,
+          0.0951,
+          0.0
+        ],
+        "top_silhouette_perimeter": 8613,
+        "surface_faces_per_block": 2.3834
+      },
+      "material_counts": {
+        "oak_leaves": 4475,
+        "moss_carpet": 1484,
+        "birch_leaves": 1063,
+        "short_grass": 924,
+        "fern": 733,
+        "cobblestone": 571,
+        "oak_log": 347,
+        "mossy_cobblestone": 274,
+        "jungle_leaves": 258,
+        "andesite": 214,
+        "poppy": 199,
+        "allium": 184
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "d3e1184032ff4b3537365d049f1bc761c6e2e59ded8e923fd47fec2306c0f65a",
+    "generator_source_digest": "4bd7018de57dd68619e4a1fa200a3af9124e95ab2d94befa73216082f97ab28b",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 55.670381,
+    "blocks": 12181,
+    "blocks_per_second": 218.81
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 12181,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: jungle_log"
+  ],
+  "file": "PF Park Green.litematic",
+  "name": "PF Park Green"
+}

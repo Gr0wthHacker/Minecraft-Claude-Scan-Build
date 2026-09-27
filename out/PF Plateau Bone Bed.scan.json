@@ -1,0 +1,331 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80347
+  },
+  "size": {
+    "x": 99,
+    "y": 30,
+    "z": 46
+  },
+  "generated_by": "bonebed",
+  "kind": "bonebed",
+  "lot": [
+    99,
+    46
+  ],
+  "at": [
+    24,
+    47
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [
+    {
+      "at": [
+        12,
+        12,
+        13
+      ],
+      "facing": "south",
+      "lines": [
+        "THE BONE BED",
+        "one animal,",
+        "44 blocks long",
+        "still emerging"
+      ]
+    },
+    {
+      "at": [
+        51,
+        6,
+        20
+      ],
+      "facing": "south",
+      "lines": [
+        "INTO THE DIG",
+        "mind the step",
+        "hard hats",
+        "would be nice"
+      ]
+    },
+    {
+      "at": [
+        57,
+        5,
+        22
+      ],
+      "facing": "south",
+      "lines": [
+        "THE LIFT",
+        "jacketed in",
+        "plaster, then",
+        "up on the chain"
+      ]
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "mass": {
+      "rock": 7404,
+      "turf": 1378
+    },
+    "floor": {
+      "floor": 1477,
+      "road": 0,
+      "kerb": 0
+    },
+    "ramps": [
+      {
+        "tread": 36,
+        "kerb": 0
+      },
+      {
+        "tread": 40,
+        "kerb": 0
+      }
+    ],
+    "grid": {
+      "stake": 36,
+      "walk": 72
+    },
+    "spoil": 387,
+    "skeletons": [
+      {
+        "at": [
+          8,
+          24
+        ],
+        "spine": {
+          "cells": 53,
+          "vertebrae": 18
+        },
+        "ribs": {
+          "cells": 228,
+          "pairs": 11
+        },
+        "girdles": 48,
+        "skull": {
+          "cells": 30,
+          "at": [
+            44.0,
+            24.0
+          ]
+        },
+        "neck": 5,
+        "loose": 89
+      }
+    ],
+    "skulls": [
+      {
+        "at": [
+          61,
+          28
+        ],
+        "skull": 30,
+        "neck": 5
+      }
+    ],
+    "jackets": 30,
+    "gantry": {
+      "leg": 36,
+      "beam": 23,
+      "rope": 5,
+      "load": 4,
+      "brace": 4
+    },
+    "shelter": {
+      "pad": 36,
+      "post": 16,
+      "fly": 36,
+      "bench": 4,
+      "crate": 1
+    },
+    "gallery": {
+      "deck": 123,
+      "rail": 41,
+      "post": 32,
+      "step": 36,
+      "lamp": 6,
+      "y": 8
+    },
+    "crates": 4,
+    "plant": {
+      "tree": 308,
+      "fern": 151,
+      "vine": 246,
+      "carpet": 289
+    },
+    "light": 11,
+    "boards": 3
+  },
+  "contract": "one excavation across two retired building lots: a floor at the park's own plane with the relief made of SPOIL rather than of a dig list, benched walls stepped by construction, the park's own V77-79 cross walk kept level and used as the causeway into it, a timber gallery on the avenue bank that reads the skeleton in plan, and not one building with a door in it",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ],
+      "traversal": [
+        "vine"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks",
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 11406,
+      "materials": 31,
+      "dominant_material_share": 0.1777,
+      "light_blocks": 6,
+      "massing": {
+        "width": 95,
+        "height": 13,
+        "depth": 43,
+        "fill_ratio": 0.2148
+      },
+      "silhouette": {
+        "top": {
+          "area": 2874,
+          "fill_ratio": 0.6311
+        },
+        "front": {
+          "area": 796,
+          "fill_ratio": 0.268
+        },
+        "side": {
+          "area": 373,
+          "fill_ratio": 0.2703
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.9871,
+          0.0129,
+          0.0
+        ],
+        "top_silhouette_perimeter": 940,
+        "surface_faces_per_block": 1.0319
+      },
+      "material_counts": {
+        "cobbled_deepslate": 2027,
+        "cobblestone": 2014,
+        "stone": 1848,
+        "moss_block": 1073,
+        "deepslate": 945,
+        "andesite": 615,
+        "tuff": 426,
+        "gravel": 407,
+        "bone_block": 323,
+        "moss_carpet": 289,
+        "jungle_leaves": 259,
+        "vine": 240
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "e60b2322d65c2c8e4fb8c2064f655ea8752f3efd1c5d13476d50d9339d5156a1",
+    "generator_source_digest": "6a30d787f840b6290ced550b41057d1f20e225a25e692c019155412fdcbbe8d2",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "signage",
+        "traversal"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 69.372622,
+    "blocks": 11406,
+    "blocks_per_second": 164.42
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 11406,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage",
+      "traversal"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate",
+    "not in the provisional skyblock-1.19 list: dripstone_block",
+    "not in the provisional skyblock-1.19 list: gold_ore",
+    "not in the provisional skyblock-1.19 list: granite",
+    "not in the provisional skyblock-1.19 list: jungle_fence",
+    "not in the provisional skyblock-1.19 list: jungle_log",
+    "not in the provisional skyblock-1.19 list: jungle_planks",
+    "not in the provisional skyblock-1.19 list: jungle_slab",
+    "not in the provisional skyblock-1.19 list: jungle_stairs",
+    "not in the provisional skyblock-1.19 list: stripped_jungle_log",
+    "not in the provisional skyblock-1.19 list: tuff"
+  ],
+  "file": "PF Plateau Bone Bed.litematic",
+  "name": "PF Plateau Bone Bed"
+}

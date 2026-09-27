@@ -1,0 +1,130 @@
+# THE ISLAND LINE - a minecart spiral, deck to lowland and back (2026-08-28).
+#
+# Jack: delete the connecting train tracks, run a spiral all the way down that can return, and use
+# MORE POWERED RAILS THAN NORMAL ONES because of iron costs.
+#
+# THE IRON PREMISE IS RIGHT AND THE REASON IS INVERTED. Measured off the container index:
+#
+#     iron_ingot 90    rail          6 iron -> 16 rails   0.375 iron each
+#     gold  ~62        powered_rail  6 gold -> 6  rails    1.0  gold each
+#
+# so a powered rail is ~7x a normal one in ingots - but gold is farmable on this server and iron is
+# not, which makes the GOLD rail the cheap one. Lay powered rail everywhere; spend iron only where
+# the game refuses to let you.
+#
+# IT REFUSES AT CORNERS. `blocks.json` says powered_rail has no curved shape - only north_south,
+# east_west and the four ascending - while rail has all ten. So every direction change is iron, and
+# the PLAN SHAPE becomes an iron decision: at r=30 a square lap turns 4 times and a rasterised
+# circle turns 60. Round is fifteen times the iron and more than is in store. Hence a square helix.
+#
+# THE RADIUS WAS SWEPT AND THE FIRST SWEEP ASKED THE WRONG QUESTION - it scored whether the whole
+# RING was clear at each course and concluded r=12 was the only option. A helix occupies ONE CELL
+# PER COURSE: a blocked ring only means arriving at a different PHASE. Swept over centre, radius and
+# phase, r=30 at (-24206, 30014) breaks nothing and stands 15 clear of the stair instead of 3.
+# Jack's verdict on the first one - that it made no sense as a thing separate from the staircase -
+# was correct, and the sweep was what was wrong, not the idea.
+#
+# NOT WIDER THAN THIS. At r=36 only 42% of the track has island overhead (the rest is a viaduct in
+# open sky) and the boarding platform lands 85 blocks from the deck rail head against 28 at r=30.
+#
+# THE EXISTING EAST LINE IS KEPT, NOT DELETED. Its 104 cells run deck -> east lobes -> bee house and
+# the spiral is affordable without salvaging them. Junction the two rather than replacing one.
+#
+# THE LINE STARTS AT THE SKY-WELL COURT, not at the deck. The helix's own top is (-24231, 192,
+# 29984), which is open air with the nearest island block 22 away - complete and unreachable, so a
+# station you ride UP to and are stranded on. `approach_from` runs it out to the court's edge.
+# The deck rail head at (-24197, 192, 29993) is a separate junction and is still not built.
+name: Rail Spiral
+gen: railspiral
+params:
+  under: out/island_28.litematic
+  center: [-24206, 30014]
+  radius: 30
+  y_top: 192
+  y_bottom: 42
+  grade: 4                 # 2.7 turns, ~80s ride each way. 1:6 is 3.3 turns and ~113s - too long.
+  start_angle: 185         # SWEPT, not chosen. Re-sweep it if the radius or the world moves.
+  deck_width: 3            # rail + a walkway cell either side; 1 reads as a thread at this height
+  power_every: 8           # conservative: a source powers ~8 rails each way along its own run
+  light_every: 11
+  railing: true
+  railing_every: 2
+
+  # WHERE THE LINE STARTS: THE SKY-WELL COURT'S EDGE, at (-24231, 195, 30005). The court floor is
+  # Y195 and its nearest cell is the deepslate plinth at (-24231, 195, 30006), so you step out of
+  # the cart straight onto the court.
+  #
+  # IT HAS TO BE A SPUR AND THAT IS MEASURED, NOT PREFERRED. The ring's own west leg runs along
+  # X-24236 - which is the court's rock WALL, solid at Y194-200 for most of Z30002..30030, not its
+  # floor. No phase of the helix reaches the court floor, so the top of the line runs level out to
+  # it: 21 cells north along X-24231, dropping 3 courses into the helix's top at Y192. The whole
+  # corridor is open air, and it shares an axis with the helix's first cell, so it needs no corner
+  # and therefore no iron.
+  approach_from: [-24231, 195, 30005]
+
+  # THE STAIR IS A SEPARATE THING AND STAYS ONE. Its helix is r<=9 about (-24200, 30018); this
+  # keeps a hard 14-block exclusion round that column so the two never read as one tangle.
+  clear_of:
+    - [-24200, 30018, 14]
+
+  # The island's own gradient, the one the Lowland Stair already carries, so the two read as one
+  # hand: island stone brick at the top, deepslate through the twilight, the quarter's blackstone
+  # on the ground.
+  #
+  # THE LIGHT DOES NOT GO COLD WITH IT, AND THAT IS A MATERIALS DECISION. The stair's warm-above /
+  # cold-below gradient wants lanterns and soul lanterns, and 58 of those cost ~52 IRON - against
+  # 4 for the eleven corner rails, so the lighting would have been ten times the metal of the
+  # railway on an island whose scarce metal is iron. Ochre froglight is cheap, 1.19, light 15,
+  # already this island's own idiom (Island Night, the lowland turf), and there are 6,024 in store.
+  # Verdant and pearlescent froglight would give the cold end - stock is zero, so one tone it is.
+  bands:
+    - from_y: 140
+      deck: stone_bricks
+      edge: stone_bricks
+      railing: stone_brick_wall
+      light: ochre_froglight
+    - from_y: 90
+      deck: cobbled_deepslate
+      edge: deepslate_bricks
+      railing: deepslate_brick_wall
+      light: ochre_froglight
+    - from_y: 0
+      deck: blackstone
+      edge: polished_blackstone_bricks
+      railing: polished_blackstone_brick_wall
+      light: ochre_froglight
+  band_blend: 6
+
+  # never contest a design's cells, built or not
+  reserve:
+    - out/Lowland Stair.litematic
+    - out/Lowland Root.litematic
+    - out/Island Run.litematic
+    - out/Falls.litematic
+    - out/Void Ladybird.litematic
+    - out/Shop Islet.litematic
+    - out/Void Isle.litematic
+    - out/Void Giraffe.litematic
+    - out/Island Belly.litematic
+    - out/Taproot.litematic
+    - out/Lowland Thicket.litematic
+    - out/Lowland Portal.litematic
+    - out/Lowland Frog.litematic
+  seed: 7
+
+origin_lock: [-24251, 20, 29949]
+
+finish:
+  # BUILD ORDER, stated because it is real and is NOT expressed as a shared cell. The line lands
+  # ON the lowland floor and clears one plant to do it, so the Thicket's drifts go in first; and
+  # it hangs ~2,000 new walkable cells in a void the night pass solved without them, which is why
+  # it carries its own froglights rather than being solved for - but the night pass should still
+  # see the finished world.
+  after:
+    - Lowland Thicket
+    - Island Night
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false      # the whole viaduct hangs in void - that is the design
+  verify_against: [out/island_28.litematic]

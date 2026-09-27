@@ -1,0 +1,237 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80570
+  },
+  "size": {
+    "x": 56,
+    "y": 18,
+    "z": 61
+  },
+  "generated_by": "midwaybuild",
+  "kind": "midway_build",
+  "build": "welcome_court",
+  "name": "PF Welcome Court",
+  "lot": [
+    24,
+    270,
+    79,
+    330
+  ],
+  "facing": "west",
+  "signs": 2,
+  "lamps": 16,
+  "benches": 12,
+  "trees": 8,
+  "beds": 4,
+  "floor": 3376,
+  "water": 188,
+  "steps": 40,
+  "hedge": 200,
+  "bunting": 4,
+  "axis": 300,
+  "centre": 51,
+  "fountain": {
+    "water": 188,
+    "courses": 10
+  },
+  "basin": [
+    51,
+    300
+  ],
+  "roof": 233,
+  "pavilions": 2,
+  "bedding": 264,
+  "flowers": 183,
+  "planters": 4,
+  "contract": "one connected building inside lot V24-79 U270-330, fronting west, with a real doorway, a lit interior, a named sign, and no street furniture",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "The Midway's walk-up: an eleven-wide processional walk on the gate's own axis, opening into a paved roundel with a two-tier stone fountain at the park's exact centre, closed east and west by curved bench exedras, with four kerbed lawn beds carrying one oak each on the quadrant centres. Half the lot is green. Nothing of this court stands in the walk, so the vista from the gate's doors to the wheel's hub is the composition rather than an accident.\n"
+    },
+    "metrics": {
+      "blocks": 5597,
+      "materials": 27,
+      "dominant_material_share": 0.2355,
+      "light_blocks": 17,
+      "massing": {
+        "width": 56,
+        "height": 12,
+        "depth": 61,
+        "fill_ratio": 0.1365
+      },
+      "silhouette": {
+        "top": {
+          "area": 3416,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 301,
+          "fill_ratio": 0.2986
+        },
+        "side": {
+          "area": 349,
+          "fill_ratio": 0.3179
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.8883,
+          0.1117,
+          0.0
+        ],
+        "top_silhouette_perimeter": 234,
+        "surface_faces_per_block": 2.0268
+      },
+      "material_counts": {
+        "smooth_stone": 1318,
+        "polished_blackstone_bricks": 1113,
+        "stone_bricks": 656,
+        "oak_leaves": 432,
+        "moss_block": 264,
+        "water": 188,
+        "red_wool": 168,
+        "white_wool": 168,
+        "stripped_oak_log": 140,
+        "polished_diorite_stairs": 138,
+        "stone_brick_slab": 128,
+        "crimson_stairs": 118
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "be6f7e688ece143f0457c4484b6bb70e289a01bc5f67e22ba27006dd77b7d6f9",
+    "generator_source_digest": "eea8748cca5e4169b333b8e35b8211f36887949f80fe08a06033da65bbbcfd4d",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 62.805478,
+    "blocks": 5597,
+    "blocks_per_second": 89.12
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "path"
+    ],
+    "blocks": 5597,
+    "mechanic_families": [
+      "fluid",
+      "hazard",
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
+    "not in the provisional skyblock-1.19 list: crimson_slab",
+    "not in the provisional skyblock-1.19 list: crimson_stairs",
+    "not in the provisional skyblock-1.19 list: oxeye_daisy",
+    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
+    "not in the provisional skyblock-1.19 list: polished_diorite",
+    "not in the provisional skyblock-1.19 list: polished_diorite_slab",
+    "not in the provisional skyblock-1.19 list: polished_diorite_stairs"
+  ],
+  "file": "PF Welcome Court.litematic"
+}

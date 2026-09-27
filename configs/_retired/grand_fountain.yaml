@@ -1,0 +1,16 @@
+name: Grand Fountain
+gen: civic
+params:
+  land: midway
+  radius: 8
+  facing: south
+  at:
+  - 97639
+  - 203
+  - 80611
+  kind: fountain
+  title: Grand Fountain
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

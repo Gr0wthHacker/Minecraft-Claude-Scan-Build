@@ -1,0 +1,64 @@
+# PF PTEROSAUR - a pteranodon on the plateau's summit.
+#
+# Jack: "lets do the pterosaur after."
+#
+# ---------------------------------------------------------------------------------------------
+# THE OTHER HALF OF THE RULE THE SAUROPOD IS BUILT ON
+#
+# CLAUDE.md's line is planar and columnar against volumetric. The sauropod is COLUMNS - a neck and
+# four legs. This is the PLANE: a pterosaur's whole identity is one membrane stretched from the
+# body along one hugely elongated finger, and a one-thick sheet is what voxels render best of
+# anything. The island's own sky bird and `gen/bat.py` are the two recorded successes in this
+# category, and neither is reused here - Jack, on the causeway: *"those are used assets, we want
+# NEW things."* A bat's wing is a mammal's, four fingers over four spans with the body slung
+# underneath; a pterosaur's is one finger, one span, and the body sits ON the wing root.
+#
+# ---------------------------------------------------------------------------------------------
+# THE SITE IS THE HIGHEST GROUND IN THE LAND, AND IT IS MEASURED
+#
+# A wing is a silhouette before it is anything else, and the only thing that reads behind a
+# silhouette is sky. Searched over the whole Mine Ridge lot for a 34 x 44 box with nothing HARD
+# standing above it - the canopy ignored, because a perched animal sits over the trees rather than
+# among them - 29 sites qualify and this is the highest: **V100 U106, ground Y257**, which is the
+# plateau's own summit and the highest ground anywhere in the Frontier.
+#
+# **IT CARRIES ITS OWN CRAG**, which is the bat's recorded lesson - *"the bat carries its own
+# ceiling ... the design is self-contained and can hang in open air"* - and here it is what lifts
+# the animal clear of a canopy eleven courses tall. The obvious perch, the Vantage Lookout, is
+# measured and refused: its deck is 8 x 15, and a 38-span animal standing on it reaches eight cells
+# past the park's own boundary.
+#
+# `at` is the frame origin, under the feet: the animal runs V(at-13..+7) and U(at-19..+19), so this
+# is V104-124 x U109-147.
+name: PF Pterosaur
+gen: pterosaur
+params:
+  kind: pteranodon
+  facing: west
+  at: [117, 128]
+  span: 38
+  # **0.72, NOT 1.0.** The bat's own measurement: fully spread, a wing is one flat plate; half
+  # furled it keeps a stepped outline and the finger and its struts are the tell.
+  spread: 0.72
+  perch: true
+  perch_h: 10
+  under: out/Park Complete.litematic
+  seed: 5
+  title: THE PTEROSAUR
+roles: [construction]
+design:
+  purpose: sculpture
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    A pteranodon on the plateau's summit: two membranes each hung from one elongated finger and
+    held half-spread, a short body on the wing root, a long pale beak and a backswept red crest,
+    gripping a crag of the ridge's own rock that lifts it clear of the canopy.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet, fern, jungle_leaves, azalea_leaves, vine, glow_lichen]
+origin_lock: false

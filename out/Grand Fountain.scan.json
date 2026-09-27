@@ -1,0 +1,28 @@
+{
+  "origin": {
+    "x": 97615,
+    "y": 202,
+    "z": 80587
+  },
+  "size": {
+    "x": 25,
+    "y": 10,
+    "z": 25
+  },
+  "generated_by": "civic",
+  "kind": "fountain",
+  "land": "midway",
+  "facing": "south",
+  "contract": "three basins that hold water: every source has a solid bed one course under it and a solid rim exactly one radius out, so none of them leaks",
+  "unverified": [],
+  "radius": 8,
+  "tiers": 3,
+  "water": 108,
+  "pad": 441,
+  "lanterns": 8,
+  "posts": 4,
+  "signs": 1,
+  "signs_placed": 1,
+  "file": "Grand Fountain.litematic",
+  "name": "Grand Fountain"
+}

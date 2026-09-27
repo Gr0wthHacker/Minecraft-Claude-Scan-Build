@@ -1,0 +1,203 @@
+{
+  "origin": {
+    "x": 97500,
+    "y": 203,
+    "z": 80470
+  },
+  "size": {
+    "x": 200,
+    "y": 115,
+    "z": 230
+  },
+  "generated_by": "carnivalsky",
+  "kind": "carnivalsky",
+  "lot": [
+    200,
+    230
+  ],
+  "at": [
+    0,
+    0
+  ],
+  "land": "midway",
+  "facing": "north",
+  "profile_axis": "v",
+  "parts": {
+    "ship hull": 6164,
+    "ship paint": 3851,
+    "ship fins": 212,
+    "ship car": 203,
+    "ship pods": 94,
+    "ship refused": 0,
+    "ship clipped": 0,
+    "burst1 core": 33,
+    "burst1 spoke": 175,
+    "burst1 tip": 75,
+    "burst1 refused": 0,
+    "burst1 clipped": 0,
+    "burst2 core": 33,
+    "burst2 spoke": 106,
+    "burst2 tip": 48,
+    "burst2 refused": 0,
+    "burst2 clipped": 0,
+    "burst3 core": 33,
+    "burst3 spoke": 129,
+    "burst3 tip": 55,
+    "burst3 refused": 0,
+    "burst3 clipped": 0,
+    "bursts": 3
+  },
+  "note": "Disconnected BY DESIGN: the airship and every burst is its own piece in open air. One component would mean two of them were touching.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "The fair's own airship standing over the entrance walk in the Midway's red, white and yellow, with three rockets bursting beyond it above the big wheel - the first things in this land that are higher than the wheel, and the only ones a guest has to look up to see.\n"
+    },
+    "metrics": {
+      "blocks": 7110,
+      "materials": 16,
+      "dominant_material_share": 0.4319,
+      "light_blocks": 0,
+      "massing": {
+        "width": 95,
+        "height": 33,
+        "depth": 129,
+        "fill_ratio": 0.0176
+      },
+      "silhouette": {
+        "top": {
+          "area": 1055,
+          "fill_ratio": 0.0229
+        },
+        "front": {
+          "area": 480,
+          "fill_ratio": 0.0209
+        },
+        "side": {
+          "area": 1034,
+          "fill_ratio": 0.0391
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.0,
+          0.0001,
+          0.9999
+        ],
+        "top_silhouette_perimeter": 1172,
+        "surface_faces_per_block": 0.8014
+      },
+      "material_counts": {
+        "red_wool": 3071,
+        "white_wool": 2449,
+        "yellow_wool": 960,
+        "spruce_planks": 101,
+        "gray_wool": 80,
+        "oak_planks": 65,
+        "orange_wool": 64,
+        "light_blue_wool": 62,
+        "magenta_wool": 53,
+        "pink_wool": 48,
+        "cyan_wool": 47,
+        "purple_wool": 33
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "0773b1d509ae50f87f2e924588be45c437eed5065e33d0de707671078f7a8dcc",
+    "generator_source_digest": "e3f3e710560e938495052afb7998e5a815ef95030e5367171fb8bd7b25bd9c41",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 14.487832,
+    "blocks": 7110,
+    "blocks_per_second": 490.76
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 7110,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: purple_wool"
+  ],
+  "file": "PF Midway Skies.litematic",
+  "name": "PF Midway Skies"
+}

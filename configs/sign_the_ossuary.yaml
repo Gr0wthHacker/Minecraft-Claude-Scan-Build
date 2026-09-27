@@ -1,0 +1,19 @@
+name: Sign The Ossuary
+gen: wayfinding
+params:
+  land: hollow
+  facing: north
+  name: The Ossuary
+  does:
+  - pull all three
+  - at once
+  at:
+  - 97638
+  - 203
+  - 80790
+  kind: marker
+  title: Sign The Ossuary
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

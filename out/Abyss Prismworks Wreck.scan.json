@@ -1,0 +1,257 @@
+{
+  "origin": {
+    "x": 97505,
+    "y": 100,
+    "z": 80365
+  },
+  "size": {
+    "x": 185,
+    "y": 75,
+    "z": 90
+  },
+  "generated_by": "abyss_wreck",
+  "kind": "prismworks_abyssal_wreck",
+  "features_built": {
+    "hull": 37087,
+    "viewport": 670,
+    "viewport_frame": 172,
+    "tower": 1742,
+    "antenna": 80,
+    "shaft": 155,
+    "rotor": 905,
+    "survey_arm": 1066,
+    "fin": 1154,
+    "scar": 112,
+    "breach": 1517,
+    "glass": 178,
+    "corrosion": 312,
+    "alloy": 344,
+    "optic": 7,
+    "lens": 18,
+    "lantern": 15,
+    "limber": 189,
+    "water": 7487,
+    "deck": 3565,
+    "mezz": 337,
+    "bulkhead": 3031,
+    "machine": 762,
+    "pipe": 873,
+    "panel": 195,
+    "ilight": 47,
+    "light": 99,
+    "insignia": 12,
+    "debris": 44,
+    "rail": 112,
+    "beam": 346,
+    "console": 241,
+    "bunk": 60,
+    "pipe2": 116,
+    "ilight3": 5,
+    "ilight2": 24,
+    "iron": 50,
+    "mark": 74,
+    "leaf": 12,
+    "stair": 64,
+    "insignia_core": 1
+  },
+  "reservation": [
+    97505,
+    100,
+    80365,
+    97689,
+    174,
+    80454
+  ],
+  "view_target": [
+    97563,
+    137,
+    80435
+  ],
+  "public_access": false,
+  "purpose": "Lost Prismworks Sounder wreck; evidence of the squid encounter",
+  "review_views": [
+    "overlook",
+    "broadside",
+    "bow",
+    "stern",
+    "top",
+    "night"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "fluid": [
+        "water"
+      ],
+      "hazard": [
+        "water"
+      ]
+    },
+    "verifiers": {
+      "fluid": "mcbuild.fluids",
+      "hazard": "mcbuild.audit + generator safety contracts"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "supporting",
+      "style": "prismworks",
+      "visual_review": true,
+      "narrative": "A crushed Prismworks Sounder research vessel records the squid encounter - and can be entered through the breach and walked end to end: five compartments from the torpedo room to the flooded engine room."
+    },
+    "metrics": {
+      "blocks": 60138,
+      "materials": 24,
+      "dominant_material_share": 0.2848,
+      "light_blocks": 0,
+      "massing": {
+        "width": 182,
+        "height": 60,
+        "depth": 63,
+        "fill_ratio": 0.0874
+      },
+      "silhouette": {
+        "top": {
+          "area": 6519,
+          "fill_ratio": 0.3915
+        },
+        "front": {
+          "area": 7214,
+          "fill_ratio": 0.5199
+        },
+        "side": {
+          "area": 1863,
+          "fill_ratio": 0.276
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.2966,
+          0.5552,
+          0.1483
+        ],
+        "top_silhouette_perimeter": 1196,
+        "surface_faces_per_block": 1.3655
+      },
+      "material_counts": {
+        "deepslate_bricks": 17129,
+        "polished_blackstone_bricks": 15245,
+        "water": 7487,
+        "cracked_polished_blackstone_bricks": 5639,
+        "cracked_deepslate_bricks": 5548,
+        "deepslate_tiles": 3629,
+        "cut_copper": 2779,
+        "smooth_stone": 1087,
+        "polished_deepslate": 436,
+        "dark_prismarine": 344,
+        "cyan_stained_glass": 178,
+        "bone_block": 177
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    },
+    "visual_packet": [
+      "out\\design_reviews\\Abyss_Prismworks_Wreck_yaw0.png",
+      "out\\design_reviews\\Abyss_Prismworks_Wreck_yaw90.png",
+      "out\\design_reviews\\Abyss_Prismworks_Wreck_yaw180.png",
+      "out\\design_reviews\\Abyss_Prismworks_Wreck_yaw270.png",
+      "out\\design_reviews\\Abyss_Prismworks_Wreck_silhouette.png"
+    ]
+  },
+  "design_system": {
+    "fingerprint": "f7221459ecb79f6cb2c12d7a629a8b39703d9c4942aa1c5e34765b6d42dab7f7",
+    "generator_source_digest": "d0750cdb1d7cde038776bb0a2ddfa771d594a5262c3eff626604164a4f337291",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": true,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "fluid",
+        "hazard"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 79.87371,
+    "blocks": 60138,
+    "blocks_per_second": 752.91
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 60138,
+    "mechanic_families": [
+      "fluid",
+      "hazard"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: cracked_deepslate_bricks",
+    "not in the provisional skyblock-1.19 list: cut_copper",
+    "not in the provisional skyblock-1.19 list: cyan_stained_glass"
+  ],
+  "file": "Abyss Prismworks Wreck.litematic",
+  "name": "Abyss Prismworks Wreck"
+}

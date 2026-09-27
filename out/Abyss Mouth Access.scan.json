@@ -1,0 +1,476 @@
+{
+  "origin": {
+    "x": 97597,
+    "y": 117,
+    "z": 80713
+  },
+  "size": {
+    "x": 16,
+    "y": 46,
+    "z": 85
+  },
+  "generated_by": "abyss_access",
+  "kind": "abyss_mouth_access",
+  "entrance": "parkour_only",
+  "inbound_anchor": [
+    97606,
+    162,
+    80801
+  ],
+  "mouth_entry": [
+    97596,
+    142,
+    80713
+  ],
+  "mouth_exit": [
+    97604,
+    142,
+    80713
+  ],
+  "outbound_anchor": [
+    97613,
+    124,
+    80791
+  ],
+  "routes": {
+    "inbound": [
+      [
+        97606,
+        162,
+        80801
+      ],
+      [
+        97605,
+        161,
+        80797
+      ],
+      [
+        97604,
+        161,
+        80794
+      ],
+      [
+        97603,
+        160,
+        80790
+      ],
+      [
+        97601,
+        160,
+        80787
+      ],
+      [
+        97600,
+        159,
+        80783
+      ],
+      [
+        97599,
+        159,
+        80780
+      ],
+      [
+        97598,
+        158,
+        80776
+      ],
+      [
+        97598,
+        157,
+        80772
+      ],
+      [
+        97598,
+        157,
+        80768
+      ],
+      [
+        97598,
+        156,
+        80764
+      ],
+      [
+        97598,
+        156,
+        80761
+      ],
+      [
+        97598,
+        155,
+        80757
+      ],
+      [
+        97598,
+        154,
+        80753
+      ],
+      [
+        97598,
+        154,
+        80749
+      ],
+      [
+        97598,
+        153,
+        80745
+      ],
+      [
+        97598,
+        153,
+        80742
+      ],
+      [
+        97598,
+        152,
+        80738
+      ],
+      [
+        97598,
+        152,
+        80734
+      ],
+      [
+        97598,
+        151,
+        80730
+      ],
+      [
+        97598,
+        149,
+        80726
+      ],
+      [
+        97598,
+        148,
+        80723
+      ],
+      [
+        97599,
+        146,
+        80720
+      ],
+      [
+        97599,
+        144,
+        80716
+      ],
+      [
+        97600,
+        143,
+        80714
+      ],
+      [
+        97596,
+        142,
+        80713
+      ]
+    ],
+    "outbound": [
+      [
+        97604,
+        142,
+        80713
+      ],
+      [
+        97600,
+        142,
+        80714
+      ],
+      [
+        97600,
+        142,
+        80716
+      ],
+      [
+        97600,
+        140,
+        80718
+      ],
+      [
+        97600,
+        139,
+        80722
+      ],
+      [
+        97601,
+        138,
+        80725
+      ],
+      [
+        97601,
+        138,
+        80729
+      ],
+      [
+        97602,
+        137,
+        80732
+      ],
+      [
+        97602,
+        136,
+        80736
+      ],
+      [
+        97602,
+        135,
+        80740
+      ],
+      [
+        97602,
+        135,
+        80744
+      ],
+      [
+        97602,
+        134,
+        80747
+      ],
+      [
+        97602,
+        133,
+        80751
+      ],
+      [
+        97602,
+        133,
+        80755
+      ],
+      [
+        97602,
+        132,
+        80759
+      ],
+      [
+        97602,
+        131,
+        80762
+      ],
+      [
+        97602,
+        131,
+        80766
+      ],
+      [
+        97602,
+        130,
+        80770
+      ],
+      [
+        97604,
+        129,
+        80774
+      ],
+      [
+        97606,
+        128,
+        80777
+      ],
+      [
+        97608,
+        127,
+        80780
+      ],
+      [
+        97609,
+        126,
+        80784
+      ],
+      [
+        97612,
+        125,
+        80787
+      ],
+      [
+        97613,
+        124,
+        80791
+      ]
+    ]
+  },
+  "features_built": {
+    "inbound": 24,
+    "outbound": 22,
+    "in_ledge": 21,
+    "in_rest": 3,
+    "in_gate": 4,
+    "in_recovery": 201,
+    "in_recovery_ladder": 1,
+    "out_ledge": 20,
+    "out_rest": 2,
+    "out_gate": 4,
+    "out_recovery": 177,
+    "out_recovery_ladder": 1
+  },
+  "contract": "No surface entrance. Every guest interface is parkour or recovery.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "traversal": [
+        "ladder"
+      ]
+    },
+    "verifiers": {
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "ride": "route/rail topology plus reachable boarding, exit, and safety paths"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "prismworks",
+      "narrative": "Two one-way parkour strands connect the Prism descents to separate sides of the squid's open mouth, with no independent surface entrance.\n"
+    },
+    "metrics": {
+      "blocks": 450,
+      "materials": 7,
+      "dominant_material_share": 0.6711,
+      "light_blocks": 0,
+      "massing": {
+        "width": 16,
+        "height": 46,
+        "depth": 85,
+        "fill_ratio": 0.0072
+      },
+      "silhouette": {
+        "top": {
+          "area": 329,
+          "fill_ratio": 0.2419
+        },
+        "front": {
+          "area": 164,
+          "fill_ratio": 0.2228
+        },
+        "side": {
+          "area": 190,
+          "fill_ratio": 0.0486
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.3889,
+          0.4533,
+          0.1578
+        ],
+        "top_silhouette_perimeter": 557,
+        "surface_faces_per_block": 3.5067
+      },
+      "material_counts": {
+        "slime_block": 302,
+        "polished_blackstone_bricks": 34,
+        "deepslate_brick_wall": 32,
+        "pearlescent_froglight": 32,
+        "deepslate_bricks": 18,
+        "ladder": 18,
+        "cyan_wool": 14
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "5fa179f52a9ac949ad4c910c94ca31834ab715de1dd2e1c68f8f7591f60a516a",
+    "generator_source_digest": "e757f57ad43b8cc78da7f29f7580d82aa1432bed95ce46a79d2dfb2127a4c7f8",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "traversal"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 64.394472,
+    "blocks": 450,
+    "blocks_per_second": 6.99
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "ride missing queue_entry anchor",
+      "ride missing boarding anchor",
+      "ride missing ride_exit anchor",
+      "ride missing service_access anchor"
+    ],
+    "anchors": 0,
+    "roles": [
+      "construction",
+      "ride"
+    ],
+    "blocks": 450,
+    "mechanic_families": [
+      "traversal"
+    ]
+  },
+  "fun_contract": {
+    "declared": true,
+    "class": "experience",
+    "player_verbs": [
+      "leave the Crown Descent",
+      "jump toward the squid",
+      "enter its mouth",
+      "return on the Wake Line"
+    ],
+    "outcome": "Reach the Abyss Market and rejoin the established Prism recovery route.",
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "Abyss Mouth Access.litematic",
+  "name": "Abyss Mouth Access"
+}

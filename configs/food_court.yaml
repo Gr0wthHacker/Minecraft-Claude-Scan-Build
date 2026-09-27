@@ -1,0 +1,29 @@
+name: Food Court
+gen: spectacle
+params:
+  land: midway
+  facing: east
+  at:
+  - 97576
+  - 203
+  - 80623
+  kind: foodcourt
+  title: Food Court
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: shop
+  hierarchy: supporting
+  land: midway
+  requires_path: true
+  access_candidates:
+  - - 97579
+    - 204
+    - 80615
+design:
+  purpose: shop
+  hierarchy: supporting
+  style: midway
+  narrative: Food Court serves the midway visitor journey.
+origin_lock: false

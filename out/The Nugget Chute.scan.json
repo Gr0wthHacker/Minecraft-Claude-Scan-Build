@@ -1,0 +1,397 @@
+{
+  "origin": {
+    "x": 97619,
+    "y": 202,
+    "z": 80368
+  },
+  "size": {
+    "x": 17,
+    "y": 17,
+    "z": 23
+  },
+  "generated_by": "arcade",
+  "kind": "plinko",
+  "footprint": [
+    23,
+    17
+  ],
+  "courses": [
+    -1,
+    15
+  ],
+  "land": "frontier",
+  "facing": "east",
+  "contract": "5 channels; a ball read by channel k pays [3, 2, 1, 2, 3] prizes from that channel alone, exactly once per ball, and nothing from any other",
+  "unverified": [
+    "WHERE THE BALL LANDS is Minecraft's item physics, which this simulator has no entities to model. The board is real and the pegs are staggered; the distribution is the game's own and must be watched in world, exactly as the dropper randomiser's odds are."
+  ],
+  "budget": {},
+  "concealed": 132,
+  "visible_redstone": 0,
+  "width": 21,
+  "depth": 15,
+  "height": 16,
+  "lanes": 5,
+  "pegs": 76,
+  "prizes": [
+    3,
+    2,
+    1,
+    2,
+    3
+  ],
+  "hoppers": [
+    [
+      97633,
+      203,
+      80388
+    ],
+    [
+      97633,
+      203,
+      80384
+    ],
+    [
+      97633,
+      203,
+      80380
+    ],
+    [
+      97633,
+      203,
+      80376
+    ],
+    [
+      97633,
+      203,
+      80372
+    ]
+  ],
+  "droppers": [
+    [
+      [
+        97625,
+        204,
+        80388
+      ],
+      [
+        97624,
+        204,
+        80388
+      ],
+      [
+        97623,
+        204,
+        80388
+      ]
+    ],
+    [
+      [
+        97625,
+        204,
+        80384
+      ],
+      [
+        97624,
+        204,
+        80384
+      ]
+    ],
+    [
+      [
+        97625,
+        204,
+        80380
+      ]
+    ],
+    [
+      [
+        97625,
+        204,
+        80376
+      ],
+      [
+        97624,
+        204,
+        80376
+      ]
+    ],
+    [
+      [
+        97625,
+        204,
+        80372
+      ],
+      [
+        97624,
+        204,
+        80372
+      ],
+      [
+        97623,
+        204,
+        80372
+      ]
+    ]
+  ],
+  "signed": true,
+  "inputs": [
+    [
+      97633,
+      203,
+      80388
+    ],
+    [
+      97633,
+      203,
+      80384
+    ],
+    [
+      97633,
+      203,
+      80380
+    ],
+    [
+      97633,
+      203,
+      80376
+    ],
+    [
+      97633,
+      203,
+      80372
+    ]
+  ],
+  "outputs": [
+    [
+      97625,
+      204,
+      80388
+    ],
+    [
+      97624,
+      204,
+      80388
+    ],
+    [
+      97623,
+      204,
+      80388
+    ],
+    [
+      97625,
+      204,
+      80384
+    ],
+    [
+      97624,
+      204,
+      80384
+    ],
+    [
+      97625,
+      204,
+      80380
+    ],
+    [
+      97625,
+      204,
+      80376
+    ],
+    [
+      97624,
+      204,
+      80376
+    ],
+    [
+      97625,
+      204,
+      80372
+    ],
+    [
+      97624,
+      204,
+      80372
+    ],
+    [
+      97623,
+      204,
+      80372
+    ]
+  ],
+  "stock": {
+    "each lane's droppers": "the prize that channel pays",
+    "the player": "a ball to drop - an egg, a snowball, any item"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel",
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_wire",
+        "repeater"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "ride",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Nugget Chute serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 1313,
+      "materials": 13,
+      "dominant_material_share": 0.3945,
+      "light_blocks": 2,
+      "massing": {
+        "width": 17,
+        "height": 17,
+        "depth": 23,
+        "fill_ratio": 0.1975
+      },
+      "silhouette": {
+        "top": {
+          "area": 391,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 85,
+          "fill_ratio": 0.2941
+        },
+        "side": {
+          "area": 360,
+          "fill_ratio": 0.9207
+        }
+      },
+      "material_counts": {
+        "cobblestone": 518,
+        "spruce_planks": 310,
+        "spruce_fence": 209,
+        "stone_bricks": 120,
+        "spruce_log": 70,
+        "redstone_wire": 41,
+        "dropper": 11,
+        "comparator": 10,
+        "repeater": 10,
+        "barrel": 5,
+        "hopper": 5,
+        "lantern": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "7921c2b381773c7e46fc534d181355ac9d41c973e4b745b4aadaf6f20f34b50a",
+    "generator_source_digest": "506effe90a7d96a1c9be192e0d533832b276ffa8f4e732de93b324fdbf1daf87",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "ride",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97637,
+        204,
+        80379
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1313,
+    "mechanic_families": [
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: dropper"
+  ],
+  "file": "The Nugget Chute.litematic",
+  "name": "The Nugget Chute"
+}

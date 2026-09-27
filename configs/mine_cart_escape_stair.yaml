@@ -1,0 +1,36 @@
+name: Mine Cart Escape Stair
+gen: stairwell
+params:
+  land: frontier
+  facing: east
+  center:
+  - 97639
+  - 80372
+  radius: 1
+  y_bottom: 179
+  y_top: 203
+  shaft_lamp_every: 5
+  under: out/islandleft.litematic
+  at:
+  - 97639
+  - 179
+  - 80372
+  kind: stairwell
+  title: Mine Cart Escape Stair
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: building
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97644
+    - 180
+    - 80372
+design:
+  purpose: building
+  hierarchy: supporting
+  style: frontier
+  narrative: Mine Cart Escape Stair serves the frontier visitor journey.
+origin_lock: false

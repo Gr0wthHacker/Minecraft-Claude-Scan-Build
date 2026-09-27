@@ -1,0 +1,36 @@
+name: The Ossuary Stair
+gen: stairwell
+params:
+  land: hollow
+  facing: east
+  center:
+  - 97599
+  - 80815
+  radius: 1
+  y_bottom: 183
+  y_top: 203
+  shaft_lamp_every: 5
+  under: out/islandright.litematic
+  at:
+  - 97599
+  - 183
+  - 80815
+  kind: stairwell
+  title: The Ossuary Stair
+finish:
+  verify_against: out/islandright.litematic
+park_contract:
+  purpose: building
+  hierarchy: supporting
+  land: hollow
+  requires_path: true
+  access_candidates:
+  - - 97604
+    - 184
+    - 80815
+design:
+  purpose: building
+  hierarchy: supporting
+  style: hollow
+  narrative: The Ossuary Stair serves the hollow visitor journey.
+origin_lock: false

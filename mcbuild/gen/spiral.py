@@ -19,6 +19,7 @@ import math
 
 from .canvas import Canvas, hash01
 from .interior import _settle_walls
+from .protect import is_protected
 from .vertical import Ctx, World, load_capture
 
 SPIRAL = {
@@ -28,6 +29,12 @@ SPIRAL = {
     "y0": None, "y1": None,    # first and last course
     "clearance": 2,            # inner edge sits this far outside the wrapped design
     "min_radius": 3.0,
+    "max_inner": None,         # clamp on the smoothed inner radius. _smooth is a running MAX,
+                               # so one wide feature anywhere in the wrapped design - a grip
+                               # bend, a splayed toe - widens every course above it; the
+                               # Lowland Stair's top flared right past its own step-off. The
+                               # clamp keeps the helix tight and lets defer_to settle the few
+                               # cells where the core then crosses the band.
     "width": 4,                # tread depth, measured outward from the inner edge
     "start_angle": 0.0,
     "direction": 1,            # +1 anticlockwise, -1 clockwise
@@ -36,8 +43,76 @@ SPIRAL = {
     "alt_rate": 0.35,          # share of treads in the second slab, so it is not one flat tone
     "rail": "stone_brick_wall",
     "lantern_every": 12,       # a lantern on the rail every N treads; 0 for none
+    "lantern_block": "lantern",
+    # MATERIAL BANDS, optional: the stair changes stone as it changes world. A list ordered
+    # top band first, each {from_y, slab, alt, rail, lantern}; a course belongs to the first
+    # band whose from_y it is at or above, and the seams are DITHERED per cell over
+    # band_blend courses - a hard line across a helix reads as two stairs stacked, not one
+    # stair descending. None keeps the single-palette behaviour bit-for-bit (the Root Stair).
+    "bands": None,
+    "band_blend": 6,
+    # THE WELL, optional: at or above dig_above, a tread may claim a cell the world holds -
+    # the cell (and its headroom) goes on the DIG list and the slab is placed where the rock
+    # was, which is the rimstair's "the tread cell is itself a dig". Below dig_above nothing
+    # is ever dug: a solid cell simply keeps its tread away, so the stair threads the world
+    # instead of eating it. Never dug, at any height: water and ice, any protected block,
+    # and THE CELL A PROTECTED BLOCK STANDS ON - the shop's barrels sit one course over the
+    # well's north arc, and digging their floor is how a stair robs a shop.
+    "dig_above": None,
+    "headroom": 3,
+    # what a dig may take: NATURAL ROCK ONLY, named. The old stair's own slabs and lanterns
+    # sit directly over the well's mouth courses, and "anything unprotected" would have dug
+    # the stair this one exists to continue. Anything not on the list keeps its cell and
+    # keeps the tread away.
+    "dig_only": None,
+    # designs whose cells may NEVER be dug, by path. dig_only names materials, and that is
+    # not enough: the Atelier Court's floor is stone brick and smooth stone - "natural rock"
+    # by name, somebody's workshop by position - and the first well took 21 cells of it.
+    # A dig list must know what the rock BELONGS to, not only what it is.
+    "dig_forbid": None,
     "seed": 0,
 }
+
+
+def _forbid_cells(paths):
+    import numpy as np
+    out = set()
+    for path in paths or []:
+        m, (ox, oy, oz) = load_capture(path)
+        ys, zs, xs = np.where(m.ids > 0)
+        for y, z, x in zip(ys.tolist(), zs.tolist(), xs.tolist()):
+            out.add((x + ox, y + oy, z + oz))
+    return out
+
+_AIR = ("air", "cave_air", "void_air")
+
+
+def _clearable(ctx, x, y, z, dig_above, headroom, dig_only, forbid):
+    """(ok, dig_cells) for one tread cell: may a tread stand here, and what must go first."""
+    digs = []
+    for k in range(headroom + 1):
+        n = ctx.name_at(x, y + k, z)
+        if n in _AIR:
+            continue
+        if y + k < dig_above or n in ("water", "ice") or is_protected(n) \
+                or is_protected(ctx.name_at(x, y + k + 1, z)) \
+                or (dig_only is not None and n not in dig_only) \
+                or (forbid and (x, y + k, z) in forbid):
+            return False, []
+        digs.append((x, y + k, z))
+    return True, digs
+
+
+def _band(p, y, x, z, seed):
+    """The band a cell belongs to, with its edge dithered by a per-cell hash."""
+    bands = p.get("bands")
+    if not bands:
+        return None
+    yy = y + (hash01(x, 87, z, seed) - 0.5) * 2.0 * float(p.get("band_blend", 6))
+    for b in bands:
+        if yy >= float(b["from_y"]):
+            return b
+    return bands[-1]
 
 DIRS4 = (("east", 1, 0), ("west", -1, 0), ("south", 0, 1), ("north", 0, -1))
 
@@ -51,13 +126,20 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
     if y1 <= y0:
         raise ValueError(f"spiral needs y1 > y0 (got {y0}..{y1})")
     prof = _smooth(prof, float(p["clearance"]), float(p["min_radius"]))
+    if p.get("max_inner") is not None:
+        cap = float(p["max_inner"])
+        prof = {y: min(r, cap) for y, r in prof.items()}
 
     w = World()
     spin = 1 if int(p["direction"]) >= 0 else -1
     theta = float(p["start_angle"])
     width, seed = int(p["width"]), int(p["seed"])
+    dig_above = p.get("dig_above")
+    headroom = int(p.get("headroom", 3))
+    dig_only = set(p["dig_only"]) if p.get("dig_only") else None
+    forbid = _forbid_cells(p.get("dig_forbid")) if p.get("dig_forbid") else None
     steps = (y1 - y0 + 1) * 2                          # two half-steps to a course
-    treads, laps = [], 0.0
+    treads, laps, dig_of = [], 0.0, {}
     for k in range(steps):
         y = y0 + k // 2
         low = (k % 2) == 0                             # bottom slab, then top slab, then up a course
@@ -65,17 +147,55 @@ def build_spiral(cfg: dict, donors=None) -> Canvas:
         d = spin / max(1.0, r_in)                      # one cell of arc at the inner edge
         cells = _spoke(cx, cz, theta, theta + d, r_in, r_in + width)
         for (x, z) in cells:
-            name = p["slab_alt"] if hash01(x, z, 19, seed) < p["alt_rate"] else p["slab"]
+            if ctx is not None and dig_above is not None:
+                ok, digs = _clearable(ctx, x, y, z, int(dig_above), headroom, dig_only,
+                                      forbid)
+                if not ok:
+                    continue
+                dig_of[(x, y, z)] = digs
+            b = _band(p, y, x, z, seed)
+            slab, alt = (b["slab"], b["alt"]) if b else (p["slab"], p["slab_alt"])
+            name = alt if hash01(x, z, 19, seed) < p["alt_rate"] else slab
             w.put(x, y, z, name, type="bottom" if low else "top", waterlogged="false")
         if cells:
             treads.append([cells[0][0], y, cells[0][1]])
         theta += d
         laps += abs(d) / (2 * math.pi)
 
+    # a tread whose only contact is rock ITS OWN DIG removes is unbuildable by construction:
+    # the dig happens first, and the printer then has nothing to place it against. Pruned to
+    # a fixpoint, and the pruned tread takes its now-pointless dig entries with it.
+    if ctx is not None and dig_above is not None:
+        all_digs = set().union(*dig_of.values()) if dig_of else set()
+        changed = True
+        while changed:
+            changed = False
+            for (x, y, z) in list(w.cells):
+                anchored = False
+                for dx, dy, dz in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0),
+                                   (0, 0, 1), (0, 0, -1)):
+                    nb = (x + dx, y + dy, z + dz)
+                    if nb in w.cells:
+                        anchored = True
+                        break
+                    nn = ctx.name_at(*nb)
+                    if nn not in _AIR and nn not in ("vine", "glow_lichen", "moss_carpet",
+                                                    "short_grass", "tall_grass", "fern",
+                                                    "large_fern", "hanging_roots") \
+                            and nb not in all_digs:
+                        anchored = True
+                        break
+                if not anchored:
+                    del w.cells[(x, y, z)]
+                    dig_of.pop((x, y, z), None)
+                    changed = True
+        all_digs = set().union(*dig_of.values()) if dig_of else set()
+    dig = set().union(*dig_of.values()) if dig_of else set()
+
     rails = _rails(w, ctx, cx, cz, prof, y0, y1, width, p, seed)
     return w.canvas({"kind": "spiral", "center": [cx, cz], "y0": y0, "y1": y1,
                      "treads": len(treads), "turns": round(laps, 2), "rails": rails,
-                     "width": width})
+                     "width": width, "dig": sorted(dig)})
 
 
 def _spoke(cx: int, cz: int, t0: float, t1: float, r_in: float, r_out: float) -> list:
@@ -131,15 +251,19 @@ def _rails(w: World, ctx, cx: int, cz: int, prof: dict, y0: int, y1: int, width:
             continue
         if ctx is not None and ctx.name_at(x, y + 1, z) not in ("air", "cave_air", "void_air", "vine"):
             continue
-        w.put(x, y + 1, z, p["rail"], up="true", north="none", south="none",
-              east="none", west="none", waterlogged="false")
+        b = _band(p, y, x, z, seed)
+        w.put(x, y + 1, z, b["rail"] if b else p["rail"], up="true", north="none",
+              south="none", east="none", west="none", waterlogged="false")
         n += 1
     if p["lantern_every"]:
-        posts = [c for c in sorted(w.cells) if w.name(*c) == p["rail"]]
+        posts = [c for c in sorted(w.cells) if (w.name(*c) or "").endswith("_wall")]
         for i, (x, y, z) in enumerate(posts):
             if i % int(p["lantern_every"]) == 0 and not w.has(x, y + 1, z):
-                w.put(x, y + 1, z, "lantern", hanging="false", waterlogged="false")
-    _settle_walls(w, ctx or _NoCtx(), p["rail"])
+                b = _band(p, y, x, z, seed)
+                w.put(x, y + 1, z, b["lantern"] if b else p["lantern_block"],
+                      hanging="false", waterlogged="false")
+    for rail_name in sorted({b["rail"] for b in (p.get("bands") or [])} | {p["rail"]}):
+        _settle_walls(w, ctx or _NoCtx(), rail_name)
     return n
 
 

@@ -1,0 +1,15 @@
+name: The Swings
+gen: attractions
+params:
+  land: midway
+  facing: east
+  at:
+  - 97578
+  - 203
+  - 80632
+  kind: swings
+  title: The Swings
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

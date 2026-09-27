@@ -1,0 +1,50 @@
+# PF PROSPECTING PORCH - the Frontier's dwell activity, under one shared veranda.
+#
+# 51 x 40 at V69 U0, behind Trailhead Gate in column A.
+#
+# IT IS ENTERED OFF ITS EAST FLANK AT U39, NOT OFF ITS FRONT. Column A stacks 45 + 51 into 97
+# courses with ONE to spare, so a 3-wide cross walk cannot be cut and this module's declared west
+# door opens into the back wall of Trailhead Gate - `PARK_ATTRACTIONS_PLAN` §2.2 measured it and
+# §2.3 re-anchors the entry to the avenue flank. The veranda therefore runs that whole flank.
+#
+# THE TWO BAYS ARE SHELLS, AND THAT IS THE SPEC'S OWN BUILD STATE ("shell/circuits separately").
+# Both carry their counter, backboard, result panel, launder and reset hatch; neither carries a
+# circuit. This repo cut two finished casino games rather than ship a machine it could not verify
+# by simulation, and a game with a wire in it and no contract is that mistake again.
+#
+# THE SHOW LAYER (2026-09-02). Jack: "we need this to be a theme park, and amusement area,
+# beautiful, not just full of buildings." Measured, the whole Frontier ran 0.0-2.6% coloured or
+# lit blocks - stone brick, spruce and dark oak with a plinth, a string course and a cornice,
+# which is a correct way to build a VILLAGE. What was added is announcement rather than
+# ornament: a SHAPED show front with a name board and a painted cornice on every guest-facing
+# frontage, striped canvas awnings, bunting, and a mast with a pennant on the skyline. The rise
+# of every show front is DERIVED from its own ridge, because a false front that does not clear
+# its roof is invisible from every bearing but straight down the street - which is how the
+# first build passed a head-on render and read as a village from everywhere else.
+name: PF Prospecting Porch
+gen: frontier_builds
+params:
+  kind: porch
+  lot: [51, 40]
+  at: [69, 0]
+  # THE GAP IN THE VERANDA RAIL FALLS BETWEEN TWO POSTS, and clear of V95: a lamp mast of the
+  # ground layer stands at (95, 40), one cell outside this flank, and a doorway behind a lamp
+  # post is a doorway nobody walks through. V95 is local V26; this is local V17-18.
+  entry_v: 17
+  seed: 23
+roles: [ride]
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    A prospecting row: a shooting gallery and a gold sluice in two timber bays, an ore bin on a
+    covered walk behind them, and one long veranda down the avenue flank that both bays open onto.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

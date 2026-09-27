@@ -1,0 +1,16 @@
+{
+  "kind": "probe",
+  "name": "Ridge Test",
+  "facing": "west",
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80399
+  },
+  "size": {
+    "x": 124,
+    "y": 60,
+    "z": 71
+  },
+  "file": "_ridge_test.litematic"
+}

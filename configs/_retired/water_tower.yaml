@@ -1,0 +1,15 @@
+name: Water Tower
+gen: frontiertown
+params:
+  land: frontier
+  facing: north
+  at:
+  - 97554
+  - 203
+  - 80400
+  kind: watertower
+  title: Water Tower
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

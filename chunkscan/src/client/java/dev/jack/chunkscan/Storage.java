@@ -5,6 +5,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,12 +27,101 @@ import java.util.Map;
  * number, zone, coordinates, distance and direction — instead of opening a hundred chests.
  */
 final class Storage {
+	/**
+	 * Block names that actually hold items. Kept here rather than in the watcher so the guard that
+	 * stops a bad entry being written and the sweep that removes one already written cannot drift.
+	 */
+	private static final String[] CONTAINERS = {
+		"chest", "trapped_chest", "barrel", "shulker_box", "hopper", "dispenser", "dropper",
+		"furnace", "blast_furnace", "smoker", "brewing_stand", "chiseled_bookshelf", "decorated_pot",
+		"crafter", "campfire", "lectern", "beacon", "cartography_table", "loom", "smithing_table",
+		"grindstone", "stonecutter", "enchanting_table", "anvil", "crafting_table",
+	};
+	/** ...of which only these actually STORE things. The rest open a screen and hold nothing. */
+	private static final String[] STORES = {
+		"chest", "trapped_chest", "barrel", "shulker_box", "hopper", "dispenser", "dropper",
+		"furnace", "blast_furnace", "smoker", "brewing_stand", "chiseled_bookshelf", "decorated_pot",
+		"crafter",
+	};
+
+	static boolean isContainer(String block) {
+		String n = block == null ? "" : block.substring(block.indexOf(':') + 1);
+		for (String k : CONTAINERS) if (n.contains(k)) return true;
+		return false;
+	}
+
+	static boolean buildStorage(String block) {
+        String n = Rules.shortName(block);
+        return n.equals("chest") || n.equals("trapped_chest") || n.equals("barrel")
+            || n.equals("shulker_box") || n.endsWith("_shulker_box");
+    }
+
+    static boolean stores(String block) {
+		String n = block == null ? "" : block.substring(block.indexOf(':') + 1);
+		if (n.equals("ender_chest")) return false;   // a window on the PLAYER's pack, not a chest
+		for (String k : STORES) if (n.contains(k)) return true;
+		return false;
+	}
+
+	/**
+	 * Drop entries that were filed against something that is not a container. Returns how many went.
+	 *
+	 * <p>141 of 269 entries were like this — signs, stone bricks, slabs, moss — because the watcher
+	 * remembered every right-click and then attributed the next screen to it. They are removed rather
+	 * than repaired: the position is the one thing that was wrong, so there is nothing to repair to.
+	 * Reopening the real container re-indexes it in one click.
+	 */
+	static int prune(Path schematicsDir) throws IOException {
+		return prune(schematicsDir, null);
+	}
+
+	/**
+	 * Drop entries that were never containers, and — when a world is given — entries the LOADED
+	 * world disproves. Returns how many went.
+	 *
+	 * <p>Two different wrongs with two different causes. The first is the watcher having filed your
+	 * own inventory against whatever block you last clicked; those were never real. The second is a
+	 * chest you broke, which was real and is not any more, and which nothing could ever have told
+	 * the index about because you cannot open a chest that is gone.
+	 *
+	 * <p>Removed rather than repaired in both cases: the POSITION is the thing that is wrong, and
+	 * there is nothing to repair it to. Reopening the real container re-indexes it in one click.
+	 */
+	static int prune(Path schematicsDir, Level level) throws IOException {
+		Map<String, Container> all = load(schematicsDir);
+		int before = all.size();
+		all.values().removeIf(c -> !stores(c.block) || !stillThere(level, c));
+		if (all.size() != before) save(schematicsDir, all);
+		return before - all.size();
+	}
+
+	/**
+	 * Does this item hold other items? A shulker box does, and it is how this island stores in bulk.
+	 */
+	static boolean isBox(String item) {
+		return item != null && item.contains("shulker_box");
+	}
+
 	static final class Container {
 		int id;
 		int x, y, z;
 		String dimension = "";
 		String block = "";
 		String label = "";          // set with /cscan label
+		/**
+		 * What is inside the SHULKER BOXES in this container.
+		 *
+		 * <p>Kept apart from `items` on purpose. The index used to record a chest of six shulker
+		 * boxes as "6x white_shulker_box", which is true and useless: the ten thousand stone bricks
+		 * inside were invisible to `find`, to the bill of materials and to the build loop, which
+		 * would fly past them to a chest with sixty-four loose ones. Bulk storage on this island IS
+		 * boxes in chests.
+		 *
+		 * <p>Not merged, because getting them is a DIFFERENT job — you take the box, set it down and
+		 * open it — and a plan that says "64 bricks, 22m NE" when it means "a box you must unpack"
+		 * is a plan that lies about the only number that mattered.
+		 */
+		final java.util.Map<String, Integer> inBoxes = new java.util.LinkedHashMap<>();
 		String zone = "";           // nearest marker at capture time
 		String updated = "";
 		int slots;                  // container size, so "how full is it" is answerable
@@ -37,7 +129,8 @@ final class Storage {
 		final Map<String, Integer> items = new LinkedHashMap<>();
 
 		String key() {
-			return x + "," + y + "," + z;
+			String xyz = x + "," + y + "," + z;
+            return dimension.isBlank() || dimension.equals("minecraft:overworld") ? xyz : dimension + "|" + xyz;
 		}
 
 		BlockPos pos() {
@@ -82,9 +175,17 @@ final class Storage {
 			c.label = str(o, "label");
 			c.zone = str(o, "zone");
 			c.updated = str(o, "updated");
+            c.slots = o.has("slots") ? o.get("slots").getAsInt() : 0;
+            c.used = o.has("used") ? o.get("used").getAsInt() : 0;
 			JsonObject items = o.getAsJsonObject("items");
 			if (items != null) {
 				for (String k : items.keySet()) c.items.put(k, items.get(k).getAsInt());
+			}
+			// Absent in every record written before this, which reads correctly as "no boxes known
+			// here" — the index is re-written from the screen the next time you open the container.
+			JsonObject boxed = o.getAsJsonObject("inBoxes");
+			if (boxed != null) {
+				for (String k : boxed.keySet()) c.inBoxes.put(k, boxed.get(k).getAsInt());
 			}
 			out.put(c.key(), c);
 		}
@@ -108,17 +209,27 @@ final class Storage {
 			o.addProperty("label", c.label);
 			o.addProperty("zone", c.zone);
 			o.addProperty("updated", c.updated);
+            o.addProperty("slots", c.slots);
+            o.addProperty("used", c.used);
 			JsonObject items = new JsonObject();
 			c.items.entrySet().stream()
 				.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
 				.forEach(e -> items.addProperty(e.getKey(), e.getValue()));
 			o.add("items", items);
+			if (!c.inBoxes.isEmpty()) {
+				JsonObject boxed = new JsonObject();
+				c.inBoxes.entrySet().stream()
+					.sorted((a, b) -> Integer.compare(b.getValue(), a.getValue()))
+					.forEach(e -> boxed.addProperty(e.getKey(), e.getValue()));
+				o.add("inBoxes", boxed);
+			}
 			arr.add(o);
 		}
 		JsonObject root = new JsonObject();
 		root.add("containers", arr);
 		Files.createDirectories(schematicsDir);
 		Files.writeString(file(schematicsDir), new GsonBuilder().setPrettyPrinting().create().toJson(root), StandardCharsets.UTF_8);
+        forget();
 	}
 
 	/** Insert or update the container at `c.pos()`, keeping its existing number and label. */
@@ -137,11 +248,84 @@ final class Storage {
 
 	record Hit(Container container, String item, int count, double distance) {}
 
+	/**
+	 * Is this record still true of the world?
+	 *
+	 * <p><b>THE INDEX HAS NO WAY TO FORGET.</b> It is written when you OPEN a container, and you
+	 * cannot open one that has been broken — so every other part of this project regenerates
+	 * against the newest capture and this is the one thing that only ever accumulates. Measured
+	 * against the 16:33 capture: 179 of 339 indexed containers no longer exist, 63 of those
+	 * positions are now air, and the index still claimed 36,088 items inside them.
+	 *
+	 * <p>That was harmless while `/cscan find` was only ever advice. It stopped being harmless when
+	 * `fetch` and `follow` started NAVIGATING to these coordinates.
+	 *
+	 * <p>UNLOADED IS NOT ABSENT. A chunk you cannot see is not evidence that the chest is gone, and
+	 * treating it as such would delete your whole index the first time you ran this from the far
+	 * side of the island. Same rule `Work.split` follows.
+	 */
+	/**
+	 * The one position a double chest is filed under: its lower-coordinate half. Both halves open
+	 * the same 54 slots, and indexed under whichever half was clicked the index held 151 pairs
+	 * twice over - and after emptying one half the other still advertised the old count and sent
+	 * the loop back to a chest it had just emptied. Anything else answers its own position.
+	 */
+	static BlockPos canonical(Level level, BlockPos pos) {
+		if (level == null || !level.isLoaded(pos)) return pos;
+		BlockState st = level.getBlockState(pos);
+		if (!(st.getBlock() instanceof net.minecraft.world.level.block.ChestBlock)) return pos;
+		net.minecraft.world.level.block.state.properties.ChestType type = st.getValue(net.minecraft.world.level.block.ChestBlock.TYPE);
+		if (type == net.minecraft.world.level.block.state.properties.ChestType.SINGLE) return pos;
+		net.minecraft.core.Direction facing = st.getValue(net.minecraft.world.level.block.ChestBlock.FACING);
+		BlockPos other = pos.relative(type == net.minecraft.world.level.block.state.properties.ChestType.LEFT
+			? facing.getClockWise() : facing.getCounterClockWise());
+		return lower(pos, other);
+	}
+
+	/** The lower of two positions, by x then z: the same answer from either half. */
+	static BlockPos lower(BlockPos a, BlockPos b) {
+		if (a.getX() != b.getX()) return a.getX() < b.getX() ? a : b;
+		return a.getZ() <= b.getZ() ? a : b;
+	}
+
+	static boolean stillThere(Level level, Container c) {
+		BlockPos p = c.pos();
+		if (level != null && !c.dimension.isBlank() && !c.dimension.equals(level.dimension().identifier().toString())) return true;
+		if (level == null || !level.isLoaded(p)) return stillThere((String) null);
+		if (!canonical(level, p).equals(p)) return false;   // the other half of a double chest: the twin record
+		return stillThere(BuiltInRegistries.BLOCK.getKey(level.getBlockState(p).getBlock()).getPath());
+	}
+
+	/**
+	 * The decision itself, given what is at the position - or NULL when the chunk is not loaded and
+	 * there is nothing to look at.
+	 *
+	 * <p>Split out so it can be tested: a Level cannot be constructed off a client, and the rule
+	 * that unloaded means "leave it alone" is the one worth pinning, because getting it backwards
+	 * deletes the whole index the first time you prune from across the island.
+	 */
+	static boolean stillThere(String blockAtPosition) {
+		if (blockAtPosition == null) return true;
+		return stores(blockAtPosition);
+	}
+
 	/** Containers holding an item whose id or label matches `query` (substring, case-insensitive). */
 	static List<Hit> find(Map<String, Container> all, String query, BlockPos from) {
+		return find(all, query, from, null);
+	}
+
+	/**
+	 * As {@link #find}, skipping records the world has since disproved.
+	 *
+	 * <p>Skipped rather than deleted: this runs on the way to answering a question, and a lookup is
+	 * not the place to throw away someone's data. `/cscan prune` is where that decision is made
+	 * deliberately.
+	 */
+	static List<Hit> find(Map<String, Container> all, String query, BlockPos from, Level level) {
 		String q = query.toLowerCase();
 		List<Hit> hits = new ArrayList<>();
 		for (Container c : all.values()) {
+			if (level != null && !stillThere(level, c)) continue;
 			for (var e : c.items.entrySet()) {
 				if (e.getKey().toLowerCase().contains(q)) {
 					hits.add(new Hit(c, e.getKey(), e.getValue(), Math.sqrt(c.pos().distSqr(from))));
@@ -150,6 +334,255 @@ final class Storage {
 		}
 		hits.sort((a, b) -> Double.compare(a.distance(), b.distance()));
 		return hits;
+	}
+
+	/**
+	 * Containers holding EXACTLY this item.
+	 *
+	 * <p>{@link #find} is a substring search and should be: `/cscan find wool` is a question about
+	 * wool in general. It is the wrong tool for a fetch, because a trip is a navigation instruction
+	 * and `stone_bricks` matches `mossy_stone_bricks`, `cracked_stone_bricks` and
+	 * `chiseled_stone_bricks`. The loop would fly to the nearest of those, find nothing of what it
+	 * asked for, take zero, blacklist a perfectly good chest and try the next one — a whole trip
+	 * spent to learn nothing, and it looked exactly like the chest being empty.
+	 *
+	 * <p>The namespace is optional on both sides, because the index holds `minecraft:stone_bricks`
+	 * and every caller here holds a bare block name.
+	 */
+	static List<Hit> findExact(Map<String, Container> all, String item, BlockPos from) {
+		return findExact(all, item, from, false);
+	}
+
+	/**
+	 * @param inBoxes also count what is inside shulker boxes in the container
+	 *
+	 * <p>Off by default, and that is the honest setting for a plan: getting at a boxed block is a
+	 * different job — take the box, set it down, open it — so a route that promises "500 bricks,
+	 * 22m NE" when it means "a box you must unpack" has lied about the thing that mattered. Turned
+	 * ON it is how the loop finds this island's actual bulk storage, which is boxes in chests.
+	 */
+	static List<Hit> findExact(Map<String, Container> all, String item, BlockPos from,
+	                           boolean inBoxes) {
+		String want = bare(item);
+		List<Hit> hits = new ArrayList<>();
+		for (Container c : all.values()) {
+			int loose = 0, boxed = 0;
+			String id = null;
+			for (var e : c.items.entrySet()) {
+				if (bare(e.getKey()).equals(want) && e.getValue() > 0) {
+					loose += e.getValue();
+					id = e.getKey();
+				}
+			}
+			if (inBoxes) {
+				for (var e : c.inBoxes.entrySet()) {
+					if (bare(e.getKey()).equals(want) && e.getValue() > 0) {
+						boxed += e.getValue();
+						if (id == null) id = e.getKey();
+					}
+				}
+			}
+			int total = loose + boxed;
+			if (total > 0) hits.add(new Hit(c, id, total, Math.sqrt(c.pos().distSqr(from))));
+		}
+		hits.sort((a, b) -> Double.compare(a.distance(), b.distance()));
+		return hits;
+	}
+
+	/** How many of this item are inside boxes in this container. */
+	static int boxedCount(Container c, String item) {
+		String want = bare(item);
+		int n = 0;
+		for (var e : c.inBoxes.entrySet()) {
+			if (bare(e.getKey()).equals(want)) n += e.getValue();
+		}
+		return n;
+	}
+
+	// ---- the read cache. `load` is a file read and a JSON parse, and the build loop asks for the
+	// index every two seconds for as long as it runs. The file only changes when you OPEN a
+	// container, and the filesystem already records when that was.
+	private static Map<String, Container> cached;
+	private static long cachedAt = Long.MIN_VALUE;
+	private static Path cachedFrom;
+
+	/**
+	 * {@link #load}, but only actually loading when the file has changed.
+	 *
+	 * <p>Keyed on the modification time rather than on a timer, because a stale index here is not a
+	 * cosmetic problem: you open a chest precisely so that the loop can be told about it, and a
+	 * thirty-second cache would mean walking to a chest the loop still thinks is empty. An mtime
+	 * check is one syscall against a read and a parse.
+	 */
+	static Map<String, Container> loadCached(Path schematicsDir) throws IOException {
+		Path f = file(schematicsDir);
+		long stamp = Files.exists(f) ? Files.getLastModifiedTime(f).toMillis() : -1;
+		if (cached != null && stamp == cachedAt && schematicsDir.equals(cachedFrom)) return cached;
+		// UNMODIFIABLE, and the wrapper is what is cached. Every other caller of `load` owns its
+		// copy and two of them edit it — `prune` and the storage report both `removeIf` — so a
+		// shared mutable map here is a cache that silently loses containers. Made impossible rather
+		// than written down.
+		cached = java.util.Collections.unmodifiableMap(load(schematicsDir));
+		cachedAt = stamp;
+		cachedFrom = schematicsDir;
+		return cached;
+	}
+
+	/** Drop the cache, for a test or after a write. */
+	static void forget() {
+		cached = null;
+		cachedAt = Long.MIN_VALUE;
+		cachedFrom = null;
+	}
+
+	/**
+	 * The index with the records this world DISPROVES taken out.
+	 *
+	 * <p>The index only ever grew: it is written when you OPEN a container, and you cannot open one
+	 * that has been broken. Measured against a capture it was **179 dead records out of 339**, and
+	 * that was harmless while `/cscan find` was advice and stopped being harmless the moment `fetch`
+	 * and `follow` started NAVIGATING to those coordinates.
+	 *
+	 * <p><b>Unloaded is not absent.</b> A chunk you cannot see is not evidence the chest went, so it
+	 * stays. This is a filter on the way to answering a question, not a deletion — `/cscan prune` is
+	 * where throwing the record away is decided deliberately.
+	 */
+	/**
+	 * Every item name the index has stock of somewhere, loose or inside a shulker box.
+	 *
+	 * <p>The question a shopping list has to ask before it commits its six slots: is there
+	 * anywhere at all to GET this. See Plan.loadPlan - six materials nobody has is a trip that
+	 * cannot be made, and the loop reads that as a dead end rather than as a bad list.
+	 */
+	static java.util.Set<String> stocked(Map<String, Container> index) {
+		java.util.Set<String> out = new java.util.HashSet<>();
+		for (Container c : index.values()) {
+			// ---- BARE, BECAUSE THE INDEX IS NAMESPACED AND A DESIGN CELL IS NOT.
+			//
+			// The index stores what the container screen gave it - `minecraft:stone_bricks` - and
+			// every caller here asks about `stone_bricks`. `findExact` has always normalised both
+			// sides; the first version of THIS did not, so the set it returned matched nothing at
+			// all, the shopping list's obtainable pass admitted nothing, and the list came out
+			// bit-for-bit the broken one it was written to replace. A no-op that looks like a fix
+			// is worse than no fix: it reads as evidence the theory was wrong.
+			for (String k : c.items.keySet()) out.add(bare(k));
+			for (String k : c.inBoxes.keySet()) out.add(bare(k));
+		}
+		return out;
+	}
+
+	static Map<String, Container> live(Map<String, Container> all, Level level) {
+		if (level == null) return all;
+		Map<String, Container> out = new LinkedHashMap<>();
+		for (var e : all.entrySet()) {
+			if (stillThere(level, e.getValue())) out.put(e.getKey(), e.getValue());
+		}
+		return out;
+	}
+
+    /** Restocking belongs to the schematic's island, even while travelling from another one. */
+    static Map<String, Container> forDesign(Path dir, String name, BlockPos player, Level level) throws IOException {
+        BlockPos origin;
+        if (Files.exists(ActiveBuild.inputs(dir, name).resolve(name + ".scan.json"))) origin = Designs.load(dir, name).origin();
+        else {
+            List<Work.Cell> cells = Work.load(dir, name);
+            if (cells.isEmpty()) return Map.of();
+            origin = cells.getFirst().pos();
+        }
+        // ---- SCOPE BY WHERE THE WORK IS, NOT BY THE PADDING CORNER.
+        //
+        // The origin of a litematic is the corner of its box, and for a composite spanning several
+        // plots that corner is on NONE of them. `Park Complete` origins at (97500, 80300); the three
+        // park islands start at 97551 / 80351, so Islands.at returned null, the "register the island
+        // rather than guess" branch fired, and ALL 262 indexed containers were dropped in silence.
+        // Reported as: nothing indexed to fetch, having opened tons of chests.
+        //
+        // The rule is right and the evidence was wrong. Which storage is yours is decided by where
+        // the design STANDS, and a design stands wherever its cells are.
+        return live(scoped(loadCached(dir), dir, sites(dir, name, origin),
+            level.dimension().identifier().toString()), level);
+    }
+
+    /**
+     * The islands a design actually occupies, cached per design file.
+     *
+     * <p>Walking half a million cells is a millisecond once and far too much every two seconds, so
+     * it is keyed on the work list's own modification time - the one thing that changes when the
+     * design does.
+     */
+    private static final Map<String, long[]> siteStamp = new LinkedHashMap<>();
+    private static final Map<String, List<BlockPos>> siteCache = new LinkedHashMap<>();
+
+    static synchronized List<BlockPos> sites(Path dir, String name, BlockPos origin) {
+        long stamp;
+        try { stamp = Files.getLastModifiedTime(Work.file(dir, name)).toMillis(); }
+        catch (Exception ignored) { stamp = -1; }
+        long[] seen = siteStamp.get(name);
+        if (seen != null && seen[0] == stamp && siteCache.containsKey(name)) return siteCache.get(name);
+        List<BlockPos> out = new ArrayList<>();
+        out.add(origin);                                  // always, so nothing is worse off
+        try {
+            // One point per island-sized cell of the design, which is all `scoped` needs to ask
+            // "does this design touch that plot".
+            java.util.Set<Long> grid = new java.util.HashSet<>();
+            for (Work.Cell c : Work.load(dir, name)) {
+                long k = ((long) Math.floorDiv(c.pos().getX(), 64) << 32)
+                    ^ (Math.floorDiv(c.pos().getZ(), 64) & 0xFFFFFFFFL);
+                if (grid.add(k)) out.add(c.pos());
+            }
+        } catch (Exception ignored) { }
+        siteStamp.put(name, new long[] {stamp});
+        siteCache.put(name, out);
+        return out;
+    }
+
+    static Map<String, Container> scoped(Map<String, Container> all, Path dir, BlockPos origin,
+                                         String dimension) {
+        return scoped(all, dir, List.of(origin), dimension);
+    }
+
+    /** @param where every place the design stands. Storage on ANY of their islands is on site. */
+    static Map<String, Container> scoped(Map<String, Container> all, Path dir, List<BlockPos> where,
+                                         String dimension) {
+        BlockPos origin = where.isEmpty() ? BlockPos.ZERO : where.get(0);
+        Map<String, Container> out = new LinkedHashMap<>();
+        // Every island this design touches, not just the one its box corner happens to land in.
+        java.util.LinkedHashSet<Islands.Island> islands = new java.util.LinkedHashSet<>();
+        for (BlockPos p : where) {
+            Islands.Island i = Islands.at(dir, p.getX(), p.getZ());
+            if (i != null) islands.add(i);
+        }
+        Islands.Island island = islands.isEmpty() ? null : islands.iterator().next();
+        for (var e : all.entrySet()) {
+            Container c = e.getValue();
+            // Legacy records have no dimension: they cannot safely drive automatic withdrawal.
+            if (!dimension.equals(c.dimension) || !buildStorage(c.block)) continue;
+            if (island != null) {
+                boolean onSite = false;
+                for (Islands.Island i : islands) {
+                    if (Islands.storageOnSite(dir, i, c.x, c.z)) { onSite = true; break; }
+                }
+                if (!onSite) continue;
+            } else if (!Files.exists(ActiveBuild.siteInputs(dir).resolve(Islands.FILE)) && Islands.all(dir).isEmpty() && Plot.known() && !Plot.outside(origin.getX(), origin.getZ())) {
+                if (Plot.outside(c.x, c.z)) continue;
+            } else continue; // register the island rather than guess which storage is yours
+            out.put(e.getKey(), c);
+        }
+        return out;
+    }
+
+	/** An item id without its namespace, lowercased. */
+	static String bare(String id) {
+		String s = id.toLowerCase();
+		int i = s.indexOf(':');
+		return i < 0 ? s : s.substring(i + 1);
+	}
+
+	/** How many records the loaded world disproves, without changing anything. */
+	static int stale(Map<String, Container> all, Level level) {
+		int n = 0;
+		for (Container c : all.values()) if (!stillThere(level, c)) n++;
+		return n;
 	}
 
 	/** Compass-ish direction from `from` to `to`, for "walk that way". */

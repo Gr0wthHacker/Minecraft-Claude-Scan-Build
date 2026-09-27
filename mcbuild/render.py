@@ -14,10 +14,13 @@ from .schem import Model
 VIEWS = ("face", "front", "side", "left", "top", "back")
 
 
-def _rgb(m: Model) -> np.ndarray:
+def _rgb(m: Model, face: str = "top") -> np.ndarray:
+    """The palette as seen from one face. An ELEVATION must ask for the side: a log's top is end
+    grain and its side is bark, so drawing a flank in end grain is the giraffe's whole coat -
+    `bone_block`, 46% of its cells - rendered wrong."""
     out = np.zeros((len(m.palette), 3), np.uint8)
     for i, n in enumerate(m.names):
-        out[i] = palette.color_of(n)
+        out[i] = palette.color_of(n, face)
     return out
 
 
@@ -25,7 +28,7 @@ def elevation(m: Model, view: str = "face", shade: bool = True) -> np.ndarray:
     """First solid block seen from a camera. face=+z, front=-z, side=+x,
     left=-x, top=+y, back = front. Returns HxWx3 uint8, row 0 = highest y."""
     ids, s = m.ids, m.solid()
-    rgb = _rgb(m)
+    rgb = _rgb(m, "top" if view == "top" else "side")
     sy, sz, sx = ids.shape
     if view in ("face",):
         order, shape, pick, depth = range(sz - 1, -1, -1), (sy, sx), (lambda k: (s[:, k, :], ids[:, k, :])), sz

@@ -1,0 +1,70 @@
+# PF WATER - CLAIM LAKE: the park's water, on the Claim Line reach.
+#
+# THE PARK HAS 171 WATER BLOCKS IN 273,356. No lake, no pond, no fountain, no stream - which is
+# why it reads as three towns rather than one destination. Jack: "realistically this includes
+# things like, we should probably have a scenic lake for example as a congregation point, and
+# things like this as normal large theme parks and parks in general do."
+#
+# THE SITE IS THE ONE PIECE OF THE PARK NOBODY OWNS. The Claim Line reach (U170-214) is the
+# connector between the Frontier and the Midway: 3,389 of its 3,663 open columns are bare lawn,
+# the Signal Heron already stands in it, and the only paving anywhere near is the spine at V6-18,
+# the two threshold handoffs at U170-172 / U212-214 and the back promenade at V123-127. This
+# design takes V24-V112 by U173-U211 and touches none of them - `park_water.put` REFUSES any cell
+# the world holds that is not lawn, so a street, a lamp mast or a heron leg is an error naming the
+# cell rather than a silent skip.
+#
+# THE BASIN IS A BOWL HUNG UNDER THE PLATE. The park is a ONE-BLOCK skin at Y202 with open void
+# under it, so every bed and wall cell here is placed by this design and every lawn cell inside
+# the outline is broken (see the sidecar's `dig`). That makes containment the whole engineering
+# problem: `_seal` walks every water cell and walls whatever is not already solid, and
+# `tests/test_park_water.py` re-derives it from the finished model with `mcbuild.fluids`.
+#
+# THE HERON IS THE REASON THIS IS THE SITE AND NOT SOMEWHERE ELSE. A wading bird beside water is
+# right; a wading bird standing in a field is a bird on a lawn. Its feet at (V45,U198) and
+# (V52,U198) are carried on a shoal, and a shallow creek is cut through the shoal between its
+# legs, so it stands in the water it wades in.
+#
+# WHY THE LAWN MAY BE BROKEN AND THE PAVING MAY NOT: a lake is made by removing ground, and moss
+# is the one thing in this reach that is not somebody's design. 2,141 cells of it come out; every
+# one is in the dig list, and `verify_replaceable` + `verify_dig_above` is what lets the audit see
+# the finished lake rather than a collision with the field it replaces.
+name: PF Water Claim Lake
+gen: park_water
+params:
+  kind: lake
+  # x = 97500 + V0, z = 80300 + U0, y = the DEEPEST bed course. The park's lawn is Y202, so the
+  # three courses of basin are Y201/200/199 and the anchor is Y199.
+  anchor: [97524, 199, 80473]
+  world: out/Park Complete.litematic
+  v0: 24
+  v1: 112
+  u0: 173
+  u1: 211
+  ground_y: 202
+  seed: 7
+roles: [landscape, path]
+design:
+  purpose: landmark
+  hierarchy: landmark
+  style: midway
+  narrative: >
+    A scenic lake on the reach between the Frontier and the Midway - an organic shore with a
+    shingle strand dithered into the park's own lawn, a shelf of shallows over a two-course body
+    and a deep core, a crowd-scale stone terrace on the spine side to stand and look from, a piled
+    boardwalk carrying the cross-reach walk over the water with a viewing bay in the middle of it,
+    lilies, weed and bank planting, and the Signal Heron standing in a creek cut through its own
+    shoal. The bed carries the light: ochre froglight set flush into it, solved to a fixpoint so
+    no water cell can freeze.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # The park's lawn, and the lawn's own scatter. Both are `Park Ways`; both are in this design's
+  # dig list; nothing else in the reach may be touched and the generator raises if it would be.
+  # `verify_dig_above` is what clears a moss carpet standing on a cell that becomes water - it is
+  # not a collision, it is a leftover, and nothing else in the pipeline would report it.
+  verify_replaceable: [moss_block, moss_carpet]
+  verify_dig_above: true
+origin_lock: false

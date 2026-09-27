@@ -1,0 +1,29 @@
+{
+  "origin": {
+    "x": -24192,
+    "y": 150,
+    "z": 30026
+  },
+  "size": {
+    "x": 17,
+    "y": 4,
+    "z": 16
+  },
+  "generated_by": "voidbridge",
+  "kind": "voidbridge",
+  "profile_view": "face",
+  "facing": [
+    1,
+    0
+  ],
+  "deck_y": 152,
+  "features_built": {
+    "deck": 31,
+    "bed": 38,
+    "rails": 0,
+    "dangles": 1,
+    "lantern": 1
+  },
+  "file": "Castle Bridge.litematic",
+  "name": "Castle Bridge"
+}

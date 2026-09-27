@@ -1,0 +1,29 @@
+{
+  "origin": {
+    "x": -24251,
+    "y": 20,
+    "z": 29949
+  },
+  "size": {
+    "x": 97,
+    "y": 183,
+    "z": 93
+  },
+  "generated_by": "enrich",
+  "kind": "enrich",
+  "profile_view": "side",
+  "facing": [
+    0,
+    1
+  ],
+  "features_built": {
+    "cornice": 248,
+    "plinth": 139,
+    "sill": 29,
+    "rail": 0,
+    "runs": 61,
+    "skipped_runs": 1556
+  },
+  "file": "Island Enrichment.litematic",
+  "name": "Island Enrichment"
+}

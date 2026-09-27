@@ -1,0 +1,102 @@
+# The sky-well court, made into a hall.
+#
+# Jack laid a deepslate frame on the Y195 course - 81 blocks in five runs (x-24234 x24, x-24222 x21,
+# z30006 x14, z30023 x13, z30029 x15) - and asked for apocalyptic beauty with glass panes, and a
+# water feature in the bay that sits one course down. This raises an order on that frame and floods
+# the lower bay.
+#
+# THE SITE, measured off the 10:58 capture. The court is a ONE-BLOCK SHELF hanging in the void: the
+# column at x-24229 has exactly one solid course between Y150 and the plate, and it is Y194. Rock
+# closes it east and west, both ENDS have fallen away into open sky, and the island's own underside
+# is the ceiling at Y201/202 - so the room is already a ruin, and the design only has to admit it.
+#
+#   run            outside open at Y196-200      treatment
+#   west  x-24234            0%                  solid pilasters
+#   east  x-24222            8%                  solid pilasters
+#   north end z30006        95%                  GLAZED
+#   south end z30029        96%                  GLAZED
+#   divider   z30023          -  (court both sides)  balustrade over the water
+#
+# Glass in front of rock is a window onto stone, so the generator probes what is behind each run
+# rather than being told. Only the two ends get panes - and they are the two places where there is
+# nothing behind them for hundreds of blocks.
+#
+# WHY PLAIN PANES. `glass_pane` is `ok` on this economy; plain `glass`, `tinted_glass` and every
+# stained pane are `expensive`. Store holds 1,060 glass (~2,800 panes) against 26-49 of each stained
+# pane, so the cheap material is also the only one there is enough of.
+#
+# THE POOL IS A TANK. The bay's floor is a one-block skin over nothing and the Y194 course runs on
+# east past the plinth, so water simply placed there drains into the void and leaks out sideways.
+# Floor at Y193, a wall ring at Y193 and Y194, water at Y194 - its top face is exactly the sunken
+# bay's own walking level, which is the "one block down" Jack described.
+#
+# AND IT WILL FREEZE IF IT IS NOT LIT. Snowy biome, 16 of the bay's 55 columns open to the sky, and
+# THIS COURT HAS FROZEN BEFORE - 29 ice blocks on the first build, which is why court.yaml carries
+# `freeze_guard`. Guard lights are plain `lantern` (light 15) set into the pool floor. `soul_lantern`
+# is exactly 10 and is one block of falloff from failing, so it is mood only.
+#
+# The four chests at x-24225..-24228 / z30008..30011 are Jack's build supply (stone 768, deepslate
+# bricks 256, wool). `container_clear` keeps the order 3 clear of them and they are not built over.
+name: Court Hall
+gen: courthall
+params:
+  under: out/island_now.litematic
+  box: [-24236, 30004, -24218, 30031]
+  plinth_y: 195
+  plinth_block: deepslate_bricks   # READ off the capture, never re-laid
+  bay: 3
+  pier: deepslate_bricks
+  glaze: glass_pane
+  cornice: deepslate_bricks
+  height: 5                 # Y196-Y200, clipped per column to the real stepping ceiling
+  min_height: 3
+  open_probe: 4
+  open_frac: 0.6
+  ruin: 0.34                # bays that lose their TOP glass course
+  ruin_hard: 0.13           # ... and bays left as an empty opening. The pier and the cornice never
+                            # go: what makes voxels read as architecture is regularity and openings,
+                            # not damage - the void tower's first jagged attempt was rejected on
+                            # sight as "a tossed grouping of vague blocks".
+  weather: 0.16             # cracked deepslate, hashed on the CELL not the course
+  balustrade: true
+  balustrade_block: deepslate_brick_wall
+  pool_box: [-24232, 30025, -24224, 30027]   # 9x3, inset one cell inside the sunken bay's frame
+  floor_box: [-24233, 30007, -24223, 30022]   # the north bay: 176 cells of blank stone brick, the
+  floor_y: 195                                # one surface in this room with no order on it at all
+  floor_band: deepslate_bricks                # bands DERIVED from the piers that were really built,
+  floor_light: lantern                        # so the floor cannot drift out of register with the
+  floor_light_every: 2                        # walls; one light set flush in every other band
+  kerb_box: [-24233, 30024, -24223, 30028]   # Jack's own addition after the hall went up: a slab
+  kerb_block: smooth_stone_slab              # lip inside the bay frame, so the deepslate reads as an
+                                             # edge you look over rather than a wall you walk into
+  pool_surface_y: 194
+  pool_floor_block: deepslate_bricks
+  guard_light: lantern
+  guard_every: 4
+  mood_light: soul_lantern
+  mood_every: 6
+  container_clear: 3
+  seed: 0
+finish:
+  cheapen: false            # the palette is the point: deepslate is Jack's own edging block and the
+                            # only real value contrast at cheap-or-ok tier
+  hollow: false
+  ground: false
+  drop_floaters: false      # the pool tank and the piers carry themselves; a drop pass would eat
+                            # the glazing, which hangs between piers by design
+  context_clear: [vine, glow_lichen]
+  verify_replaceable:       # the pool has to REPLACE the bay's one-block moss skin to become water,
+                            # and the wall ring replaces the same skin. That is the design doing its
+                            # job, not a collision with something that has to stay.
+    - moss_block
+    - moss_carpet
+    - mossy_cobblestone
+    - stone
+    - cobblestone
+    - stone_bricks
+    - cracked_stone_bricks
+    - mossy_stone_bricks
+    - smooth_stone
+    - azalea
+    - flowering_azalea
+  verify_against: out/island_now.litematic

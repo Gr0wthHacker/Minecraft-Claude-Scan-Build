@@ -1,0 +1,26 @@
+{
+  "origin": {
+    "x": -24200,
+    "y": 100,
+    "z": 29990
+  },
+  "size": {
+    "x": 106,
+    "y": 76,
+    "z": 42
+  },
+  "generated_by": "bat",
+  "kind": "bat",
+  "scale": 1.9,
+  "spread": 0.85,
+  "profile_view": "face",
+  "features_built": {
+    "wings": 2,
+    "fingers": 16,
+    "ears": 2,
+    "claws": 6,
+    "eyes": 2
+  },
+  "file": "BAT hd.litematic",
+  "name": "BAT hd"
+}

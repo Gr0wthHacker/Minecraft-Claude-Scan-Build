@@ -1,0 +1,39 @@
+{
+  "origin": {
+    "x": -24201,
+    "y": 41,
+    "z": 29968
+  },
+  "size": {
+    "x": 10,
+    "y": 24,
+    "z": 11
+  },
+  "generated_by": "campanile",
+  "kind": "campanile",
+  "profile_view": "face",
+  "facing": [
+    0,
+    1
+  ],
+  "base_y": 41,
+  "features_built": {
+    "plinth": 33,
+    "shaft": 350,
+    "door": 0,
+    "corbel": 56,
+    "belfry": 81,
+    "bell": 1,
+    "light": 1,
+    "parapet": 21,
+    "merlons": 10,
+    "tumble": 3,
+    "owl": {
+      "body": 14,
+      "eyes": 2,
+      "tufts": 2
+    }
+  },
+  "file": "Lowland Campanile.litematic",
+  "name": "Lowland Campanile"
+}

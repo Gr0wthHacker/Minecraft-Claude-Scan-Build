@@ -1,0 +1,176 @@
+{
+  "origin": {
+    "x": 97569,
+    "y": 202,
+    "z": 80645
+  },
+  "size": {
+    "x": 9,
+    "y": 9,
+    "z": 5
+  },
+  "generated_by": "park",
+  "kind": "arch",
+  "land": "hollow",
+  "facing": "south",
+  "contract": "an opening you walk through, with the land's name over it",
+  "unverified": [],
+  "width": 7,
+  "depth": 3,
+  "height": 6,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "landscape"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "landscape": "legal fluid/plant placement, stable terrain contacts, and walkable intended routes"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "hollow",
+      "narrative": "Hollow Arch serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 128,
+      "materials": 6,
+      "dominant_material_share": 0.3516,
+      "light_blocks": 2,
+      "massing": {
+        "width": 9,
+        "height": 9,
+        "depth": 5,
+        "fill_ratio": 0.316
+      },
+      "silhouette": {
+        "top": {
+          "area": 45,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 35,
+          "fill_ratio": 0.4321
+        },
+        "side": {
+          "area": 32,
+          "fill_ratio": 0.7111
+        }
+      },
+      "material_counts": {
+        "cobbled_deepslate": 45,
+        "blackstone": 36,
+        "deepslate_bricks": 23,
+        "black_wool": 21,
+        "soul_lantern": 2,
+        "dark_oak_wall_sign": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "853cd0a84d4ab3eaa99347b69d6df7fcae6a339e4f1a61d2a83aa41472c81063",
+    "generator_source_digest": "6ae0a771d0ec58869f44d0c0b698d8dce8edb12711f6ec3463b97785d17a0147",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "hollow",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97573,
+        204,
+        80651
+      ],
+      [
+        97573,
+        204,
+        80643
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 128,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks"
+  ],
+  "file": "Hollow Arch.litematic",
+  "name": "Hollow Arch"
+}

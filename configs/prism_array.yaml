@@ -1,0 +1,57 @@
+name: Prism Array
+gen: prismworks
+params:
+  kind: array
+world_contract: true
+roles: [path]
+anchors:
+  # The maze grid is 17x17 logical cells at world x = 4 + 2i, inside a 35x35 bounding box at
+  # [3..37]; the entry and exit are the only two breaks in its enclosing wall.
+  - name: entry
+    kind: entry
+    position: [2, 1, 4]
+    facing: east
+    width: 1
+  - name: exit
+    kind: exit
+    position: [38, 1, 36]
+    facing: east
+    width: 1
+  - name: observer_gallery
+    kind: deck
+    position: [1, 9, 21]
+    facing: east
+    width: 2
+  - name: service_access
+    kind: maintenance
+    position: [40, 1, 20]
+    facing: west
+    width: 1
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: natural
+  narrative: A free colour-and-signal route challenge with safe recoverable wrong branches.
+  quality:
+    min_blocks: 8000
+    min_materials: 6
+  enforce: true
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [choose, navigate, solve]
+  outcome: Reaching the marked finish produces an honest completion point.
+  reset: Service access restores any future route-state panels; physical route remains usable.
+  service_access: Rear perimeter maintenance path reaches every state panel.
+  bypass: Prism Concourse remains open; this maze is never a required route.
+# DECLARED EXPENSIVE FUNCTIONAL SPEND: six redstone lamps, one per choice point, on the rear
+# service panels. They are the reset-state indicator a later circuit drives; nothing here says
+# that circuit exists.
+expensive_functional:
+  redstone_lamp: reset-state indicator, one per choice point
+
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false

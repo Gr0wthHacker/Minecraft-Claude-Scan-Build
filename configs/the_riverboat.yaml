@@ -1,0 +1,15 @@
+name: The Riverboat
+gen: attractions
+params:
+  land: frontier
+  facing: east
+  at:
+  - 97581
+  - 203
+  - 80444
+  kind: riverboat
+  title: The Riverboat
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

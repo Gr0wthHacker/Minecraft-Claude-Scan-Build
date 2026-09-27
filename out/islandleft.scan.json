@@ -1,0 +1,79 @@
+{
+  "name": "islandleft",
+  "file": "islandleft.litematic",
+  "format": "litematic",
+  "created": "2026-08-31T18:56:25.302423800Z",
+  "player": "Enroniti",
+  "server": {
+    "name": "Unknown Server",
+    "ip": "skyblock.net"
+  },
+  "dimension": "minecraft:overworld",
+  "data_version": 4903,
+  "origin": {
+    "x": 97592,
+    "y": 198,
+    "z": 80395
+  },
+  "size": {
+    "x": 12,
+    "y": 14,
+    "z": 57
+  },
+  "player_pos": {
+    "x": 97600,
+    "y": 203,
+    "z": 80400
+  },
+  "chunk_radius": 8,
+  "chunk_aligned": false,
+  "air_margin": 2,
+  "total_volume": 9576,
+  "non_air_blocks": 189,
+  "palette_size": 9,
+  "tile_entities": 1,
+  "entities": 0,
+  "chunks_included": [
+    [
+      6099,
+      5024
+    ],
+    [
+      6099,
+      5025
+    ],
+    [
+      6099,
+      5026
+    ],
+    [
+      6099,
+      5027
+    ],
+    [
+      6099,
+      5028
+    ],
+    [
+      6100,
+      5024
+    ],
+    [
+      6100,
+      5025
+    ],
+    [
+      6100,
+      5026
+    ],
+    [
+      6100,
+      5027
+    ],
+    [
+      6100,
+      5028
+    ]
+  ],
+  "chunks_missing_in_bounds": []
+}

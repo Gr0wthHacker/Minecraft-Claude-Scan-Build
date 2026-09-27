@@ -1,0 +1,70 @@
+# PF SERVICE GALLERY - back of house, V157 / U550, 13 x 41 against the service lane at V154-156.
+#
+# THIRTEEN DEEP, NOT EIGHTEEN. park_final.world.json declares 18 and the service band is thirteen
+# courses (V157-169) with the rim edge at V170 and the protected rim reserve behind it - so the
+# declared footprint is not a squeeze, it is a rule break four courses into a band the ground layer
+# asserts by test as carrying nothing. PARK_GRID_PLAN and PARK_ATTRACTIONS_PLAN both recommend the
+# re-spec to 13 x 41; this build takes it, and the lot the task set is already the re-specced one.
+#
+# IT IS ALLOWED TO BE PLAIN, AND BEING PLAIN IS A DECISION. A monitor roof with barred clerestory
+# louvres, roller shutters onto the lane, one vent stack and a single string course tying it to the
+# rest of the land. No parapet, no signal masts, no ornament: this is the one building in
+# Prismworks whose job is to be looked past.
+#
+# THE MACHINE LAND, PROPERLY DESIGNED (2026-09-02). Jack: "we still need to properly design the
+# prism area" - he could not tell it WAS Prismworks. The cause was measurable: every material
+# in the land sat between luminance 38 and 73 and every one of them was grey, so a ladder of six
+# greys still read as one hue and the buildings read as dark blocks. Two things fixed it, and
+# neither is ornament:
+#
+#   THE PLANT METAL. `waxed_copper_block` is L124 and CHEAP here where plain `copper_block` is
+#   expensive - a 79-point step AND the only real hue this land can buy. It is the cornice band
+#   on every building and the collar on every setback of the Ascent, and it is never a wall.
+#
+#   THE SIGNAL AS A SEQUENCE. The land's brief is precision and sequence, and what it shipped
+#   was scattered cyan that reads as speckle past ten blocks. Every pier now carries a
+#   projecting ladder - stone, a signal cell every fourth course, two of high, a lit head - and
+#   the Ascent's four blade edges are ONE CONTINUOUS line of light with a glow every eight, so
+#   the stages can be counted from the podium. Parapets carry a lightning-rod instrument array,
+#   which is what a machine land has where a fairground has flags.
+name: PF Service Gallery
+gen: prismworks_builds
+params:
+  kind: gallery
+  at: [157, 550]
+  size: [13, 41]
+  height: 20
+  keep_clear: []
+  seed: 2
+roles: [building]
+anchors:
+  - {name: service_access, kind: maintenance, position: [0, 1, 20], facing: west, width: 3}
+  - {name: staff_entry, kind: door, position: [1, 1, 20], facing: west, width: 3}
+  - {name: lane_front, kind: visual_front, position: [0, 1, 20], facing: west, width: 41}
+design:
+  purpose: service
+  hierarchy: filler
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A plain plant shed on the service lane: a bay-rhythm wall with high slit windows, roller
+    shutters, a monitor roof whose raised ridge carries barred louvres on both flanks, and one
+    vent stack standing a course clear of the ridge.
+fun_contract:
+  enforce: true
+  class: scenic_support
+  player_verbs: [pass it on the service lane]
+  outcome: >
+    The land's back-of-house has a building rather than a gap, so the service lane reads as the
+    back of somewhere instead of as an unfinished edge.
+  spatial_job: >
+    Plant and store for Prismworks column C, on the concealed lane at V154-156, thirteen deep so
+    it stays clear of the rim edge at V170 and out of the protected rim reserve behind it.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

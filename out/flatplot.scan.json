@@ -1,0 +1,15 @@
+{
+  "name": "flatplot",
+  "origin": {
+    "x": -30049,
+    "y": 100,
+    "z": 29951
+  },
+  "size": {
+    "x": 99,
+    "y": 3,
+    "z": 99
+  },
+  "non_air_blocks": 9802,
+  "file": "flatplot.litematic"
+}

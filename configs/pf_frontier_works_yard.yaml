@@ -1,0 +1,34 @@
+# PF WORKS YARD - back of house, and it looks it.
+#
+# 13 x 36 at V157 U125, off the service lane at V154-156. THIRTEEN DEEP IS WHAT THE GRID HAS:
+# the service band is exactly 18 courses (V152-169) and the lane takes three, so a concealed lane
+# inside the band and an 18-deep yard behind it cannot both exist. It gained five of width
+# instead, which the band has - PARK_ATTRACTIONS_PLAN section 5.4(b).
+#
+# PARK_FULL_BUILD_SPEC F9: "hidden from normal guest view except one controlled glimpse of
+# track/reset work." So the open front of the shed faces the LANE and its back is a blank yard
+# wall against the rim; what a guest gets over the roofline is a chimney and a gantry, and
+# nothing else.
+name: PF Works Yard
+gen: frontier_builds
+params:
+  kind: works
+  lot: [13, 36]
+  at: [157, 125]
+  seed: 83
+roles: [building]
+design:
+  purpose: service
+  hierarchy: filler
+  style: frontier
+  narrative: >
+    Back of house for the Mine Coaster: an open-fronted works shed and a store off the service
+    lane, a lifting gantry on the yard wall, and a stone chimney rising out of the store gable.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

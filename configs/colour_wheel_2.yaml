@@ -1,0 +1,18 @@
+name: Colour Wheel 2
+gen: casino
+params:
+  pit: 2
+  at:
+  - 97626
+  - 203
+  - 80588
+  kind: wheel
+  title: Colour Wheel 2
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false
+expensive_allowance: 3
+expensive_reason: 3x redstone_lamp - a light cannot be substituted by colour (the
+  nearest cheap match is a lamp that does not light), so this cost is declared rather
+  than hidden

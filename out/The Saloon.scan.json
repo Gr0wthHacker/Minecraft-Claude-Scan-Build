@@ -1,0 +1,258 @@
+{
+  "origin": {
+    "x": 97556,
+    "y": 202,
+    "z": 80401
+  },
+  "size": {
+    "x": 17,
+    "y": 18,
+    "z": 19
+  },
+  "generated_by": "frontiertown",
+  "kind": "saloon",
+  "concealed": 18,
+  "visible_redstone": 0,
+  "land": "frontier",
+  "facing": "east",
+  "contract": "two storeys under a false front, a covered porch on posts with a railed balcony over it, a stair inside that actually reaches the first floor - and a room you can USE at the top and bottom of it: a served bar with stools, tables and chairs, and beds upstairs, which is what the sign over the door has been promising all along",
+  "unverified": [],
+  "width": 17,
+  "depth": 12,
+  "height": 17,
+  "front": "bracketed",
+  "signs": 3,
+  "tables": 3,
+  "beds": 3,
+  "stools": 5,
+  "table_button": [
+    97565,
+    204,
+    80417
+  ],
+  "table_pot": [
+    97565,
+    204,
+    80408
+  ],
+  "table_bell": [
+    97566,
+    203,
+    80409
+  ],
+  "table_gate": [
+    97565,
+    203,
+    80411
+  ],
+  "table_cells": 17,
+  "table_chairs": 2,
+  "player_hopper": [
+    97565,
+    203,
+    80415
+  ],
+  "house_hopper": [
+    97566,
+    203,
+    80414
+  ],
+  "table_stock": {
+    "the deal": [
+      "a 64-stackable item (e.g. cobblestone)",
+      "a 16-stackable item (e.g. an egg)",
+      "a non-stackable item (e.g. a sword)"
+    ],
+    "the house": [
+      "a 64-stackable item (e.g. cobblestone)",
+      "a 16-stackable item (e.g. an egg)",
+      "a non-stackable item (e.g. a sword)"
+    ]
+  },
+  "table_contract": "one button turns two cards out of the same three-outcome mix; the pot pays and the bell rings when yours is at least the house's - 6 in 9, ties to the player",
+  "walk_cells": 451,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "access": [
+        "spruce_door",
+        "spruce_fence_gate"
+      ],
+      "container": [
+        "barrel",
+        "dropper",
+        "hopper"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "dropper",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "access": "mcbuild.walk + generator route contracts",
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "shop",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Saloon serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 1697,
+      "materials": 29,
+      "dominant_material_share": 0.6034,
+      "light_blocks": 6,
+      "massing": {
+        "width": 17,
+        "height": 18,
+        "depth": 19,
+        "fill_ratio": 0.2919
+      },
+      "silhouette": {
+        "top": {
+          "area": 323,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 189,
+          "fill_ratio": 0.6176
+        },
+        "side": {
+          "area": 301,
+          "fill_ratio": 0.8801
+        }
+      },
+      "material_counts": {
+        "spruce_planks": 1024,
+        "cobblestone": 134,
+        "stripped_spruce_log": 117,
+        "spruce_stairs": 106,
+        "stone_bricks": 97,
+        "spruce_log": 64,
+        "glass_pane": 56,
+        "spruce_fence": 26,
+        "cracked_stone_bricks": 19,
+        "redstone_wire": 8,
+        "lantern": 6,
+        "red_bed": 6
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "f3bff71cc390d4fc53db84c1203a7d2c1de1203096de021ec81d85794254074d",
+    "generator_source_digest": "73f071a42a113b02f1bd2b3cf5caf31c5998401474b891a676aea41708a2a95c",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "access",
+        "container",
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "shop",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97574,
+        204,
+        80410
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1697,
+    "mechanic_families": [
+      "access",
+      "container",
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell",
+    "unsupported on skyblock-1.19: brewing_stand",
+    "unsupported on skyblock-1.19: dropper",
+    "unsupported on skyblock-1.19: red_bed",
+    "unsupported on skyblock-1.19: spruce_door",
+    "unsupported on skyblock-1.19: spruce_fence_gate"
+  ],
+  "file": "The Saloon.litematic",
+  "name": "The Saloon"
+}

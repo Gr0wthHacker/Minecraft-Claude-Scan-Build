@@ -1,0 +1,41 @@
+# PF PRIZE POINT - where a game's result is redeemed, and nothing else.
+#
+# THE LOT IS 20 x 33 AT V80, U346, fronting WEST onto midway walk 2 (V76-78), whose spur `Park
+# Ways` draws to V79. The building's threshold carries that paving the last three courses.
+#
+# THE ENVELOPE IS V83-97 x U353-371 - a third of the lot, deliberately. "Prize Point is
+# downstream, small, and open to public circulation. It is a collection/result place, not retail."
+# So: one counter under an awning, one wall of shelves behind it, a hipped cap, a service door.
+#
+# THE ENVELOPE STARTS AT V83 rather than V80 because the ground layer's lamp arms on walk 2 reach
+# V80-81 at U353 and U375, three to five courses up. The threshold at V80-82 is at Y0, three
+# courses under all of them, and `blocked` names the rest.
+name: PF Prize Point
+gen: midwaybuild
+params:
+  kind: prize_point
+  lot: [80, 346, 99, 378]
+  at: [97580, 203, 80646]
+  height: 20
+  blocked:
+    - [80, 3, 353, 81, 6, 353]
+    - [80, 3, 375, 81, 6, 375]
+  seed: 0
+roles: [building]
+design:
+  purpose: shop
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    An open-fronted kiosk on midway walk 2, downstream of the Skill Arcade: a collection counter
+    under a red-and-white awning, a shelf wall of prizes behind it, a hipped cap, a side window
+    and a rear service door. Small on purpose - it is a result place, not a shop.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  ground_block: moss_block
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

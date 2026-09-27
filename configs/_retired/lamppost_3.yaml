@@ -1,0 +1,15 @@
+name: Lamppost 3
+gen: streetfurniture
+params:
+  land: midway
+  facing: east
+  at:
+  - 97591
+  - 203
+  - 80633
+  kind: lamppost
+  title: Lamppost 3
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

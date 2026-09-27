@@ -4,10 +4,22 @@
 # into nothing. This is what it arrives at. Build the two together or neither makes sense.
 #
 # Site checked against the capture: the 25x17x25 box at Y138-154 was 0/10625 occupied.
+# CARVED FOR THE WELL (2026-08-22): the Lowland Stair now screws straight down the taproot's
+# axis through this islet's floor - Jack's alignment call - and 287 cells of this design's
+# lens fill were removed where the stair's treads and headroom pass (the carve is re-derived
+# from the stair's work.json envelope; regenerating this design re-fills the well and must be
+# followed by re-carving). The shop's barrels, signs and their floor are untouched - the
+# stair's dig rules cannot take them. One more cell went the same way (2026-08-22, the
+# careful audit): the underside fill claimed (-24200,141,30018), the exact cell the
+# Reaching Root hangs from, and deferring it left the root's 180 cells with nothing to
+# place against. The root wins its anchor.
 name: Shop Islet
 gen: islet
 params:
-  under: out/island_deep.litematic   # island_now is cut at Y150; below-island work needs deeper
+  # BOTH, and in this order: the generator must ask the same world the audit verifies against.
+  # island_deep reaches under Y150 where island_now is cut; island_now is NEWER above it, and
+  # asking only the deep one planted short_grass on cobblestone Jack had placed since.
+  under: [out/island_deep.litematic, out/island_now.litematic]
   center: [-24200, 30018]
   top_y: 150                # taproot foot is Y152, so the shelf sits 2 below it
   shop_offset: [3, 3]       # swept against the stair: [0,3] put an awning post inside a tread
@@ -41,4 +53,12 @@ finish:
   drop_floaters: false
   context_clear: [vine]     # any cut truncates vine strands at its top edge, and the orphans are
                             # the box's fault, not this design's
+  # THE CARVE IS PART OF THE PIPELINE NOW, not a step to remember. The note above said
+  # "regenerating this design re-fills the well and must be followed by re-carving" — and that is
+  # exactly what happened the next time it was regenerated. A step that has to be remembered is a
+  # step that gets lost.
+  carve_for:
+    - design: out/Lowland Stair.litematic
+      over: slab
+      headroom: 4
   verify_against: [out/island_deep.litematic, out/island_now.litematic]

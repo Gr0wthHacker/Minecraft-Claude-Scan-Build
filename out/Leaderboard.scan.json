@@ -1,0 +1,85 @@
+{
+  "origin": {
+    "x": 97613,
+    "y": 202,
+    "z": 80586
+  },
+  "size": {
+    "x": 6,
+    "y": 7,
+    "z": 13
+  },
+  "generated_by": "spectacle",
+  "kind": "leaderboard",
+  "footprint": [
+    13,
+    6
+  ],
+  "land": "midway",
+  "facing": "east",
+  "when": "9pm nightly",
+  "contract": "5 lecterns, each with 3 blocks of room in front and a named sign behind, under light",
+  "unverified": [
+    "item frames, paintings and armour stands are ENTITIES, not blocks: blocks.exists('item_frame') is False and nothing here can place one"
+  ],
+  "budget": {},
+  "width": 11,
+  "depth": 4,
+  "height": 6,
+  "boards": 5,
+  "lit": 2,
+  "signs": 6,
+  "service": [
+    {
+      "pos": [
+        97615,
+        203,
+        80596
+      ],
+      "facing": "east",
+      "use": "lectern"
+    },
+    {
+      "pos": [
+        97615,
+        203,
+        80594
+      ],
+      "facing": "east",
+      "use": "lectern"
+    },
+    {
+      "pos": [
+        97615,
+        203,
+        80592
+      ],
+      "facing": "east",
+      "use": "lectern"
+    },
+    {
+      "pos": [
+        97615,
+        203,
+        80590
+      ],
+      "facing": "east",
+      "use": "lectern"
+    },
+    {
+      "pos": [
+        97615,
+        203,
+        80588
+      ],
+      "facing": "east",
+      "use": "lectern"
+    }
+  ],
+  "work_room": 3,
+  "stock": {
+    "each lectern": "one book and quill, written up with the record"
+  },
+  "file": "Leaderboard.litematic",
+  "name": "Leaderboard"
+}

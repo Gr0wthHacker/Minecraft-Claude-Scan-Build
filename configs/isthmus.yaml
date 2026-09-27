@@ -1,0 +1,38 @@
+# THE ISTHMUS - the land between the theme park's three islands, filling the two void gaps a
+# viaduct (`configs/park_line.yaml`) already crosses but nothing has ever stood ON.
+#
+# SITING, MEASURED OFF THE THREE SHIPPED ZONES (see mcbuild/gen/isthmus.py's own module
+# docstring for the full account):
+#
+#   * every zone's floor sits flush at Y202, edge to edge, so there is no wall to build through
+#     - only 101 columns of void between each pair of plots (Z 80450..80550, Z 80650..80750).
+#   * every zone's own north-south avenue lands its kerb lamps at X 97592 and X 97598 on all
+#     four boundary rows of all three zones - the same road, centred on X 97595, running the
+#     zone's own full Z span. The isthmus's spine is laid there at the same half-width (3) so
+#     it is the same road continuing rather than a second one that almost lines up.
+#   * X >= 97640 is `transit.py`'s own corridor for the skyway's piers and arches. This design
+#     clamps its own shape to stop at X 97639 and never claims a column past it.
+#
+# THE SHAPE IS NARROW ON PURPOSE. A flat plate across both gaps at three courses deep would be
+# roughly 60,000 blocks - more than the entire built park. This flares to meet each plot and
+# pinches to a neck at the void's own midpoint, and every column is seated on its own lowest
+# neighbour rather than given a fixed deep fill (`_seat` in isthmus.py), so the built total is
+# a fifth of that flat estimate.
+name: Isthmus
+gen: isthmus
+params:
+  kind: isthmus
+  avoid:
+    - out/Park_Left Complete.litematic
+    - out/Park_Centre Complete.litematic
+    - out/Park_Right Complete.litematic
+    - out/Park Line.litematic
+origin_lock: false
+
+finish:
+  cheapen: false          # every block here is chosen by habit (rock, moss, the land's own
+                           # palette) rather than by nearest-colour, exactly as `falls` and
+                           # `thicket` already keep their own deliberate picks
+  hollow: false
+  ground: false
+  drop_floaters: false

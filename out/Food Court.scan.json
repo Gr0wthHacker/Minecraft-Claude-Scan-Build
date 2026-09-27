@@ -1,0 +1,316 @@
+{
+  "origin": {
+    "x": 97563,
+    "y": 202,
+    "z": 80606
+  },
+  "size": {
+    "x": 15,
+    "y": 6,
+    "z": 19
+  },
+  "generated_by": "spectacle",
+  "kind": "foodcourt",
+  "footprint": [
+    19,
+    15
+  ],
+  "land": "midway",
+  "facing": "east",
+  "when": "9pm nightly",
+  "contract": "a served counter with 3 blocks of staff room behind it, 3 tables with 12 seats under cover, a bin at each end, and a lantern over every table",
+  "unverified": [],
+  "budget": {},
+  "width": 17,
+  "depth": 13,
+  "height": 5,
+  "stalls": 4,
+  "tables": 3,
+  "seats": 12,
+  "seat_cells": [
+    [
+      97574,
+      203,
+      80622
+    ],
+    [
+      97574,
+      203,
+      80620
+    ],
+    [
+      97575,
+      203,
+      80621
+    ],
+    [
+      97573,
+      203,
+      80621
+    ],
+    [
+      97574,
+      203,
+      80618
+    ],
+    [
+      97574,
+      203,
+      80616
+    ],
+    [
+      97575,
+      203,
+      80617
+    ],
+    [
+      97573,
+      203,
+      80617
+    ],
+    [
+      97574,
+      203,
+      80614
+    ],
+    [
+      97574,
+      203,
+      80612
+    ],
+    [
+      97575,
+      203,
+      80613
+    ],
+    [
+      97573,
+      203,
+      80613
+    ]
+  ],
+  "hearth": false,
+  "signs": 5,
+  "service": [
+    {
+      "pos": [
+        97565,
+        203,
+        80621
+      ],
+      "facing": "east",
+      "use": "barrel"
+    },
+    {
+      "pos": [
+        97565,
+        203,
+        80617
+      ],
+      "facing": "east",
+      "use": "smoker"
+    },
+    {
+      "pos": [
+        97565,
+        203,
+        80613
+      ],
+      "facing": "east",
+      "use": "barrel"
+    },
+    {
+      "pos": [
+        97565,
+        203,
+        80609
+      ],
+      "facing": "east",
+      "use": "smoker"
+    },
+    {
+      "pos": [
+        97576,
+        203,
+        80623
+      ],
+      "facing": null,
+      "use": "composter"
+    },
+    {
+      "pos": [
+        97576,
+        203,
+        80607
+      ],
+      "facing": null,
+      "use": "composter"
+    }
+  ],
+  "work_room": 3,
+  "stock": {
+    "barrels": "stock them with whatever the park sells",
+    "smokers": "coal or charcoal for fuel"
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "sculpture"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "sculpture": "connected, supported silhouette with deliberate material hierarchy"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "shop",
+      "hierarchy": "supporting",
+      "style": "midway",
+      "narrative": "Food Court serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 707,
+      "materials": 12,
+      "dominant_material_share": 0.4031,
+      "light_blocks": 3,
+      "massing": {
+        "width": 15,
+        "height": 6,
+        "depth": 19,
+        "fill_ratio": 0.4135
+      },
+      "silhouette": {
+        "top": {
+          "area": 285,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 66,
+          "fill_ratio": 0.7333
+        },
+        "side": {
+          "area": 104,
+          "fill_ratio": 0.9123
+        }
+      },
+      "material_counts": {
+        "stone_bricks": 285,
+        "white_wool": 191,
+        "red_wool": 111,
+        "blackstone": 42,
+        "stone_brick_stairs": 29,
+        "oak_log": 19,
+        "stone_brick_slab": 16,
+        "oak_wall_sign": 5,
+        "lantern": 3,
+        "barrel": 2,
+        "composter": 2,
+        "smoker": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "654c25d8d963d1f22e7a724fa5ac3faddc4fb8649cfda0315d2e300e3481ff6e",
+    "generator_source_digest": "40d540514d223304885b929bb573e25179bfd6f730bc9c6fd3c7716bec77b0b5",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "shop",
+    "hierarchy": "supporting",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97579,
+        204,
+        80615
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 707,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: smoker"
+  ],
+  "file": "Food Court.litematic",
+  "name": "Food Court"
+}

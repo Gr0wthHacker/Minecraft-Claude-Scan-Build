@@ -1,0 +1,62 @@
+# PF CLAIM LAKE RANGE - the reach's own game, off the lake's east shore.
+#
+# Replaces `PF Vantage Midway Belvedere`. Jack, standing on the tower: "there is a large
+# building/tower right next to the air balloon design... its squished between the balloon and
+# the railway", then, on what should go there instead: "we dont need more viewing platforms...
+# its better for us to put something interesting there/engaging."
+#
+# THE SITE IS THE SAME EXIT/OBSERVATION LOT the tower stood in, moved off the Circus and off the
+# rail. Measured against the shipped `Park Complete`: the lot band is V130-153 (the park's own
+# depth programme, `configs/park_ways.yaml`), and the tower took its worst corner - V139-153,
+# hard against the Circus ring at V138 and eighteen columns short of the railway at V172. This
+# design's footprint measures V135-149 / U180-205: 22 clear of the Claim Lake's own east edge
+# (V113), 9 clear of the Circus ring (V138), and well short of both the service lane (V154) and
+# the railway (V172). Confirmed empty lawn by rendering the actual `Park Complete.litematic`
+# before this was written - see the session's own top-down crop.
+#
+# WHY A GAME AND NOT ANOTHER VANTAGE. `gen/arcade.py`'s own rule: "every kind here turns a REAL
+# PLAYER ACTION into a redstone signal" - a target block is the one genuinely analog input this
+# project has, so `kind: range` gives a visitor something to DO (aim, shoot, read a score) rather
+# than something to climb and look from, which is what was just removed. `PF Water Claim Lake`
+# already gives this reach its view (a terrace and a boardwalk over the water); this gives it a
+# reason to stop.
+#
+# FACING NORTH ON PURPOSE, AND NOT WEST. `range`'s own machine pit runs 26 deep behind its front
+# (visible booth 12, `_pit_floor` for the concealed award run another 12+2) - wider than the
+# V130-153 exit band is deep, so facing west let the pit's own floor spill six columns into the
+# V154-156 service lane, over its checkered paving. Turned to face north the 26-deep axis runs
+# along U instead, which this stretch of the reach has 38 of. The front then greets a visitor
+# walking south out of the Frontier reach toward Midway, which is the way most feet cross it.
+name: PF Claim Lake Range
+gen: arcade
+params:
+  land: midway
+  facing: north
+  at: [97636, 203, 80480]
+  kind: range
+  title: Claim Lake Range
+  score: 6
+  under: out/Park Complete.litematic
+finish:
+  verify_against: out/Park Complete.litematic
+park_contract:
+  purpose: ride
+  hierarchy: supporting
+  land: midway
+  requires_path: true
+  access_candidates:
+    - [97642, 204, 80479]
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    A lakeside archery range in the reach between Frontier and Midway - three target discs at
+    three distances, each scoring on its own column of lamps, the far one paying on a full-score
+    hit with a bell that carries back to the shore. Sited on the exit/observation lot's own open
+    lawn, clear of the Circus and the railway both.
+origin_lock: false
+expensive_allowance: 18
+expensive_reason: 18x redstone_lamp (score 6 x 3 lanes) - a light cannot be substituted by colour
+  (the nearest cheap match is a lamp that does not light), so this cost is declared rather than
+  hidden

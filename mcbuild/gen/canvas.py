@@ -1,6 +1,8 @@
 """Drawing canvas for parametric generators + deterministic hashing."""
 from __future__ import annotations
 
+import json
+
 import numpy as np
 
 from ..palette import Registry
@@ -22,6 +24,11 @@ class Canvas:
         self.sx, self.sy, self.sz = sx, sy, sz
         self.ids = np.zeros((sy, sz, sx), np.int32)
         self.reg = Registry(donors)
+        # TILE ENTITIES, which every layer below this could already carry and nothing above it
+        # could produce. The writer emits them, the pipeline shifts them when a design is padded -
+        # and a Canvas had no way to make one, so this project has never placed a sign in a year of
+        # building. A room with no sign is a room nobody can be told the rules in.
+        self.tiles: dict = {}
 
     # ---- states -----------------------------------------------------------
     def state(self, name: str, **props) -> int:
@@ -128,5 +135,54 @@ class Canvas:
         return True
 
     # ---- export -----------------------------------------------------------
+    def sign_text(self, x, y, z, front=(), back=(), colour="black", glowing=False) -> None:
+        """Record the TEXT of a sign already placed at this cell.
+
+        The BLOCK and its TEXT are separate things - `put` places an oak_wall_sign, this says what
+        it reads - because the block is a palette entry and the text is a tile entity, and they
+        live in different halves of the file.
+
+        26.x nests the lines under `front_text`/`back_text` with a `messages` list of JSON strings,
+        four of them ALWAYS: a sign with two lines still stores four, and a shorter list is a sign
+        the game refuses to load. That is why the lines are padded here rather than at the caller.
+        """
+        def side(lines):
+            out = [json.dumps({"text": str(t)}) for t in list(lines)[:4]]
+            out += ['{"text":""}'] * (4 - len(out))
+            return out
+        self.tiles[(int(x), int(y), int(z))] = {
+            "front": side(front), "back": side(back),
+            "colour": colour, "glowing": bool(glowing)}
+
+    def _tile_tags(self, ox=0, oy=0, oz=0) -> list:
+        from ..nbt import Tag, TAG_COMPOUND, TAG_INT, TAG_STRING, TAG_LIST, TAG_BYTE
+        out = []
+        for (x, y, z), t in sorted(self.tiles.items()):
+            def txt(key):
+                return Tag(TAG_COMPOUND, {
+                    "messages": Tag(TAG_LIST, [Tag(TAG_STRING, m) for m in t[key]],
+                                    subtype=TAG_STRING),
+                    "color": Tag(TAG_STRING, t["colour"]),
+                    "has_glowing_text": Tag(TAG_BYTE, 1 if t["glowing"] else 0),
+                })
+            out.append(Tag(TAG_COMPOUND, {
+                "id": Tag(TAG_STRING, "minecraft:sign"),
+                "x": Tag(TAG_INT, int(x) + ox),
+                "y": Tag(TAG_INT, int(y) + oy),
+                "z": Tag(TAG_INT, int(z) + oz),
+                "is_waxed": Tag(TAG_BYTE, 0),
+                "front_text": txt("front"),
+                "back_text": txt("back"),
+            }))
+            if getattr(self, "legacy_signs", False):
+                # Java 1.19 reads Text1..4, Color and GlowingText. Keep the
+                # modern fields too for previews in a newer client.
+                out[-1].value.update({f"Text{i+1}": Tag(TAG_STRING, message)
+                                      for i, message in enumerate(t["front"])})
+                out[-1].value["Color"] = Tag(TAG_STRING, t["colour"])
+                out[-1].value["GlowingText"] = Tag(TAG_BYTE, int(t["glowing"]))
+        return out
+
     def to_model(self) -> Model:
-        return Model(self.ids.copy(), list(self.reg.palette))
+        return Model(self.ids.copy(), list(self.reg.palette),
+                     tile_entities=self._tile_tags())

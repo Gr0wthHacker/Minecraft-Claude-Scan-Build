@@ -1,0 +1,191 @@
+{
+  "origin": {
+    "x": -24238,
+    "y": 63,
+    "z": 29968
+  },
+  "size": {
+    "x": 28,
+    "y": 37,
+    "z": 53
+  },
+  "generated_by": "corgi",
+  "kind": "corgi",
+  "facing": "north",
+  "height": 32.0,
+  "profile_axis": "v",
+  "frame_origin": [
+    14,
+    25
+  ],
+  "refused": 1,
+  "clipped": 0,
+  "parts": {
+    "body": 2579,
+    "head": 413,
+    "muzzle": 132,
+    "legs": 214,
+    "hind": 430,
+    "relax": {
+      "filled": 848,
+      "shaved": 16,
+      "spike_rate": [
+        4.88,
+        1.25
+      ],
+      "notches": [
+        0,
+        8
+      ],
+      "jerk_rel": [
+        10.8,
+        8.2
+      ]
+    },
+    "stump": 45,
+    "ears": 236,
+    "toes": 20,
+    "coat": {
+      "coat": 2640,
+      "sable": 259,
+      "cream": 1704
+    },
+    "nose": 6,
+    "mouth": 11,
+    "eyes": 2,
+    "eye_y": 22,
+    "eye_s": 3,
+    "surface": {
+      "stairs": 122,
+      "stairs_under": 44,
+      "slabs": 52,
+      "skin": 2280
+    },
+    "mirror": {
+      "shape": 0,
+      "colour": 0
+    }
+  },
+  "contract": "a sitting corgi: ONE convex seated mass - haunch on the ground, chest hanging between two short forelegs - carrying two oversized upright ear sheets with cream centres and coat-coloured borders. The markings are a MAP and never a shade: blaze, bib, socks, bum. A fox muzzle with a found nose, an upturned mouth line and one ringed bead a side. One piece, exactly symmetric in shape and in colour.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 4901,
+      "materials": 7,
+      "dominant_material_share": 0.558,
+      "light_blocks": 0,
+      "massing": {
+        "width": 17,
+        "height": 33,
+        "depth": 32,
+        "fill_ratio": 0.273
+      },
+      "silhouette": {
+        "top": {
+          "area": 384,
+          "fill_ratio": 0.2588
+        },
+        "front": {
+          "area": 404,
+          "fill_ratio": 0.39
+        },
+        "side": {
+          "area": 488,
+          "fill_ratio": 0.2489
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6852,
+          0.2626,
+          0.0522
+        ],
+        "top_silhouette_perimeter": 220,
+        "surface_faces_per_block": 0.5925
+      },
+      "material_counts": {
+        "acacia_planks": 2735,
+        "white_wool": 1732,
+        "mangrove_planks": 242,
+        "acacia_stairs": 87,
+        "mangrove_slab": 52,
+        "mangrove_stairs": 35,
+        "black_wool": 18
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "7173338035a7ad6d56fcecc362095c6743b1f6fee476c5eab147ef459e403696",
+    "generator_source_digest": "bb77235d410379f818c707d86ca7f32db1ec330594600e262542a4fb8c482dbb",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 0.432988,
+    "blocks": 4901,
+    "blocks_per_second": 11319.02
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 4901,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: acacia_planks"
+  ],
+  "file": "Corgi.litematic",
+  "name": "Corgi"
+}

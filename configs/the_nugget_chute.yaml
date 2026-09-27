@@ -1,0 +1,29 @@
+name: The Nugget Chute
+gen: arcade
+params:
+  land: frontier
+  facing: east
+  title: The Nugget Chute
+  at:
+  - 97634
+  - 203
+  - 80389
+  kind: plinko
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: ride
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97637
+    - 204
+    - 80379
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: frontier
+  narrative: The Nugget Chute serves the frontier visitor journey.
+origin_lock: false

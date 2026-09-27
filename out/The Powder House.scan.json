@@ -1,0 +1,450 @@
+{
+  "origin": {
+    "x": 97626,
+    "y": 202,
+    "z": 80391
+  },
+  "size": {
+    "x": 13,
+    "y": 8,
+    "z": 23
+  },
+  "generated_by": "frontiertown",
+  "kind": "powderhouse",
+  "concealed": 63,
+  "visible_redstone": 0,
+  "land": "frontier",
+  "facing": "north",
+  "contract": "nothing fires unless the lever is ARMED and the button PRESSED; a press then walks a chase of 5 pistons down the drift, fires all 7 charges at the face and rings the bell - and the button releases itself, so a held press is one shot",
+  "unverified": [
+    "A PISTON HEAD IS MOTION AND THIS SIMULATOR HAS NONE - it answers whether each piston is POWERED, never what the head looks like coming out of the wall beside you."
+  ],
+  "width": 11,
+  "depth": 21,
+  "height": 7,
+  "lever": [
+    97628,
+    204,
+    80393
+  ],
+  "button": [
+    97631,
+    204,
+    80393
+  ],
+  "comparator": [
+    97632,
+    203,
+    80396
+  ],
+  "chase": [
+    [
+      97633,
+      204,
+      80402
+    ],
+    [
+      97633,
+      204,
+      80404
+    ],
+    [
+      97633,
+      204,
+      80406
+    ],
+    [
+      97633,
+      204,
+      80408
+    ],
+    [
+      97633,
+      204,
+      80410
+    ]
+  ],
+  "shots": [
+    [
+      97628,
+      205,
+      80411
+    ],
+    [
+      97629,
+      205,
+      80411
+    ],
+    [
+      97630,
+      205,
+      80411
+    ],
+    [
+      97631,
+      205,
+      80411
+    ],
+    [
+      97632,
+      205,
+      80411
+    ],
+    [
+      97634,
+      205,
+      80411
+    ],
+    [
+      97635,
+      205,
+      80411
+    ]
+  ],
+  "bell": [
+    97636,
+    206,
+    80411
+  ],
+  "feed": [
+    [
+      97628,
+      206,
+      80411
+    ],
+    [
+      97629,
+      206,
+      80411
+    ],
+    [
+      97630,
+      206,
+      80411
+    ],
+    [
+      97631,
+      206,
+      80411
+    ],
+    [
+      97632,
+      206,
+      80411
+    ],
+    [
+      97633,
+      206,
+      80411
+    ],
+    [
+      97634,
+      206,
+      80411
+    ],
+    [
+      97635,
+      206,
+      80411
+    ]
+  ],
+  "chain": [
+    [
+      97633,
+      205,
+      80401
+    ],
+    [
+      97633,
+      205,
+      80402
+    ],
+    [
+      97633,
+      205,
+      80403
+    ],
+    [
+      97633,
+      205,
+      80404
+    ],
+    [
+      97633,
+      205,
+      80405
+    ],
+    [
+      97633,
+      205,
+      80406
+    ],
+    [
+      97633,
+      205,
+      80407
+    ],
+    [
+      97633,
+      205,
+      80408
+    ],
+    [
+      97633,
+      205,
+      80409
+    ],
+    [
+      97633,
+      205,
+      80410
+    ]
+  ],
+  "face": 19,
+  "inputs": [
+    [
+      97628,
+      204,
+      80393
+    ],
+    [
+      97631,
+      204,
+      80393
+    ]
+  ],
+  "outputs": [
+    [
+      97633,
+      204,
+      80402
+    ],
+    [
+      97633,
+      204,
+      80404
+    ],
+    [
+      97633,
+      204,
+      80406
+    ],
+    [
+      97633,
+      204,
+      80408
+    ],
+    [
+      97633,
+      204,
+      80410
+    ],
+    [
+      97628,
+      205,
+      80411
+    ],
+    [
+      97629,
+      205,
+      80411
+    ],
+    [
+      97630,
+      205,
+      80411
+    ],
+    [
+      97631,
+      205,
+      80411
+    ],
+    [
+      97632,
+      205,
+      80411
+    ],
+    [
+      97634,
+      205,
+      80411
+    ],
+    [
+      97635,
+      205,
+      80411
+    ],
+    [
+      97636,
+      206,
+      80411
+    ]
+  ],
+  "signs": 3,
+  "walk_cells": 239,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "redstone": [
+        "comparator",
+        "lever",
+        "piston",
+        "redstone_wire",
+        "repeater",
+        "stone_button"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "redstone": "mcbuild.circuit",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "building",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Powder House serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 1111,
+      "materials": 17,
+      "dominant_material_share": 0.4122,
+      "light_blocks": 3,
+      "massing": {
+        "width": 13,
+        "height": 8,
+        "depth": 23,
+        "fill_ratio": 0.4645
+      },
+      "silhouette": {
+        "top": {
+          "area": 299,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 94,
+          "fill_ratio": 0.9038
+        },
+        "side": {
+          "area": 169,
+          "fill_ratio": 0.9185
+        }
+      },
+      "material_counts": {
+        "cobblestone": 458,
+        "spruce_planks": 286,
+        "spruce_log": 244,
+        "mossy_cobblestone": 33,
+        "redstone_wire": 25,
+        "stripped_spruce_log": 18,
+        "stone_bricks": 17,
+        "piston": 12,
+        "repeater": 5,
+        "lantern": 3,
+        "spruce_wall_sign": 3,
+        "orange_wool": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "cf861eae5d1d52772b54009f1e2b931edab895fe5863eb8548022f6f85d9dd80",
+    "generator_source_digest": "73f071a42a113b02f1bd2b3cf5caf31c5998401474b891a676aea41708a2a95c",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "redstone",
+        "signage"
+      ],
+      "redstone_declared": true,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "building",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97632,
+        204,
+        80389
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 1111,
+    "mechanic_families": [
+      "light",
+      "redstone",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: bell"
+  ],
+  "file": "The Powder House.litematic",
+  "name": "The Powder House"
+}

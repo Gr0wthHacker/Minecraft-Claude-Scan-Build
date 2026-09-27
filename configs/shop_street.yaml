@@ -1,0 +1,16 @@
+name: Shop Street
+gen: civic
+params:
+  land: midway
+  shops: 2
+  facing: east
+  at:
+  - 97571
+  - 203
+  - 80579
+  kind: shopstreet
+  title: Shop Street
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

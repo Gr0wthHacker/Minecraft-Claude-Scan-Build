@@ -1,0 +1,76 @@
+# PF MIDWAY GARDEN - the pleasure garden at the head of Midway column C.
+#
+# Jack, on the games row that stood here: *"the games arent playable as they are facing, theyre
+# ugly, and just not working, these have been a consistent issue, either identify and make them
+# really look good, or trash the idea and lets put something else there."*
+#
+# THE FAULT WAS IN THE CONSOLE. A `park_games` console is a THREE-COURSE SEALED CABINET: its score
+# lamps are buried in the lid course in every kind, the aim and striker targets are entirely
+# enclosed so they cannot be shot, and the pair's buttons sit on top of a lid above a standing
+# player's head with their lamp eleven cells away. Every one of them simulates correctly. See
+# `mcbuild/gen/midgarden.py` for the block-by-block dump and `tools/park_place.py` for the
+# retirement; fixing `park_games` is its own job and four more stand in the Frontier.
+#
+# WHAT IS KEPT IS THE WALK. `Park Ways` paves nothing in V24-99 but the V77 cross walk and two door
+# spurs, because the Skill Arcade filled the column wall to wall - so this column had a door where
+# every other column in this park has a spine.
+#
+# `at` IS THE WORLD CORNER OF (V24, the first course above the lawn, U345).
+name: PF Midway Garden
+gen: midgarden
+params:
+  lot: [24, 345, 99, 384]
+  at: [97524, 203, 80645]
+  height: 10
+  seed: 3
+  axis: 364
+  walk_half: 6
+  # FIVE DEEP EITHER SIDE AND NO DEEPER, because the ground is not this design's alone: measured,
+  # `PF Park Green` holds 105 cells in this lot and 98 of them are at U378-384, with its last seven
+  # at U376-377. Beds drawn to the lot edge would contest every one - a WORK problem, not a
+  # rendering one - so they stop clear of it and the wild edge stays wild, which is what a pleasure
+  # garden's outer walk looks like anyway.
+  beds:
+    - [26, 353, 40, 357]
+    - [44, 353, 58, 357]
+    - [62, 353, 72, 357]
+    - [83, 353, 97, 357]
+    - [26, 371, 40, 375]
+    - [44, 371, 58, 375]
+    - [62, 371, 72, 375]
+    - [83, 371, 97, 375]
+  # A SPECIMEN TREE ON EACH BED'S OWN MIDLINE. Canopy radius two into a five-deep bed is an exact
+  # fit; one cell wider and the crown reaches ground another design dresses.
+  plant: [[33, 355], [51, 355], [67, 355], [90, 355],
+          [33, 373], [51, 373], [67, 373], [90, 373]]
+  pergolas: [30, 48, 66, 90]
+  seats: [[36, -1], [36, 1], [54, -1], [54, 1], [70, -1], [70, 1], [88, -1], [88, 1]]
+  # CELLS THE PARK ALREADY OWNS. `Park Ways`' back cross walk crosses this lot at V76-78, three of
+  # its lamp masts stand on the verges, and `PF Front Midway`'s gantry over the spur stands at V79.
+  # Named here, wanting one RAISES at build time instead of shipping as an overlap no render shows.
+  blocked:
+    - [76, 0, 345, 78, 9, 384]
+    - [62, 0, 345, 62, 9, 347]
+    - [73, 0, 357, 75, 9, 357]
+    - [79, 0, 353, 81, 9, 353]
+    - [79, 0, 358, 79, 9, 366]
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: supporting
+  style: midway
+  narrative: >
+    The Midway's pleasure garden: a thirteen-wide walk from the east avenue to the helter
+    skelter's forecourt, with a kerbed parterre either side of it under a clipped hedge - moss,
+    blocks of wool and flowers between them - a specimen tree at the centre of each bed, benches
+    on the verges, and four striped pergolas over the walk for the only vertical rhythm in it.
+    The outer shoulders are left informal, where the ground layer's own wildflowers are. No
+    building anywhere in it, and nothing that pretends to be a machine.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet, short_grass, fern]
+origin_lock: false

@@ -1,0 +1,47 @@
+# A SITTING CORGI - a standalone statue, sited by measurement rather than placed in a park lot.
+#
+# WHY THIS ANIMAL PASSES WHERE TEN QUADRUPEDS FAILED. The measured line in this repo is PLANAR /
+# COLUMNAR / ONE CONVEX MASS against VOLUMETRIC, and the download corpus's sharpening of it is what
+# actually decides a candidate: *"the line is not the species, it is whether the silhouette
+# decomposes into LIMBS"*. A standing dog decomposes. A SITTING one does not - the haunches are
+# folded onto the ground, the chest hangs between two short forelegs almost to the floor, and what
+# is left is one convex mass with two big planar ears on top. That is `Warm Snooze`'s category, and
+# a corgi is the breed that needs the least help getting there.
+#
+# ...AND ITS IDENTITY IS A PATTERN, WHICH IS THE OTHER HALF. The ears, the blaze, the bib, the
+# socks and the white bum are a high-contrast MAP on a convex shape - the ladybird's and the
+# turtle's category - not compound muscle, which is what retired the eight mammals.
+#
+# SIZE IS FROM THE EAR. `tools/scale.py`'s doctrine is that an animal's critical size is the largest
+# of its features' own floors; here the binding feature is the ear, which has to be a rounded
+# triangle with a coat-coloured border round a cream core. The base is 0.150 of the total height, so
+# below 24 it is under four cells across and the animal has two red tabs on its head. 32 gives an
+# ear 5 x 9 and is the default.
+#
+# THE MONEY VIEW IS HEAD-ON, which is unusual for a sculpture here and is why `facing` matters more
+# than it looks: head-on gives the ear pair, the blaze between them, the eyes, the nose and the
+# whole white bib at once. Judge it there first, the profile second, the plan last.
+# ORIGIN_LOCK IS OFF, and rule 1 says to say so loudly. This is a free-standing sculpture with its
+# own site, exactly like the Void Ladybird and the Abyss Squid; padding it to the island's own lock
+# would put a 32-block dog inside a design box that has nothing to do with it. It is read at the
+# TOP level - nested under `finish:` it is silently ignored, and the design then fails the lock.
+origin_lock: false
+name: Corgi
+gen: corgi
+params:
+  height: 32
+  facing: north
+  seed: 0
+  # NOT SITED YET. `at` is the canvas corner and `stand` is the world cell the PAWS occupy - give
+  # one or the other once the ground has been measured. Until then it builds at the origin so it
+  # can be rendered and argued with, which is what `tools/look.py` is for.
+  # PROVISIONAL, so the design ships a sidecar and can be rendered - `pipeline._save_outputs`
+  # writes one only when the generator declares a `world_origin`, so a design with no site cannot
+  # be looked at at all. Replaced by a measured one before this is placed.
+  at: [-24238, 63, 29968]
+  stand: null
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false

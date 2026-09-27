@@ -1,0 +1,19 @@
+{
+  "origin": {
+    "x": 97556,
+    "y": 197,
+    "z": 80555
+  },
+  "size": {
+    "x": 88,
+    "y": 13,
+    "z": 89
+  },
+  "generated_by": "mcbuild.layers",
+  "kind": "casino-layer",
+  "dig": [],
+  "slice": false,
+  "note": "the whole thing, nothing deferred",
+  "file": "Casino Complete.litematic",
+  "name": "Casino Complete"
+}

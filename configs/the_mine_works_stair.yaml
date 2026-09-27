@@ -1,0 +1,36 @@
+name: The Mine Works Stair
+gen: stairwell
+params:
+  land: frontier
+  facing: east
+  center:
+  - 97639
+  - 80359
+  radius: 1
+  y_bottom: 143
+  y_top: 203
+  shaft_lamp_every: 5
+  under: out/islandleft.litematic
+  at:
+  - 97639
+  - 143
+  - 80359
+  kind: stairwell
+  title: The Mine Works Stair
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: building
+  hierarchy: supporting
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97644
+    - 144
+    - 80359
+design:
+  purpose: building
+  hierarchy: supporting
+  style: frontier
+  narrative: The Mine Works Stair serves the frontier visitor journey.
+origin_lock: false

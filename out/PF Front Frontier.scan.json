@@ -1,0 +1,354 @@
+{
+  "origin": {
+    "x": 97522,
+    "y": 203,
+    "z": 80338
+  },
+  "size": {
+    "x": 131,
+    "y": 21,
+    "z": 131
+  },
+  "generated_by": "park_frontage",
+  "kind": "park_frontage",
+  "land": "frontier",
+  "pieces": [
+    {
+      "kind": "marquee",
+      "title": "THE BROKEN EDGE",
+      "signs": 1,
+      "lamps": 4,
+      "span": 7,
+      "piers": 2,
+      "frontage": [
+        -5,
+        5
+      ],
+      "height": 10,
+      "at": [
+        24,
+        43
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Broken Plateau"
+    },
+    {
+      "kind": "marquee",
+      "title": "THE BONE BED",
+      "signs": 1,
+      "lamps": 4,
+      "span": 11,
+      "piers": 2,
+      "frontage": [
+        -7,
+        7
+      ],
+      "height": 10,
+      "at": [
+        23,
+        96
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Plateau Bone Bed"
+    },
+    {
+      "kind": "marquee",
+      "title": "THE FOSSIL LAB",
+      "signs": 2,
+      "lamps": 0,
+      "span": 0,
+      "piers": 2,
+      "frontage": [
+        -5,
+        5
+      ],
+      "height": 10,
+      "at": [
+        129,
+        62
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Assay and Prize Office"
+    },
+    {
+      "kind": "porch",
+      "width": 19,
+      "height": 6,
+      "posts": [
+        -7,
+        -3,
+        1,
+        5,
+        9
+      ],
+      "lamps": 6,
+      "eaves": 19,
+      "doors": [
+        [
+          -6,
+          -4
+        ],
+        [
+          6,
+          8
+        ]
+      ],
+      "pylons": 2,
+      "front": 142,
+      "signs": 3,
+      "bay": [
+        -3,
+        3
+      ],
+      "roof": 7,
+      "at": [
+        25,
+        112
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Mine Coaster"
+    },
+    {
+      "kind": "sight/water_tower",
+      "height": 20,
+      "footprint": [
+        8,
+        8
+      ],
+      "at": [
+        72,
+        161
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Ridge Water Tower"
+    },
+    {
+      "kind": "sight/ore_cart",
+      "height": 5,
+      "footprint": [
+        7,
+        5
+      ],
+      "at": [
+        92,
+        165
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Ore Road"
+    },
+    {
+      "kind": "sight/ore_cart",
+      "height": 5,
+      "footprint": [
+        7,
+        7
+      ],
+      "at": [
+        117,
+        155
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Trail Ore Cart"
+    },
+    {
+      "kind": "portal/exit",
+      "title": "STAFF ONLY",
+      "signs": 1,
+      "lamps": 0,
+      "height": 6,
+      "at": [
+        151,
+        136
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Works Yard staff gate"
+    }
+  ],
+  "piece_count": 8,
+  "signs": 11,
+  "refused_signs": [],
+  "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
+  "unverified": [
+    "not placed in game: every judgement here is off the shipped litematics and the repo's own renderer, which draws a fence, a wall and an end rod as full cubes"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "rail": [
+        "rail"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "rail": "mcbuild.circuit + rail contract tests",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "The Frontier's frontage: a name board over every attraction's own spur, entrance and exit thresholds flanking the Mine Coaster's approach, a switchback queue down the coaster's east flank, a water tower and two ore-cart props in the land's empty bands, and a staff gate on the works yard. Nothing below the build plane, nothing in a walkway, no street furniture.\n"
+    },
+    "metrics": {
+      "blocks": 1075,
+      "materials": 19,
+      "dominant_material_share": 0.1888,
+      "light_blocks": 16,
+      "massing": {
+        "width": 131,
+        "height": 21,
+        "depth": 131,
+        "fill_ratio": 0.003
+      },
+      "silhouette": {
+        "top": {
+          "area": 219,
+          "fill_ratio": 0.0128
+        },
+        "front": {
+          "area": 203,
+          "fill_ratio": 0.0738
+        },
+        "side": {
+          "area": 519,
+          "fill_ratio": 0.1887
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.4874,
+          0.3879,
+          0.1247
+        ],
+        "top_silhouette_perimeter": 484,
+        "surface_faces_per_block": 2.2977
+      },
+      "material_counts": {
+        "spruce_planks": 203,
+        "stone_bricks": 117,
+        "smooth_stone": 108,
+        "polished_blackstone_bricks": 100,
+        "dark_oak_planks": 92,
+        "spruce_log": 82,
+        "stripped_spruce_log": 79,
+        "dark_oak_stairs": 66,
+        "red_wool": 60,
+        "spruce_fence": 40,
+        "stone_brick_stairs": 36,
+        "cracked_stone_bricks": 31
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "b6c5acee445066c7af91488d385798f61c3db3f0a54ce8db7b556ba942309257",
+    "generator_source_digest": "a489ef6ff8b881cb9b7606057100aabb1fac48a1ef3fd3114f5bc41a4e7b2ae8",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "rail",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 63.233868,
+    "blocks": 1075,
+    "blocks_per_second": 17.0
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 1075,
+    "mechanic_families": [
+      "light",
+      "rail",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "PF Front Frontier.litematic",
+  "name": "PF Front Frontier"
+}

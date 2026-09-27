@@ -1,0 +1,15 @@
+name: Lockers
+gen: ticketing
+params:
+  land: midway
+  facing: west
+  at:
+  - 97608
+  - 203
+  - 80621
+  kind: lockers
+  title: Lockers
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

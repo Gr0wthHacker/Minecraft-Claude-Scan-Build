@@ -1,0 +1,75 @@
+name: Prism Ascent
+gen: prismworks
+params:
+  # THE SAME SPIRE THE WORLDSPEC SITES. `park_final.world.json` builds this module at
+  # height 130 / radius 26 on a 93x72 lot; the config used to say 88/16, so the design a
+  # reviewer generated and the design the park assembled were two different towers with two
+  # different budgets. One source, or the two tools disagree - the drift is the whole reason
+  # `proportions.measure` and `rubric.score` share an entry point elsewhere in this repo.
+  kind: ascent
+  height: 130
+  radius: 26
+world_contract: true
+roles: [ride]
+anchors:
+  # Court deck is canvas course 12, so a guest stands at 13. The machine base's service level
+  # is course 1, standing at 2.
+  - name: queue_entry
+    kind: queue
+    position: [17, 13, 34]
+    facing: east
+    width: 3
+  - name: boarding
+    kind: board
+    position: [31, 13, 34]
+    facing: east
+    width: 2
+  - name: ride_exit
+    kind: ride_exit
+    position: [16, 13, 34]
+    facing: east
+    width: 3
+  - name: observer_terrace
+    kind: deck
+    position: [60, 10, 34]
+    facing: west
+    width: 3
+  - name: service_access
+    kind: maintenance
+    position: [64, 2, 34]
+    facing: west
+    width: 1
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: natural
+  narrative: A visible bubble-launch parkour descent around the Prism Spire.
+  quality:
+    min_blocks: 30000
+    min_height: 120
+  enforce: true
+  visual_review: true
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [jump, descend, recover]
+  outcome: Visible checkpoint progression and a completion panel at Forge Deck.
+  reset: Service reset clears local run indicators without closing the public bypass.
+  service_access: Service Gallery reaches bubble sources, catches, and checkpoint components.
+  bypass: Practice, observer, and public routes remain open outside the timed-entry gate.
+# DECLARED EXPENSIVE FUNCTIONAL SPEND, per PARK_VISUAL_AND_BUDGET_SPEC's material policy. The
+# only `expensive`-tier block in the Spire is the redstone lamp, two of them, one on each act
+# boundary's checkpoint deck; they are the physical state indicator the checkpoint circuit will
+# drive and they are not lit here, because a litematic containing a lamp proves nothing about
+# a circuit that does not exist yet. Everything else the policy names as declarable functional
+# expensive - rails, targets, comparators, observers - prices as `cheap` under `palette.tier`
+# on this economy, so the Spire's expensive share is 0.0% rather than the policy's nominal
+# 2-5%. Reaching that band would mean placing several hundred more lamps, which is the spec's
+# own "neon scattered everywhere" rejection condition.
+expensive_functional:
+  redstone_lamp: checkpoint state indicator, one per act boundary
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false

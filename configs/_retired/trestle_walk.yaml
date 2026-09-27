@@ -1,0 +1,16 @@
+name: Trestle Walk
+gen: frontiertown
+params:
+  land: frontier
+  length: 24
+  facing: east
+  at:
+  - 97560
+  - 203
+  - 80426
+  kind: trestlebridge
+  title: Trestle Walk
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+origin_lock: false

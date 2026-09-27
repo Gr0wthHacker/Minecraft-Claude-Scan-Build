@@ -1,0 +1,47 @@
+# PF ASSAY AND PRIZE OFFICE - the land's one civic range, on the back promenade.
+#
+# 20 x 46 at V130 U47, in the exit/observation band. The spur at V128-129 / U69-71 lands on U23
+# of this lot, so the entrance pavilion stands there and the portico is what tells a guest which
+# of forty-six columns is the way in.
+#
+# TWENTY DEEP AND FORTY-SIX LONG IS A STREET RANGE, not a pavilion, so it is built as one long
+# masonry block with a centre pavilion, a stepped pediment and a cupola on the ridge - a 46-long
+# roof with no centre reads as a shed however well it is detailed.
+#
+# THE GROUND-FLOOR WINDOWS ARE BARRED AND THAT IS THE STORY. An assay office weighs gold; iron
+# bars say what the building is for from further away than any sign is readable.
+#
+# THE SHOW LAYER (2026-09-02). Jack: "we need this to be a theme park, and amusement area,
+# beautiful, not just full of buildings." Measured, the whole Frontier ran 0.0-2.6% coloured or
+# lit blocks - stone brick, spruce and dark oak with a plinth, a string course and a cornice,
+# which is a correct way to build a VILLAGE. What was added is announcement rather than
+# ornament: a SHAPED show front with a name board and a painted cornice on every guest-facing
+# frontage, striped canvas awnings, bunting, and a mast with a pennant on the skyline. The rise
+# of every show front is DERIVED from its own ridge, because a false front that does not clear
+# its roof is invisible from every bearing but straight down the street - which is how the
+# first build passed a head-on render and read as a village from everywhere else.
+name: PF Assay and Prize Office
+gen: frontier_builds
+params:
+  kind: assay
+  lot: [20, 46]
+  at: [130, 47]
+  entry_u: 23          # world U70 - the promenade spur's own column
+  seed: 67
+roles: [building]
+design:
+  purpose: building
+  hierarchy: supporting
+  style: frontier
+  narrative: >
+    The assay and prize office: a long dressed-stone range on the back promenade with a columned
+    entrance pavilion and stepped pediment, barred ground-floor lights, a shuttered prize window
+    at the south end, and a lantern cupola over the centre of the ridge.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

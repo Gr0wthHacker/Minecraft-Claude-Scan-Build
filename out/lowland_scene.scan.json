@@ -1,0 +1,41 @@
+{
+  "name": "lowland_scene",
+  "file": "lowland_scene.litematic",
+  "format": "litematic",
+  "created": "2026-08-19T03:04:15.798633500Z",
+  "player": "Enroniti",
+  "server": {
+    "name": "Unknown Server",
+    "ip": "skyblock.net"
+  },
+  "dimension": "minecraft:overworld",
+  "data_version": 4903,
+  "origin": {
+    "x": -24251,
+    "y": 0,
+    "z": 29949
+  },
+  "size": {
+    "x": 103,
+    "y": 72,
+    "z": 103
+  },
+  "player_pos": {
+    "x": -24198,
+    "y": 206,
+    "z": 29986
+  },
+  "air_margin": 2,
+  "total_volume": 3554015,
+  "non_air_blocks": 568,
+  "palette_size": 4,
+  "tile_entities": 0,
+  "entities": 9,
+  "cut_from": "island.litematic",
+  "planned_from": [
+    "lowland_planned.litematic",
+    "Lowland Jaguar Lunge.litematic",
+    "Lowland Capybara Flee.litematic",
+    "Lowland Bear.litematic"
+  ]
+}

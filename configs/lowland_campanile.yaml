@@ -1,0 +1,34 @@
+# THE CAMPANILE - the sanctum's bell tower, west of the basilica (2026-08-22).
+#
+# The sanctum's facade carries an EMPTY bell-cote; the campanile is where the bell survived.
+# Towers are the form this medium renders best (void tower, bat tower - both passed on sight).
+# The site is the 7-wide gap in the ground design's lantern 9-grid between the X-24201 and
+# X-24192 columns, three clear of the sanctum's west pilasters, measured free on the 15:01
+# scan with no retirement needed. Parapet at ~Y59 reads over the sanctum's Y52 pediment and
+# the Y52 tree crowns from the entrance shaft, which is the arriving player's view.
+#
+# The ruin is ONE PLANE off the NE corner, tumble in one heap below it. The owl on the SW
+# merlon is the quarter's animal-on-architecture: greys on near-black, silhouette-first.
+name: Lowland Campanile
+gen: campanile
+params:
+  under: out/island_full.litematic
+  at: [-24197, 29974]
+  side: 7
+  base_y: 41                   # PINNED (median ground 39-41 under the footprint)
+  shaft_h: 12
+  belfry_h: 4
+  door: south                  # faces the sanctum spur and the way
+  bird: true
+  seed: 0
+origin_lock: false             # LOUD: stands on the lowland at Y38-66
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  defer_to: [out/Lowland Portal.litematic, out/Lowland Ruinway.litematic,
+             out/Lowland Sanctum.litematic, out/Lowland Axolotl.litematic]
+  context_clear: [vine, short_grass, tall_grass, fern, large_fern, moss_carpet, azalea,
+                  flowering_azalea, poppy, dandelion]
+  verify_against: out/island_full.litematic

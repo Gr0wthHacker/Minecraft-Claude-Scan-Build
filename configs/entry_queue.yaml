@@ -1,0 +1,32 @@
+name: Entry Queue
+gen: ticketing
+params:
+  land: midway
+  facing: east
+  at:
+  - 97560
+  - 203
+  - 80619
+  kind: queue
+  title: Entry Queue
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+park_contract:
+  purpose: arrival
+  hierarchy: landmark
+  land: midway
+  requires_path: true
+  access_candidates:
+  - - 97563
+    - 204
+    - 80614
+  - - 97549
+    - 204
+    - 80614
+design:
+  purpose: arrival
+  hierarchy: landmark
+  style: midway
+  narrative: Entry Queue serves the midway visitor journey.
+origin_lock: false

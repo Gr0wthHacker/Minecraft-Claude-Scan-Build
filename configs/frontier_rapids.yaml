@@ -1,0 +1,32 @@
+name: Frontier Rapids
+gen: coaster
+params:
+  land: frontier
+  rapids_span: 23
+  rapids_top: 12
+  pool: 4
+  facing: west
+  at:
+  - 97608
+  - 203
+  - 80419
+  kind: rapids
+  title: Frontier Rapids
+  under: out/islandleft.litematic
+finish:
+  verify_against: out/islandleft.litematic
+park_contract:
+  purpose: ride
+  hierarchy: landmark
+  land: frontier
+  requires_path: true
+  access_candidates:
+  - - 97599
+    - 204
+    - 80428
+design:
+  purpose: ride
+  hierarchy: landmark
+  style: frontier
+  narrative: Frontier Rapids serves the frontier visitor journey.
+origin_lock: false

@@ -1,0 +1,75 @@
+{
+  "format": 1,
+  "name": "The Sounder in the Dark",
+  "server_profile": "skyblock-1.19",
+  "coordinate_system": "world XYZ",
+  "protected_context": [
+    "out/Park Complete.litematic",
+    "out/PF Prism Well.litematic",
+    "out/PF Prism Rig.litematic",
+    "out/PF Crown Descent.litematic",
+    "out/PF Prism Descent.litematic",
+    "out/Abyss Squid.litematic"
+  ],
+  "rules": {
+    "surface_entrance": false,
+    "public_entry": "Crown Descent parkour to squid mouth",
+    "public_return": "squid mouth to Wake Line to Prism Descent recovery",
+    "well_axis_xz": [97590, 80815],
+    "well_keepout_radius": 56,
+    "tail_excavation_budget": 60
+  },
+  "modules": [
+    {
+      "name": "Abyss Mouth Access",
+      "purpose": "two one-way parkour strands",
+      "footprint": [97597, 117, 80713, 97612, 162, 80797],
+      "plot": "measured mouth approach envelope",
+      "anchors": {
+        "inbound": [97606, 162, 80801],
+        "mouth_entry": [97596, 142, 80713],
+        "mouth_exit": [97604, 142, 80713],
+        "outbound": [97613, 124, 80791]
+      },
+      "access": "parkour only",
+      "return": "Wake Line",
+      "service_access": "two ladder returns from the miss-catch spine",
+      "scenarios": ["inbound success", "outbound success", "miss and recover"],
+      "budget": {"blocks": 650},
+      "review_views": ["arrival", "mouth", "inbound", "outbound", "night"]
+    },
+    {
+      "name": "Abyss Sperm Whale",
+      "purpose": "secondary story landmark",
+      "footprint": [97500, 95, 80255, 97614, 179, 80469],
+      "plot": "extended north abyss leviathan reservation",
+      "anchors": {"head": [97558, 137, 80454], "tail": [97554, 135, 80290]},
+      "access": "none",
+      "return": "none",
+      "service_access": "temporary build scaffold only",
+      "scenarios": ["tail overlook reveal", "full abyss silhouette"],
+      "budget": {"blocks": 85000},
+      "review_views": ["arrival", "facade", "skyline", "interior", "night", "profile", "head_on", "tail_on"]
+    },
+    {
+      "name": "Abyss Sounding",
+      "purpose": "tail overlook and echolocation reveal",
+      "footprint": [97543, 108, 80468, 97602, 148, 80505],
+      "plot": "tail sight cone and clear whale gap",
+      "anchors": {"viewpoint": [97600, 109, 80505], "target": [97558, 137, 80454]},
+      "access": "Abyss Market tail gallery",
+      "return": "same interior gallery to mouth",
+      "service_access": "interior survey brackets",
+      "scenarios": ["bell then reveal", "static fallback"],
+      "budget": {"blocks": 700, "dig_cells": 60},
+      "review_views": ["arrival", "facade", "skyline", "interior", "night", "sightline"]
+    }
+  ],
+  "artifacts": [
+    "out/Abyss Market.litematic",
+    "out/Abyss Mouth Access.litematic",
+    "out/Abyss Sperm Whale.litematic",
+    "out/Abyss Sounding.litematic",
+    "out/under_squid_plan/Abyss Expansion Complete.litematic"
+  ]
+}

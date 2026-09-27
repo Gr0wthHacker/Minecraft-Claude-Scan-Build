@@ -1,0 +1,40 @@
+{
+  "origin": {
+    "x": 97604,
+    "y": 202,
+    "z": 80832
+  },
+  "size": {
+    "x": 5,
+    "y": 10,
+    "z": 5
+  },
+  "generated_by": "streetfurniture",
+  "kind": "streetfurniture/signpost",
+  "piece": "signpost",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "two to four arms pointing different ways, each a full block with its sign in the cell beyond it, so every sign has something to hang on",
+  "unverified": [],
+  "arms": 2,
+  "cap": "finial",
+  "ways": [
+    {
+      "dir": "west",
+      "h": 4,
+      "to": "THE LAKE",
+      "placed": true
+    },
+    {
+      "dir": "north",
+      "h": 3,
+      "to": "THE GATE",
+      "placed": true
+    }
+  ],
+  "seed": 128093391,
+  "signs": 2,
+  "signs_placed": 2,
+  "file": "Signpost 4.litematic",
+  "name": "Signpost 4"
+}

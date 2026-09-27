@@ -1,0 +1,84 @@
+# PF RESONANCE VAULT - the closed block, at V82 / U471, addressing the prism cross walk at V78-80.
+#
+# ITS OPENNESS IS SPENT ON ONE THING. Four corner buttresses stepping down in three stages, a
+# battered plinth, slit windows high in the wall and a single deeply recessed portal: you cannot
+# see into it, and that is the whole point of a vault standing behind an open hall. What stops it
+# reading as a bunker is an arcaded ambulatory wrapping the three sides that are not the front,
+# tied back to the block by a beam every five bays, so the building is walkable without being
+# transparent.
+#
+# THE FRONT ROW IS A PLINTH COURSE AND NOTHING ELSE. Two of the park's cross-walk lamps throw an
+# arm into this lot's own front row at world Y209 (V82 / U487 and U500). A plinth is one course
+# tall, so the row stays usable at ground level and is empty where the arm is; the wall itself
+# starts one course in at V83. That is a siting decision, not a shortfall.
+#
+# NO COMPLETION CIRCUIT IS IN HERE, DELIBERATELY. PRISMWORKS_GENERATOR.md: a generator "must not
+# claim that obligation is done merely because a litematic contains water, buttons, lamps, or
+# signs". The three-input circuit and its reset are a separate redstone ticket, to be proven by
+# simulation and then in a live world - this design is the room it will live in.
+#
+# THE MACHINE LAND, PROPERLY DESIGNED (2026-09-02). Jack: "we still need to properly design the
+# prism area" - he could not tell it WAS Prismworks. The cause was measurable: every material
+# in the land sat between luminance 38 and 73 and every one of them was grey, so a ladder of six
+# greys still read as one hue and the buildings read as dark blocks. Two things fixed it, and
+# neither is ornament:
+#
+#   THE PLANT METAL. `waxed_copper_block` is L124 and CHEAP here where plain `copper_block` is
+#   expensive - a 79-point step AND the only real hue this land can buy. It is the cornice band
+#   on every building and the collar on every setback of the Ascent, and it is never a wall.
+#
+#   THE SIGNAL AS A SEQUENCE. The land's brief is precision and sequence, and what it shipped
+#   was scattered cyan that reads as speckle past ten blocks. Every pier now carries a
+#   projecting ladder - stone, a signal cell every fourth course, two of high, a lit head - and
+#   the Ascent's four blade edges are ONE CONTINUOUS line of light with a glow every eight, so
+#   the stages can be counted from the podium. Parapets carry a lightning-rod instrument array,
+#   which is what a machine land has where a fairground has flags.
+name: PF Resonance Vault
+gen: prismworks_builds
+params:
+  kind: vault
+  at: [82, 471]
+  size: [53, 41]
+  height: 40
+  keep_clear: [[21, 0, 6], [0, 16, 6], [0, 29, 6]]
+  seed: 7
+roles: [ride, building]
+anchors:
+  - {name: queue_entry, kind: queue, position: [0, 1, 20], facing: west, width: 5}
+  - {name: boarding, kind: entry, position: [1, 1, 20], facing: west, width: 5}
+  - {name: ride_exit, kind: ride_exit, position: [0, 1, 20], facing: west, width: 5}
+  - {name: service_access, kind: maintenance, position: [43, 1, 20], facing: east, width: 3}
+  - {name: street_front, kind: visual_front, position: [0, 1, 20], facing: west, width: 37}
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: prismworks
+  focal_face: west
+  narrative: >
+    A shut, buttressed block with one recessed portal, wrapped on three sides by an arcaded
+    ambulatory and crowned by a three-stage resonator that narrows to an open ring of posts, bars
+    and froglight with four end-rod finials on its corners.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [walk the ambulatory, find the one portal, stand under the resonator]
+  outcome: >
+    The resonator's ring is lit and stepped clear of the roof, so the building announces itself
+    from the cross walk and from the avenue behind it without opening a single wall.
+  reset: >
+    No state is held by this geometry; the hall and the ambulatory are re-enterable at any time.
+    The stations' completion circuit and its reset are a separate ticket and are not built here.
+  service_access: >
+    The rear ambulatory bay on the V125 face, off the U523 avenue, reaches the block's back wall
+    with three clear courses over it.
+  bypass: >
+    The ambulatory is open at both ends on all three sides, so the building can be walked past or
+    walked round without entering the portal at all.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  verify_replaceable: [moss_carpet]
+origin_lock: false

@@ -1,0 +1,25 @@
+{
+  "origin": {
+    "x": 97563,
+    "y": 202,
+    "z": 80617
+  },
+  "size": {
+    "x": 31,
+    "y": 16,
+    "z": 31
+  },
+  "generated_by": "attractions",
+  "kind": "swings",
+  "land": "midway",
+  "facing": "east",
+  "contract": "architecture: a chairoplane silhouette, every seat's chain 6-connected to the crown - it does not spin, and nothing here claims it does",
+  "unverified": [],
+  "diameter": 26,
+  "height": 15,
+  "seats": 10,
+  "lamps": 10,
+  "signed": true,
+  "file": "The Swings.litematic",
+  "name": "The Swings"
+}

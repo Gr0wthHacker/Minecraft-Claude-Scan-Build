@@ -1,0 +1,42 @@
+{
+  "origin": {
+    "x": 97559,
+    "y": 202,
+    "z": 80366
+  },
+  "size": {
+    "x": 13,
+    "y": 15,
+    "z": 34
+  },
+  "generated_by": "frontiertown",
+  "kind": "falsefront",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "at least four storefronts sharing one boardwalk, each with its own width, parapet profile, roof height, porch and glazing - and each with an INTERIOR you can walk into (proven, not assumed) holding the workstations of the trade on its sign, which is what turns a row of signed sheds into a street of shops",
+  "unverified": [],
+  "shops": 4,
+  "width": 32,
+  "depth": 9,
+  "fitted": 11,
+  "styles": [
+    "bracketed",
+    "stepped",
+    "triangular"
+  ],
+  "widths": [
+    8,
+    7,
+    8,
+    9
+  ],
+  "signs": 4,
+  "trades": [
+    "GENERAL STORE",
+    "ASSAY OFFICE",
+    "BARBER",
+    "LIVERY"
+  ],
+  "file": "Prospect Row.litematic",
+  "name": "Prospect Row"
+}

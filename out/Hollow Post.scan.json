@@ -1,0 +1,208 @@
+{
+  "origin": {
+    "x": 97606,
+    "y": 202,
+    "z": 80826
+  },
+  "size": {
+    "x": 9,
+    "y": 10,
+    "z": 9
+  },
+  "generated_by": "wayfinding",
+  "kind": "fingerpost",
+  "land": "hollow",
+  "facing": "west",
+  "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
+  "arms": [
+    {
+      "direction": "north",
+      "dest": "Midway",
+      "sign_facing": "north",
+      "placed": true,
+      "sign_at": [
+        97610,
+        206,
+        80826
+      ]
+    },
+    {
+      "direction": "west",
+      "dest": "Haunted Manor",
+      "sign_facing": "west",
+      "placed": true,
+      "sign_at": [
+        97606,
+        207,
+        80830
+      ]
+    },
+    {
+      "direction": "east",
+      "dest": "Clock Tower",
+      "sign_facing": "east",
+      "placed": true,
+      "sign_at": [
+        97614,
+        208,
+        80830
+      ]
+    },
+    {
+      "direction": "south",
+      "dest": "The Plummet",
+      "sign_facing": "south",
+      "placed": true,
+      "sign_at": [
+        97610,
+        209,
+        80834
+      ]
+    }
+  ],
+  "post_h": 8,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "soul_lantern"
+      ],
+      "signage": [
+        "dark_oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "hollow",
+      "narrative": "Hollow Post serves the hollow visitor journey."
+    },
+    "metrics": {
+      "blocks": 34,
+      "materials": 6,
+      "dominant_material_share": 0.2647,
+      "light_blocks": 1,
+      "massing": {
+        "width": 9,
+        "height": 10,
+        "depth": 9,
+        "fill_ratio": 0.042
+      },
+      "silhouette": {
+        "top": {
+          "area": 21,
+          "fill_ratio": 0.2593
+        },
+        "front": {
+          "area": 20,
+          "fill_ratio": 0.2222
+        },
+        "side": {
+          "area": 20,
+          "fill_ratio": 0.2222
+        }
+      },
+      "material_counts": {
+        "cobbled_deepslate": 9,
+        "blackstone": 8,
+        "dark_oak_fence": 8,
+        "dark_oak_wall_sign": 4,
+        "deepslate_bricks": 4,
+        "soul_lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "0b385018cf3b3832c38880c6ecef261da7b3f9b6382fcde07e0d055ff53ba585",
+    "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
+    "anchors": [],
+    "genome": {
+      "name": "hollow",
+      "facades": [
+        "gable",
+        "stepped"
+      ],
+      "height_ratio": [
+        0.6,
+        1.5
+      ],
+      "materials": [
+        "dark_stone",
+        "oxidised_metal",
+        "warm_lantern"
+      ],
+      "light_density": "pools-of-light"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "hollow",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 34,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone",
+    "unsupported on skyblock-1.19: cobbled_deepslate",
+    "unsupported on skyblock-1.19: dark_oak_fence",
+    "unsupported on skyblock-1.19: dark_oak_wall_sign",
+    "unsupported on skyblock-1.19: deepslate_bricks"
+  ],
+  "file": "Hollow Post.litematic",
+  "name": "Hollow Post"
+}

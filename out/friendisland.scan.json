@@ -1,0 +1,87 @@
+{
+  "name": "friendisland",
+  "file": "friendisland.litematic",
+  "format": "litematic",
+  "created": "2026-09-04T15:00:28.318969Z",
+  "player": "Enroniti",
+  "server": {
+    "name": "Unknown Server",
+    "ip": "skyblock.net"
+  },
+  "dimension": "minecraft:overworld",
+  "data_version": 4903,
+  "origin": {
+    "x": -22421,
+    "y": -64,
+    "z": -97421
+  },
+  "size": {
+    "x": 43,
+    "y": 281,
+    "z": 43
+  },
+  "player_pos": {
+    "x": -22422,
+    "y": 201,
+    "z": -97400
+  },
+  "chunk_radius": 8,
+  "chunk_aligned": false,
+  "air_margin": 2,
+  "total_volume": 519569,
+  "non_air_blocks": 20040,
+  "palette_size": 72,
+  "tile_entities": 5,
+  "entities": 0,
+  "chunks_included": [
+    [
+      -1402,
+      -6089
+    ],
+    [
+      -1402,
+      -6088
+    ],
+    [
+      -1402,
+      -6087
+    ],
+    [
+      -1401,
+      -6089
+    ],
+    [
+      -1401,
+      -6088
+    ],
+    [
+      -1401,
+      -6087
+    ],
+    [
+      -1400,
+      -6089
+    ],
+    [
+      -1400,
+      -6088
+    ],
+    [
+      -1400,
+      -6087
+    ],
+    [
+      -1399,
+      -6089
+    ],
+    [
+      -1399,
+      -6088
+    ],
+    [
+      -1399,
+      -6087
+    ]
+  ],
+  "chunks_missing_in_bounds": []
+}

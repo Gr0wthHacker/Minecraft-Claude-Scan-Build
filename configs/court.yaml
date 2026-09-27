@@ -1,3 +1,11 @@
+# RETIRED 2026-08-20 - superseded by configs/court_hall.yaml, which is the deepslate hall built in
+# this space. Kept only as the record of how the moss-and-pond court was derived.
+#
+# Against the 12:33 capture this design has 162 cells holding a DIFFERENT block, 168 of its conflicts
+# falling inside the hall: it wants moss carpet, glow lichen and water where the hall's floor,
+# pilasters and basin now stand. Its dripstone no longer audits either - it hung off the owl's
+# underside, and 13 of those lime wool cells have since been taken out, so the stalactites now
+# anchor to air. Not in sync.yaml; regenerating it will fight what is actually there.
 # The sky-well between the owl lobe and the working deck: a moss court that gets real daylight.
 #
 # The floor is a ONE-BLOCK moss skin over open air (225 of 280 cells have nothing at Y193), so the

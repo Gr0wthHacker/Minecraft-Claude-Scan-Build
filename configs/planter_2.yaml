@@ -1,0 +1,15 @@
+name: Planter 2
+gen: streetfurniture
+params:
+  land: midway
+  facing: east
+  at:
+  - 97588
+  - 203
+  - 80623
+  kind: planter
+  title: Planter 2
+  under: out/newisle.litematic
+finish:
+  verify_against: out/newisle.litematic
+origin_lock: false

@@ -1,0 +1,233 @@
+{
+  "origin": {
+    "x": 97500,
+    "y": 95,
+    "z": 80255
+  },
+  "size": {
+    "x": 115,
+    "y": 85,
+    "z": 215
+  },
+  "generated_by": "sperm_whale",
+  "kind": "sperm_whale",
+  "facing": [
+    0,
+    1
+  ],
+  "profile_view": "side",
+  "features_built": {
+    "body": 22225,
+    "head": 25463,
+    "jaw": 5234,
+    "fin": 1901,
+    "fluke": 10990,
+    "peduncle": 880,
+    "eye": 10,
+    "mouth": 114,
+    "teeth": 16,
+    "blowhole": 6,
+    "scar": 29
+  },
+  "mouth_open": {
+    "hinge_z": [
+      146,
+      153
+    ],
+    "gape_z": [
+      154,
+      211
+    ],
+    "nose_gape_courses": 19,
+    "tooth_rows": 2
+  },
+  "reservation": [
+    97500,
+    95,
+    80255,
+    97614,
+    179,
+    80469
+  ],
+  "purpose": "Secondary abyss landmark revealed from the squid tail overlook",
+  "public_access": false,
+  "review_views": [
+    "head_on",
+    "profile",
+    "three_quarter",
+    "tail_on",
+    "parkour_approach",
+    "squid_tail_overlook"
+  ],
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "supporting",
+      "style": "prismworks",
+      "visual_review": true,
+      "narrative": "A sperm whale follows the Abyss Squid through the lower dark. Its blunt head, pale jaw, sucker scars and broad flukes are revealed from the squid's tail.\n"
+    },
+    "metrics": {
+      "blocks": 66709,
+      "materials": 7,
+      "dominant_material_share": 0.3439,
+      "light_blocks": 0,
+      "massing": {
+        "width": 97,
+        "height": 60,
+        "depth": 210,
+        "fill_ratio": 0.0546
+      },
+      "silhouette": {
+        "top": {
+          "area": 11161,
+          "fill_ratio": 0.4514
+        },
+        "front": {
+          "area": 3331,
+          "fill_ratio": 0.3408
+        },
+        "side": {
+          "area": 7471,
+          "fill_ratio": 0.4088
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.2166,
+          0.6165,
+          0.1669
+        ],
+        "top_silhouette_perimeter": 1800,
+        "surface_faces_per_block": 1.364
+      },
+      "material_counts": {
+        "black_wool": 22942,
+        "gray_wool": 20014,
+        "light_gray_wool": 15573,
+        "white_wool": 4284,
+        "red_wool": 2885,
+        "pink_wool": 967,
+        "bone_block": 44
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    },
+    "visual_packet": [
+      "out\\design_reviews\\Abyss_Sperm_Whale_yaw0.png",
+      "out\\design_reviews\\Abyss_Sperm_Whale_yaw90.png",
+      "out\\design_reviews\\Abyss_Sperm_Whale_yaw180.png",
+      "out\\design_reviews\\Abyss_Sperm_Whale_yaw270.png",
+      "out\\design_reviews\\Abyss_Sperm_Whale_silhouette.png"
+    ]
+  },
+  "design_system": {
+    "fingerprint": "771e034d8c5497a2c15aef954af117b4ab3e1cef3905360e0201e4458c8dbed6",
+    "generator_source_digest": "160b07947cefa0ad301b5ba79ba12ea556849c2253d7fd9918e0d1c8be5d908c",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "bracketed"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": true,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 59.024164,
+    "blocks": 66709,
+    "blocks_per_second": 1130.2
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 66709,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": true,
+    "ok": true,
+    "failures": [],
+    "blocks": 66709,
+    "components": [
+      66709
+    ],
+    "materials": 7,
+    "features": {
+      "body": 22225,
+      "head": 25463,
+      "jaw": 5234,
+      "fin": 1901,
+      "fluke": 10990,
+      "peduncle": 880,
+      "eye": 10,
+      "mouth": 114,
+      "teeth": 16,
+      "blowhole": 6,
+      "scar": 29
+    },
+    "profile_view": "side"
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "Abyss Sperm Whale.litematic",
+  "name": "Abyss Sperm Whale"
+}

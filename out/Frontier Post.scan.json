@@ -1,0 +1,181 @@
+{
+  "origin": {
+    "x": 97562,
+    "y": 202,
+    "z": 80390
+  },
+  "size": {
+    "x": 6,
+    "y": 8,
+    "z": 6
+  },
+  "generated_by": "wayfinding",
+  "kind": "fingerpost",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "2-4 arms, each pointing the direction its own sign faces, each naming a real module, zone or transit station",
+  "arms": [
+    {
+      "direction": "south",
+      "dest": "Midway",
+      "sign_facing": "south",
+      "placed": true,
+      "sign_at": [
+        97566,
+        206,
+        80395
+      ]
+    },
+    {
+      "direction": "west",
+      "dest": "Mine Coaster",
+      "sign_facing": "west",
+      "placed": true,
+      "sign_at": [
+        97562,
+        207,
+        80391
+      ]
+    }
+  ],
+  "post_h": 6,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction",
+      "path"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials",
+      "path": "continuous traversable route with supported furnishings and deliberate access"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "service",
+      "hierarchy": "supporting",
+      "style": "frontier",
+      "narrative": "Frontier Post serves the frontier visitor journey."
+    },
+    "metrics": {
+      "blocks": 24,
+      "materials": 6,
+      "dominant_material_share": 0.375,
+      "light_blocks": 1,
+      "massing": {
+        "width": 6,
+        "height": 8,
+        "depth": 6,
+        "fill_ratio": 0.0833
+      },
+      "silhouette": {
+        "top": {
+          "area": 15,
+          "fill_ratio": 0.4167
+        },
+        "front": {
+          "area": 14,
+          "fill_ratio": 0.2917
+        },
+        "side": {
+          "area": 14,
+          "fill_ratio": 0.2917
+        }
+      },
+      "material_counts": {
+        "stone": 9,
+        "spruce_log": 6,
+        "spruce_fence": 4,
+        "spruce_wall_sign": 2,
+        "stone_bricks": 2,
+        "lantern": 1
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "a1adc71c62bf1f3242821a844eabfea631e05cf86fb95d33cb5d83c4c98f385c",
+    "generator_source_digest": "043b3142bff3b2dd661afeef1eb89b15906e205b131a66efe66cd2ccb5d5c466",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "service",
+    "hierarchy": "supporting",
+    "land": "frontier",
+    "requires_path": false
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 24,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [],
+  "file": "Frontier Post.litematic",
+  "name": "Frontier Post"
+}

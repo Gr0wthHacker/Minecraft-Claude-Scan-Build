@@ -1,3 +1,8 @@
+# RETIRED (2026-08-22). Jack's call: the lowland goes to architecture, with animals incorporated
+# around the buildings rather than standing as the figures. Never built (0 of 7,618 cells in the
+# 15:01 Aug 22 scan), so nothing is orphaned; retiring it frees the whole NE quadrant
+# (X-24182..-24151 / Z29952..30011) for structures. Kept as a record, not regenerated.
+#
 # A FLAMINGO, on one leg, twelve blocks from the heron.
 #
 # Same skeleton as the heron - the medium can build it, so build two of it - and the difference is
@@ -15,12 +20,18 @@ params:
   variant: flamingo
   scale: 1.5
   seed: 3
-  feet: [-24165, 42, 29990]  # the ground rolls 4-5 blocks here, so stand clear of its HIGHEST point
+  feet: [-24165, 43, 29988]  # the ground rolls here, so the foot stands on a LOCAL MAX: the
+                             # massif regen (2026-08-21) raised this slope and the old spot put
+                             # 60 cells of drooping plumage inside the risen ground. (-24165,
+                             # 29988) is a single-column knoll at 42 with neighbours 40-41 -
+                             # the foot grips the knoll and everything that hangs a course
+                             # below the feet clears every rise in its droop zone.
 finish:
   cheapen: false
   hollow: false
   ground: false
   drop_floaters: false
+  trim_buried: true    # the massif rolls under this animal; cells inside a ground rise yield to it
   context_clear: [vine, short_grass, fern, moss_carpet, poppy, dandelion, azalea, flowering_azalea]
   verify_against: out/lowland_planned.litematic
 origin_lock: false

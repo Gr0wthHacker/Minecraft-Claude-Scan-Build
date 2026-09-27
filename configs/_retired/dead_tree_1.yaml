@@ -1,0 +1,15 @@
+name: Dead Tree 1
+gen: hollowmanor
+params:
+  land: hollow
+  facing: west
+  at:
+  - 97602
+  - 203
+  - 80788
+  kind: deadtree
+  title: Dead Tree 1
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

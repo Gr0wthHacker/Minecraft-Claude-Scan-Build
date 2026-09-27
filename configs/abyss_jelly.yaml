@@ -1,0 +1,38 @@
+# THE ABYSS JELLY - a giant bioluminescent jellyfish drifting under the park, the squid's
+# companion and the second thing a Prism Well runner discovers. See mcbuild/gen/jellyfish.py.
+#
+# THE SITE IS MEASURED, NOT CHOSEN. A distance-transform search over the void for the point with
+# the most clearance inside the well's visibility ring (dist-to-well 70-108) returned (97655,
+# 80855): 37 clear on every side - enough for the whole ~35-block tentacle spread with no
+# keep-out clipping - and 76 blocks off the well axis, which is ~26 off a runner on the outer
+# helix (r50). North-east of the shaft, so a falling runner sees the squid south and the jelly
+# north-east, two discoveries on two bearings.
+#
+# IT HANGS AT Y122-182, crown near the top of the deep band, tentacles trailing down - clear of
+# the park underside (Y196) above and the pool below. It lights itself: the void is pitch dark at
+# every hour, so the margin ring, the crown cap, the manubrium core, the tentacle beads and the
+# berried cave-vine tips are the only reasons anything down there can see it.
+name: Abyss Jelly
+gen: jelly
+params:
+  seed: 3
+  at: [97617, 117, 80817]      # canvas corner; centres the bell at (97655, 80855), crown Y182
+  tent_out: 0.22
+  tent_wave: 0.15
+  # GLASS BUDGET: the bell is stained glass and glass is smelted sand, so the shell is kept THIN.
+  # bell_t 2->1 halves the dome's glass with an identical silhouette (wall thickness is invisible
+  # from outside, and 1-thick glass reads MORE translucent so the internal glow shows better); the
+  # bell shrinks a touch (R15->13, H12->11) on top. Net glass 6050 -> ~2620, dome 30->26 wide.
+  bell_t: 1
+  bell_r: 13
+  bell_h: 11
+  window_frac: 0.40            # the dome is a wool lantern; glass fills 40% of each panel sector
+
+finish:
+  cheapen: false               # the palette is the squid's, all cheap-or-ok and 1.19
+  hollow: false
+  ground: false
+  drop_floaters: false         # it hangs in the dead void - that is the design
+  verify_against: out/Park Complete.litematic
+
+origin_lock: false             # LOUD: its own place in the void at Y122-182

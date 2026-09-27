@@ -30,6 +30,12 @@ OUT = ROOT / "mcbuild/data/server_blocks.json"
 # Blocks the designs already use that no capture happens to contain. Every one is 1.17 or earlier;
 # they are listed by hand ONLY because no 1.19 registry has been supplied yet. Run with --reports to
 # replace this with the real thing.
+# Captures that witness the server's real registry. `reference/amazingsteal` is another player's
+# island on the same server - a nine-year veteran whose 665 distinct blocks are the widest evidence
+# available of what skyblock.net actually has. Their WALLET does not transfer (17.5% of that build is
+# expensive tier); their AVAILABILITY does, and it is the only thing this file records.
+CAPTURES = ["island", "island_deep", "island_void", "reference/amazingsteal.litematic"]
+
 CURATED = [
     "andesite", "cartography_table", "cauldron", "cut_red_sandstone", "dark_oak_wood", "fern",
     "fletching_table", "grindstone", "loom", "mossy_cobblestone_stairs", "red_shulker_box",
@@ -41,7 +47,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--reports", help="1.19 datagen dir (contains reports/blocks.json) - authoritative")
     ap.add_argument("--version", default="1.19")
-    ap.add_argument("--captures", nargs="*", default=["island", "island_deep", "island_void"])
+    ap.add_argument("--captures", nargs="*", default=CAPTURES)
     ap.add_argument("--out", default=str(OUT))
     a = ap.parse_args()
 
@@ -57,7 +63,10 @@ def main() -> None:
         for c in a.captures:
             try:
                 s = scan.load(c)
-            except Exception:
+            except Exception as e:
+                # A capture that cannot be read must SAY so. Skipped in silence, the list quietly
+                # shrinks back to whatever loaded and nobody learns which witness went missing.
+                print(f"  SKIPPED {c}: {type(e).__name__} {e}", file=sys.stderr)
                 continue
             used.append(c)
             seen |= {n.split(":")[-1].split("[")[0] for n in s.model.names}
@@ -66,10 +75,21 @@ def main() -> None:
         names = sorted(seen)
         source = f"captures({','.join(used)})+curated"
 
-    pathlib.Path(a.out).parent.mkdir(parents=True, exist_ok=True)
-    pathlib.Path(a.out).write_text(json.dumps(
-        {"version": a.version, "source": source, "authoritative": bool(a.reports), "blocks": names},
-        indent=1), encoding="utf-8")
+    out = pathlib.Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    # PRESERVE the policy keys. `blocks.available` reads `enforce` with a default of True, so a
+    # regeneration that dropped it would silently switch the gate ON - which is the opposite of the
+    # decision recorded in `note`, and it would start rejecting blocks across every generator.
+    keep = {}
+    if out.exists():
+        try:
+            old = json.loads(out.read_text(encoding="utf-8"))
+            keep = {k: old[k] for k in ("enforce", "note") if k in old}
+        except Exception as e:
+            print(f"  could not read existing {out}: {e}", file=sys.stderr)
+    doc = {"version": a.version, "source": source, "authoritative": bool(a.reports), **keep,
+           "blocks": names}
+    out.write_text(json.dumps(doc, indent=1), encoding="utf-8")
     print(f"{len(names)} blocks -> {a.out}")
     print(f"  version {a.version}  source {source}  authoritative={bool(a.reports)}")
 

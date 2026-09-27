@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import collections
 import json
+import datetime as _dt
 import os
 from dataclasses import dataclass, field
 
@@ -32,6 +33,15 @@ ROCK_FAMILY = {"cobblestone", "stone", "mossy_cobblestone", "stone_bricks", "mos
 SLAB_FAMILY = {"stone_brick_slab", "mossy_stone_brick_slab", "cobblestone_slab", "mossy_cobblestone_slab", "smooth_stone_slab"}
 # families whose members are interchangeable: the texture mix is cosmetic, so any member counts as built
 LOOSE_FAMILIES = (ROCK_FAMILY, SLAB_FAMILY)
+# A block a design ships ONLY so that breaking it leaves the thing actually wanted. The lowland's
+# pond is ice because a printer places blocks out of your inventory and water is not a block; mine
+# the sheet and every cell is a water source, which IS the finished pond. Without this the pond
+# reads as 1,111 deviations the moment it is right, and the build loop keeps flying to it.
+#
+# DIRECTIONAL on purpose, which is why it cannot be a LOOSE_FAMILY: ice found where water was
+# wanted is a pond that FROZE - the failure the sky-well court shipped once and the guard lanterns
+# exist to prevent - and must stay a deviation.
+BECOMES = {"ice": {"water"}}
 
 
 def _names(m: schem.Model) -> np.ndarray:
@@ -76,11 +86,37 @@ class Progress:
     remaining_cells: list = field(default_factory=list)          # ((x,y,z), name)
     clear_first: collections.Counter = field(default_factory=collections.Counter)   # world blocks in the way
 
+    #: A design with less than this share of its cells inside the world was not measured at all.
+    COVERAGE = 0.5
+
     @property
     def pct(self) -> float:
         return 100.0 * self.built / self.total if self.total else 0.0
 
+    @property
+    def coverage(self) -> float:
+        """The share of this design's cells the world could actually answer about."""
+        return (self.total - self.oob) / self.total if self.total else 0.0
+
+    @property
+    def measured(self) -> bool:
+        """Was this a measurement, or a report about a world the design is not in?
+
+        **`sync` tracked `Park Complete` and scanned the OLD ISLAND, 121,000 blocks away, and
+        printed `0/541753 built (0%)` every day for the life of the park.** Every cell was out of
+        the box, and the honest word for that is UNKNOWN - but `oob` was the last clause of a line
+        whose first clause was a percentage, so the lie led and the reason trailed. `history.json`
+        then recorded the zero and the velocity slope was computed from it.
+
+        A number nobody can compute must not be printed as a number. It is the rule the ten park
+        gates already follow, where a gate with no evidence BLOCKS rather than passing."""
+        return self.total > 0 and self.coverage >= self.COVERAGE
+
     def report(self, top: int = 12) -> str:
+        if not self.measured:
+            return (f"{self.design}: NOT MEASURED - {self.oob} of {self.total} cells lie outside "
+                    f"the world it was compared against. Point sync at a capture that contains "
+                    f"this design (sync.yaml `worlds:`); its progress is unknown, not zero.")
         lines = [f"{self.design}: {self.built}/{self.total} built ({self.pct:.0f}%), {self.wrong} cells hold a different block, "
                  f"{self.oob} outside the scan box (unknown)",
                  "left: " + ", ".join(f"{k}:{v}" for k, v in self.missing_by.most_common(top))]
@@ -95,6 +131,8 @@ class Progress:
 
 def _same(want: str, have: str, loose_rock: bool) -> bool:
     if want == have:
+        return True
+    if have in BECOMES.get(want, ()):
         return True
     return loose_rock and any(want in fam and have in fam for fam in LOOSE_FAMILIES)
 
@@ -181,6 +219,48 @@ def diff_report(d: dict, top: int = 10) -> str:
 
 # ------------------------------------------------------------------ merge
 
+def world_box(path: str, schem_dir: str = scan.DEFAULT_SCHEM_DIR):
+    """A capture's box, read from its SIDECAR ALONE - never loads the model.
+
+    Returns (x0, y0, z0, x1, y1, z1), or None for a sidecar with no recorded size (designs written
+    by some generators have an origin and no size; a capture written by `/cscan` always has both)."""
+    _, side = scan.resolve(path, schem_dir)
+    with open(side, encoding="utf-8") as f:
+        meta = json.load(f)
+    o, s = meta.get("origin"), meta.get("size")
+    if not o or not s:
+        return None
+    return (o["x"], o["y"], o["z"], o["x"] + s["x"] - 1, o["y"] + s["y"] - 1, o["z"] + s["z"] - 1)
+
+
+def world_for(design: str, worlds: list[str], schem_dir: str = scan.DEFAULT_SCHEM_DIR) -> str:
+    """Which capture to measure this design against: the one whose box holds the design's origin.
+
+    **A HEURISTIC, AND DELIBERATELY SO.** Getting this exactly right means loading half a million
+    cells to compute a box; the honest check is downstream and costs nothing extra, because
+    `progress` counts every out-of-box cell as it goes and `Progress.measured` refuses to print a
+    percentage when most of them were. So this picks cheaply and the measurement tells the truth
+    about whether the pick was any good - which is the same split as siting a design by a fast
+    search and letting the audit judge the result.
+
+    With nothing matching it returns the FIRST world, so a setup that has never heard of a second
+    world behaves exactly as it did.
+    """
+    if not worlds:
+        raise ValueError("no world to measure against")
+    o = scan.resolve(design, schem_dir)[1]
+    with open(o, encoding="utf-8") as f:
+        og = json.load(f).get("origin") or {}
+    x, y, z = og.get("x"), og.get("y"), og.get("z")
+    if x is None:
+        return worlds[0]
+    for w in worlds:
+        b = world_box(w, schem_dir)
+        if b and b[0] <= x <= b[3] and b[1] <= y <= b[4] and b[2] <= z <= b[5]:
+            return w
+    return worlds[0]
+
+
 def merge_scans(paths: list[str], out: str) -> str:
     """Union of captures. Ordered oldest -> newest by 'created'; a newer scan is authoritative (air included)
     for the chunks it loaded; older scans only fill chunks the newer ones did not load."""
@@ -188,8 +268,12 @@ def merge_scans(paths: list[str], out: str) -> str:
     box = _union_box(scans)
     (x0, y0, z0), (x1, y1, z1) = box
     ids = np.zeros((y1 - y0 + 1, z1 - z0 + 1, x1 - x0 + 1), np.int32)
+    # **THE SEED MUST BE REGISTERED, OR IT IS A DUPLICATE WAITING TO HAPPEN.** `pal` starts with
+    # air at index 0 and `key_index` was left empty, so the first scan's air did not match anything
+    # and was appended as a SECOND air entry - 2.3 million cells that `ids != 0` reads as solid.
     pal: list = [scans[0].model.palette[0]]
-    key_index = {}
+    from .nbt import state_key as _sk
+    key_index = {_sk(pal[0]): 0}
     claimed = np.zeros((z1 - z0 + 1, x1 - x0 + 1), bool)          # columns already owned by a newer scan
     chunks_all = set()
     for s in reversed(scans):                                       # newest first
@@ -208,7 +292,7 @@ def merge_scans(paths: list[str], out: str) -> str:
     m.compact_palette()
     meta = {**scans[-1].meta, "origin": {"x": x0, "y": y0, "z": z0}, "size": {"x": ids.shape[2], "y": ids.shape[0], "z": ids.shape[1]},
             "merged_from": [os.path.basename(s.litematic_path) for s in scans], "chunks_included": sorted(list(c) for c in chunks_all),
-            "non_air_blocks": int((ids > 0).sum())}
+            "non_air_blocks": int(m.solid().sum())}
     return scan.save_pair(out, m, meta, name=os.path.splitext(os.path.basename(out))[0])
 
 
@@ -221,10 +305,21 @@ def _union_box(scans):
 
 def _paste_columns(ids, pal, key_index, g: Grid, own: np.ndarray, origin):
     """Copy every column of g where own[z,x] is set (air included), re-indexing its palette."""
-    from .nbt import state_key
+    from .nbt import state_key, state_name
     x0, y0, z0 = origin
     remap = {}
     for i, tag in enumerate(g.s.model.palette):
+        # **EVERY AIR-LIKE STATE IS INDEX 0, WHATEVER ITS NBT.** Two captures can spell air with
+        # different tags - one carrying an empty `Properties`, one not - and `state_key` tells them
+        # apart, so the union grew a SECOND air entry holding 2.3 million cells. `compact_palette`
+        # cannot merge them either: they are genuinely different tags. Nothing that reads the model
+        # through `Model.solid()` notices, and everything that asks `ids != 0` - which is the
+        # ordinary way to ask - reads all that air as SOLID. It put the merge's own
+        # `non_air_blocks` at 33,021,122 against a true 379,768, and reported every cell of a design
+        # verified against the cut as an overlap.
+        if state_name(tag).split(":")[-1].split("[")[0] in AIR:
+            remap[i] = 0
+            continue
         k = state_key(tag)
         if k not in key_index:
             key_index[k] = len(pal); pal.append(tag)
@@ -239,8 +334,15 @@ def _paste_columns(ids, pal, key_index, g: Grid, own: np.ndarray, origin):
 
 # ------------------------------------------------------------------ shop
 
-def load_storage(schem_dir: str | None = None) -> collections.Counter:
-    """What chunkscan has seen inside your containers: {item: count} from schematics/storage.json."""
+def load_storage(schem_dir: str | None = None, boxed: bool = True) -> collections.Counter:
+    """What chunkscan has seen inside your containers: {item: count} from schematics/storage.json.
+
+    `boxed` counts what is inside SHULKER BOXES that are inside those containers, which the mod
+    records separately in `inBoxes`. The build loop keeps the two apart on purpose - a boxed block
+    is not placeable until you set the box down - but for "do I own enough to make this" a boxed
+    block is owned, and bulk storage on this island IS boxes in chests. Pass False for the
+    placeable-right-now question.
+    """
     path = os.path.join(schem_dir or load_profile()["schem_dir"], "storage.json")
     have = collections.Counter()
     if not os.path.exists(path):
@@ -250,6 +352,9 @@ def load_storage(schem_dir: str | None = None) -> collections.Counter:
     for c in data.get("containers", []):
         for item, n in (c.get("items") or {}).items():
             have[item.split(":")[-1]] += int(n)
+        if boxed:
+            for item, n in (c.get("inBoxes") or {}).items():
+                have[item.split(":")[-1]] += int(n)
     return have
 
 
@@ -279,15 +384,19 @@ def load_prices(path: str = "prices.yaml") -> dict:
 
 
 def shop(designs: list[str], world: str | None = None, prices: dict | None = None, have: collections.Counter | None = None) -> str:
+    from . import items as items_mod
     prices = load_prices() if prices is None else prices
     need = collections.Counter()
     for dpath in designs:
+        # BY ITEM, NOT BY BLOCK. A shopping list naming `oak_wall_sign` sends you looking for an
+        # item that does not exist; the sign you carry is `oak_sign` and the face you click decides
+        # how it lands. See mcbuild/items.py.
         if world:
             for _, n in progress(dpath, world).remaining_cells:
-                need[n] += 1
+                need[items_mod.item_for(n)] += 1
         else:
             for _, n in Grid(scan.load(dpath)).cells():
-                need[n] += 1
+                need[items_mod.item_for(n)] += 1
     lines = [f"{'block':26s} {'count':>6s} {'stacks':>7s} {'shulk':>6s}  tier" + ("      have  short" if have is not None else "") + ("   coins" if prices else "")]
     total_coins = 0.0
     for name, n in need.most_common():
@@ -336,6 +445,40 @@ def floating_clusters(design: str, context: list[str]) -> tuple[int, int, list]:
 
 # ------------------------------------------------------------------ sync
 
+def write_tracked(cfg: dict, schem_dir: str) -> list[str]:
+    """Tell the MOD which designs are live work.
+
+    `sync.yaml` is the only place that knows: `progress:` is the list Jack actually tracks, against
+    61 designs sitting in the schematics folder. The mod could not see it - it has gson and no YAML
+    parser, and sync.yaml lives in the repo rather than beside the schematics - so bare
+    `/cscan place` placed ALL of them, and `plan` could only ever be asked about one design at a
+    time.
+
+    This is the same one-source route as `chunkscan_rules.json`, with one difference that matters:
+    those rules are baked into the JAR because they change when the GAME does, and this list changes
+    whenever Jack edits a yaml file. So it is written beside the schematics and read at runtime.
+    """
+    names = []
+    for d in cfg.get("progress", []) or []:
+        base = os.path.basename(str(d))
+        for ext in (".litematic", ".scan.json", ".work.json"):
+            if base.endswith(ext):
+                base = base[: -len(ext)]
+                break
+        if base and base not in names:
+            names.append(base)
+    out = {"_comment": "GENERATED by `python -m mcbuild sync` from sync.yaml's `progress:` list. "
+                       "The mod reads this so `/cscan place` and `/cscan plan` mean the designs you "
+                       "actually track, not everything in the folder.",
+           "tracked": names,
+           "written": _dt.datetime.now().isoformat(timespec="seconds")}
+    path = os.path.join(schem_dir, "designs.json")
+    os.makedirs(schem_dir, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(out, fh, indent=1)
+    return names
+
+
 def sync(cfg_path: str = "sync.yaml", verbose: bool = True) -> str:
     """After a fresh /cscan: cut the latest scan -> regenerate remaining-work designs -> progress + shop -> learn."""
     import subprocess, sys, yaml
@@ -356,18 +499,77 @@ def sync(cfg_path: str = "sync.yaml", verbose: bool = True) -> str:
                            capture_output=True, text=True, encoding="utf-8", errors="replace")
         tail = [l for l in r.stdout.splitlines() if l.startswith(("in context", "paste origin", "shipped", "buildability"))]
         lines.append(f"regen {c}: " + " | ".join(tail) if r.returncode == 0 else f"regen {c}: FAILED\n{r.stdout[-800:]}{r.stderr[-800:]}")
+    # PROGRESS IS MEASURED AGAINST THE FULL DEPTH, NOT THE PLATE CUT. `world_out` is the
+    # Y150+ box the plate designs verify against; reporting a below-island design against it
+    # counts every cell under Y150 as "outside the scan box (unknown)" and calls it unbuilt.
+    # It read every lowland design as 0% for the whole life of that scene - a stair 74% built
+    # reported 6/2139 - and the velocity slope was out by about four times. `full_out` names
+    # a capture that holds the whole island; without one this falls back to the old behaviour.
+    full_out = cfg.get("full_out")
+    prog_world = full_out if full_out and os.path.exists(full_out) else world_out
+    if prog_world != world_out:
+        lines.append(f"progress measured against {prog_world} (full depth)")
+    # ---- AND A DESIGN IS MEASURED AGAINST A WORLD THAT CONTAINS IT.
+    #
+    # One `world_out` can never cover everything this repo tracks: the park is three islands
+    # 121,000 blocks from the original one, and tracking `Park Complete` against `island` printed
+    # `0/541753 built (0%)` every day for the life of the park. `worlds:` is the list of captures
+    # available; each design takes the one whose box holds it, and `Progress.measured` says so
+    # when none of them does rather than reporting the ignorance as a zero.
+    worlds = [w for w in (cfg.get("worlds") or []) if os.path.exists(scan.resolve(w)[0])]
+    worlds = worlds or [prog_world]
     rows = {}
+    unmeasured = []
+    by_world: dict[str, list] = {}
     for d in cfg.get("progress", []):
-        pr = progress(d, world_out)
-        rows[os.path.basename(d)] = (pr.built, pr.total)
+        w = world_for(d, worlds)
+        pr = progress(d, w)
+        if pr.measured:
+            rows[os.path.basename(d)] = (pr.built, pr.total)
+            by_world.setdefault(w, []).append(d)
+        else:
+            unmeasured.append(d)
+        if len(worlds) > 1:
+            lines.append(f"measured against {os.path.basename(w)}")
         lines.append(pr.report(top=8))
     if cfg.get("progress"):
-        lines.append(shop(cfg["progress"], world_out))
+        # ONE LIST PER WORLD, because a shopping list is a list you go and BUY: totals across the
+        # designs measured against one capture are what you carry, and designs in two different
+        # worlds are two trips. A design nobody could measure is shopped WHOLE - "we do not know
+        # what is built" is not "nothing is left", and assuming the work is the safe direction.
+        for w, group in by_world.items():
+            lines.append(shop(group, w))
+        if unmeasured:
+            lines.append(shop(unmeasured, None))
         from . import history as history_mod
-        history_mod.record(rows)                       # one row per sync: gives progress a slope
-        lines.append(history_mod.report())
+        # NEVER RECORD AN UNMEASURED DESIGN. A zero written because the wrong world was scanned is
+        # indistinguishable in `history.json` from a zero because nothing was built, and the
+        # velocity slope is computed from both.
+        if rows:
+            history_mod.record(rows)                   # one row per sync: gives progress a slope
+            lines.append(history_mod.report())
+        if unmeasured:
+            lines.append("NOT recorded in history (not measurable against any world given): "
+                         + ", ".join(os.path.basename(d) for d in unmeasured))
     if cfg.get("learn", True):
         lines.append(learn_mod.learn([world_out]).splitlines()[0])
+    tracked = write_tracked(cfg, prof["schem_dir"])
+    lines.append(f"tracked {len(tracked)} design(s) -> designs.json (the mod reads this for "
+                 f"`/cscan place` and `/cscan plan`)")
+    # THE SCAN IS THE THING THAT CANNOT BE REGENERATED, and this is the moment a new one exists.
+    # Backing up on any other schedule backs up the world as it was before the change that made
+    # the run worth doing. A failure here is REPORTED and never fatal: a sync that dies because
+    # the backup drive is full has lost the sync as well as the backup.
+    if cfg.get("backup", True):
+        from . import backup as backup_mod
+        try:
+            man = backup_mod.run(keep=cfg.get("backup_keep", backup_mod.KEEP))
+            n = sum(p.get("files", 0) for p in man["parts"].values()
+                    if isinstance(p, dict) and isinstance(p.get("files"), int))
+            lines.append(f"backup {man['stamp']}: {n} files verified -> {man['dir']}"
+                         + (f" (pruned {len(man['pruned'])})" if man.get("pruned") else ""))
+        except Exception as e:                              # noqa: BLE001
+            lines.append(f"BACKUP FAILED: {e}")
     return "\n".join(lines)
 
 

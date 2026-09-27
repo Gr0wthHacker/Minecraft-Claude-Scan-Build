@@ -1,0 +1,17 @@
+name: Curio Shop 1
+gen: park
+params:
+  land: hollow
+  width: 7
+  depth: 5
+  facing: south
+  at:
+  - 97578
+  - 203
+  - 80776
+  kind: stall
+  title: Curio Shop 1
+  under: out/islandright.litematic
+finish:
+  verify_against: out/islandright.litematic
+origin_lock: false

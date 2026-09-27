@@ -97,12 +97,15 @@ def _dress(w: World, shelf, ty: int, p: dict, seed: int, ctx=None):
                 w.put(x, ty, z, name if name != "moss_block" or h < p["moss"] else "mossy_cobblestone")
                 break
     for (x, z) in shelf:
-        # plant against what will REALLY be underfoot: where the world already holds something the
-        # design does not, that block is what the grass has to root in.
+        # plant against what will REALLY be underfoot - BOTH underfoots. The world's block
+        # matters where it already holds something, and the design's own top-course pick
+        # matters everywhere: taking the world's moss as licence while the design had put
+        # stone brick in that very cell shipped one short_grass rooted in masonry.
         under = w.name(x, ty, z)
-        if ctx is not None and ctx.name_at(x, ty, z) not in AIRY:
-            under = ctx.name_at(x, ty, z)
         if not is_soil(under) or w.has(x, ty + 1, z):
+            continue
+        if ctx is not None and ctx.name_at(x, ty, z) not in AIRY and \
+                not is_soil(ctx.name_at(x, ty, z)):
             continue
         h = hash01(x, z, 29, seed)
         if h < p["grass"]:

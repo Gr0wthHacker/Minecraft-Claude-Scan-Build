@@ -1,0 +1,23 @@
+{
+  "origin": {
+    "x": 97609,
+    "y": 202,
+    "z": 80393
+  },
+  "size": {
+    "x": 13,
+    "y": 25,
+    "z": 13
+  },
+  "generated_by": "park",
+  "kind": "tower",
+  "land": "frontier",
+  "facing": "south",
+  "contract": "a climbable landmark: a ladder to a crenellated deck, visible across the zone",
+  "unverified": [],
+  "side": 9,
+  "tiers": 4,
+  "height": 23,
+  "file": "Prospect Tower.litematic",
+  "name": "Prospect Tower"
+}

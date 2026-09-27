@@ -1,0 +1,243 @@
+# PF MINE RIDGE - the mountain the Mine Coaster is cut into.
+#
+# Jack: "frontier in its current design is useless outside of the rollercoaster, lets think about
+# this area differently and figure out what we can build that supports the coaster, and is
+# interesting + visual."
+#
+# ---------------------------------------------------------------------------------------------
+# WHY THIS AND NOT ANOTHER BUILDING
+#
+# Measured over `out/Park Complete.litematic` before anything was drawn:
+#
+#     the Frontier is 200 x 170 = 34,000 columns, and 66% of it is bare lawn
+#     its whole interactive inventory is 646 rails, 2 buttons, 2 bells, 2 detector rails
+#     3.8% of it stands over 20 courses; exactly two things break 25
+#     the Mine Coaster tops out 42 courses over the plane
+#
+# and `tools/look.py --sheet panel` on the ride says the rest: **its PLAN IS A RECTANGLE** - a
+# timber trestle perimeter round a terraced grey mass with vertical faces, 10,657 cells of
+# `cracked_stone_bricks`, which is a BRICK. You cannot name it from the silhouette. It reads as a
+# quarry heap standing on a lawn, and the land's own spec (`PARK_FRONTIER.md`) promises "a living
+# gold-rush mining town against a worked-out mountain" - the mountain was never built.
+#
+# So the highest-leverage thing in this land is not a seventh building. It is the mountain.
+#
+# ---------------------------------------------------------------------------------------------
+# THE LOT, AND WHY IT IS THE COASTER'S OWN
+#
+# V24 U99, 124 x 71 - the Mine Coaster's lot, minus its last seven columns, which `PF Mine Works`
+# takes for the ore line's spur. Measured column by column against `Park Ways` and `Park
+# Complete`: **not one cell of it is paved** and the only thing standing above the lawn inside it
+# is the ride itself plus 448 cells of the ground layer's own moss carpet, which
+# `verify_replaceable` covers.
+#
+# **NOT ONE CELL THE RIDE OWNS IS TAKEN.** The generator loads the coaster's artifact and refuses
+# every cell of it, so `overlap 0` is a property of the construction rather than something hoped
+# for - and the ride keeps its own place in the merge whatever order the two are placed in.
+#
+# ---------------------------------------------------------------------------------------------
+# THE CREST IS SOUTH, WHICH IS A MEASUREMENT AND NOT A PREFERENCE
+#
+# The ride's own height map (3-cell bins, park courses) runs 27-42 at its lift hill in the north
+# and east and **0-15 across its last ten courses in the south** - so the only place a peak can
+# stand without either burying the ride or being squeezed against a street is behind it. That is
+# also the classic composition: a guest arrives from the U92-99 cross walk, at the ride's north
+# face, and the mountain rises BEHIND the thing they came to look at.
+#
+# It crests at 50 courses over the plane, which makes it the tallest thing in the Frontier - the
+# Vantage Lookout's deck is 44 and the ride 42 - and it does it 130 blocks SOUTH of the lookout,
+# so the lookout still reads across the switchbacks and gains a skyline behind them.
+#
+# ---------------------------------------------------------------------------------------------
+# THE ADIT IS THE ANSWER TO "AND WHAT DO I DO HERE"
+#
+# A mine you can only look at is scenery. This one has a walk-through gallery in the foot of the
+# cut face - two framed portals on one face, timber sets every third cell, rail underfoot, an ore
+# chamber with a gold face and a fenced winze - and the cover over it is FORCED before the mass
+# is filled, because a gallery carved out of whatever the talus happened to give is an open
+# trench with two walls that renders as a tunnel from the one bearing looking down it.
+#
+# **THERE IS NO UNDERGROUND ON THIS ISLAND TO DIG INTO.** Measured: world Y202 is the lawn and
+# 34,000 columns of it, and Y190-201 hold between 12 and 175 cells in the whole Frontier - the
+# park is a one-block-thick plate over void. A shaft is not available; an ADIT into a hillside is
+# what a gold-rush mine on a hill actually is, and it is the one that can be built here.
+name: PF Mine Ridge
+gen: mineridge
+params:
+  kind: ridge
+  lot: [124, 71]
+  at: [24, 99]
+  sy: 60
+  ride: out/park_final/artifacts/Mine Coaster.litematic
+  ride_at: [0, 0]
+  ride_plane: 13
+  # THE CREST IS A RIDGELINE, NOT A SET OF CONES. The first build used point sources with a
+  # `(1-d)**1.6` falloff and came out as three sharp spires wrapped in contour rings - a tent is
+  # what that exponent draws. Each entry here is a SEGMENT [v0, u0, v1, u1, height, width] and
+  # the falloff is flat-topped, which is a mesa. The main spine runs roughly east-west behind the
+  # ride, with a lower shoulder east of it and a spur falling west toward the spine street.
+  # THE CRAG STANDS ON THE EAST AND SOUTH STRIPS, WHICH IS WHERE THE ROOM IS. Measured with a
+  # capped distance transform over the ride's own footprint: the notch inside its plan reaches at
+  # most 7 cells of clearance and mostly 1-6, while V101-123 (east, behind the lift hill) and
+  # U160-169 (south, past its low end) run 7-12. So the mountain is an L round the ride's
+  # south-east corner and the lift hill climbs INTO its face, which is what a mine coaster is.
+  # Each entry is a SEGMENT [v0, u0, v1, u1, height, width]; the falloff is flat-topped, so a
+  # segment is a mesa rather than a tent - point sources with a steep exponent came out as spires.
+  # **THE CRAG STRADDLES THE RIDE'S EAST CORNER, BECAUSE THE RIDE HAS TO GO THROUGH IT.** The
+  # first build put the summit at V108-118 and held it seven cells clear of the track, and the
+  # track's easternmost point is V96 - so the mountain stood BESIDE the coaster. Jack, on sight:
+  # "the coaster doesnt even go into the mountain you built."
+  #
+  # Measured in lot-local coordinates, the circuit is a rectangle and its four legs are:
+  #     north lift    V8-96   U3-5    y1 -> 39     climbing west to east
+  #     east traverse V91-96  U6-21   y39          FLAT, at the very top of the ride
+  #     descent       V78-86  U21-57  y39 -> 7
+  #     south return  V8-77   U51-57  y1-15
+  # The east traverse is the tunnel: sixteen cells of level track at the crest of the lift, which
+  # is exactly where a mine coaster dives into the hill. The summit now sits over it.
+  #
+  # Each entry is a SEGMENT [v0, u0, v1, u1, height, width]; the falloff is near-linear off the
+  # line, so a segment is a ridge - point sources with a steep exponent came out as spires and a
+  # flat-topped exponent came out as a terraced mesa.
+  spine:
+    - [88, 10, 96, 40, 50, 20]     # the summit, straddling the east traverse and the descent
+    - [112, 16, 120, 36, 36, 13]   # the east shoulder, over the adit
+    - [110, 46, 118, 56, 30, 11]   # the south shoulder
+    # THE SOUTH-WEST FLANK, on the ground the deleted queue was holding. It is what makes
+    # the mass reach past the ride's own south edge at U159 instead of stopping at it,
+    # and it is the rock the adit is bored into.
+    - [18, 62, 40, 67, 19, 17]     # world V42-64 x U161-166
+  # **THE TUNNEL.** Inside this box the stand-off is waived and the mass closes over the track;
+  # what keeps the ride running is the BORE - a swept envelope round the rail itself, cleared
+  # before anything is filled and then dressed and timbered. It covers the east traverse and the
+  # head of the descent, so a train crests the lift hill, runs into the mountain and comes out
+  # lower down the far side.
+  tunnels:
+    - [74, 100, 4, 34]
+  bore_side: 2
+  bore_up: 4
+  bore_down: 1
+  bore_cover: 3
+  # GROUND THAT IS ALREADY SOMEBODY'S. Measured against `Park Complete`: 271 columns of this lot
+  # carry something that is not the ride, and every one of them is `PF Front Frontier`'s - the
+  # coaster's 7 x 30 switchback queue at V39-59, the Ridge Water Tower at V70-78, the Ore Road at
+  # V92-96 and the Trail Ore Cart at V117-123, all in the south band. Local boxes, with margin.
+  # **NARROWED, BECAUSE THE THING IT WAS SIZED FOR IS GONE.** This was one box covering world
+  # V24-130 x U156-169 - the whole south band - because `PF Front Frontier` put a 7 x 30 coaster
+  # queue at V27-33 / U161-190. That queue is deleted (the ride builds its own), and measured
+  # against the placed park the band now holds only three props: the Ridge Water Tower at
+  # V70-79/U160-167, the Ore Road at V90-96/U162-167 and the Trail Ore Cart at V118-124/U152-158.
+  # Keeping the whole band out left **~1,100 columns of empty ground** south of the ride, which is
+  # a fair part of what Jack means by "the rest of frontier... so much wasted empty crap". Three
+  # boxes with margin instead of one, and the mass now has a real south flank.
+  keep_out:
+    - [42, 58, 57, 70]     # world V66-82 x U156-169 - the Ridge Water Tower
+    - [62, 76, 59, 70]     # world V86-100 x U158-169 - the Ore Road
+    - [90, 104, 49, 62]    # world V114-128 x U148-161 - the Trail Ore Cart
+    # **THE RIDE'S OWN PUBLIC FACE, AND THE FIRST BUILD WALLED IT UP.** `Mine Coaster.scan.json`
+    # declares every one of its guest anchors on its WEST flank at world V24: queue_entry U126,
+    # public_entry U134, public_exit U142, ride_exit U146. Measured against the placed park, my
+    # talus formed a continuous three-cell wall at V26-28 across U122-150 - directly in front of
+    # all four. A guest walking the ground layer's own spur to the ride's front door met rock.
+    #
+    # A moat on the guest side is not a loss: it is what lets the ride read AGAINST the mountain
+    # instead of merging into it, which is the whole composition. The talus belongs on the faces
+    # nobody enters by.
+    - [0, 8, 17, 55]       # world V24-32 x U116-154 - the ride's own entry, exit and queue
+  # THE MOAT: the crest reaches full height only seven cells clear of the ride EXCEPT in a tunnel
+  # zone, so everywhere else the track has rock to read against instead of rock on top of it.
+  stand_off: 7
+  talus_reach: 13
+  bench: 3
+  # SPOIL IS WHAT A MINE PUTS SOMEWHERE, and it is the cheapest block in the vocabulary that says
+  # the mountain is being worked rather than merely standing. All three are at the foot, clear of
+  # the ride's own columns and clear of both adit portals.
+  spoil:
+    - [118, 40, 6]
+    - [104, 8, 5]
+    - [116, 14, 4]
+  # ---------------------------------------------------------------------------------------
+  # THE ADIT IS BACK, AS ONE MOUTH, ON THE GUEST'S OWN SIDE.
+  #
+  # Jack, first: "the entrances/exits/mineshafts whatever they are cut into the rollercoaster
+  # mountain make no sense at the bottom and are just a broken weird circle." Jack, later,
+  # auditing the finished land: "basically none of [the mountain] is used except for the top peak
+  # on the one side." Both are true, and the fix for the second one cannot repeat what caused the
+  # first. It doesn't:
+  #
+  #  * **IT WAS ON THE BACK OF THE MOUNTAIN.** The old mouths opened east at world V145-146, onto
+  #    the service lane. This one opens at local v14/u49 - world V38/U148 - two cells south of the
+  #    ride's own `ride_exit` anchor (world V24/U146) and clear of the guest-side moat (`keep_out`
+  #    box below), which the first siting attempt put the portal frame one cell inside of. A guest
+  #    walking out of the coaster passes within a few cells of it.
+  #  * **TWO MOUTHS TEN CELLS APART READ AS A BROKEN CIRCLE.** There is only one mouth now.
+  #    `mouths: 1` in `mineridge._adit_plan` builds a single lane ending at the chamber's own
+  #    back wall - a pocket you step into and back out of, never a second hole in the hillside
+  #    to read as damage alongside the first.
+  #  * **IT DUPLICATED THE RIDE'S OWN TUNNEL.** A dead-end alcove is a different kind of space
+  #    from a through-bore: you don't ride a cart through it, you walk in, read the ore face,
+  #    look down the winze, and walk back out. It is not a second copy of the coaster's tunnel,
+  #    it is the one thing in this land you can do with the mountain on foot.
+  #
+  # THE SITE IS DELIBERATELY SHALLOW - fourteen cells deep, well short of the crest's own spine
+  # (v88+) and the ride's tunnel box (v74+) - because there is no guest path any deeper into this
+  # lot than the moat in front of the ride's own anchors. A mouth a guest cannot walk to is the
+  # first mistake repeated with different numbers.
+  # **AND THE SITE MOVED, BECAUSE THE OLD ONE WAS INSIDE THE RIDE.** Local v14 is world V38, and
+  # the Mine Coaster's own low track runs world V32-44: measured, the mouth and its chamber took
+  # **102 cells the ride owns** and `park_place` reported the clash between the two designs.
+  # Mapping the ride's footprint across the whole guest band shows why there was no fixing it by a
+  # cell or two - on that flank the only free ground is the 5-wide moat at world V24-28, which
+  # this design deliberately keeps out of so the ride's four guest anchors stay open.
+  #
+  # The south flank is where a mouth can actually stand: world V40-52 / U160-168 is open ground,
+  # clear of the ride (which ends at U159) and of all three frontage props, and it is reached off
+  # the U168+ lawn a guest walks round the ride's south side. `mineridge` sweeps any ride cell an
+  # adit takes and REPORTS the count, so the refusal is structural rather than these numbers being
+  # right - but the numbers are right too, and `ride_cells_swept` is 0.
+  adit:
+    at: [16, 65]
+    into: east
+    mouths: 1
+    length: 12
+    width: 3
+    height: 4
+    cover: 4
+    chamber: [27, 65, 3]
+  seed: 19
+roles: [ride]
+design:
+  purpose: landmark
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    The worked-out mountain the Mine Coaster is cut into: a battered talus wrapping the ride's
+    whole outline, a crag cresting fifty courses over the plane behind it, benched cut faces
+    where the rock is too steep to stand on, gravel spoil tips at the foot, and a single-mouth
+    adit at the foot of the cut face, two cells from the ride's own exit, with timber sets, rail,
+    an ore chamber and a winze.
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [walk the adit, look down the winze, stand at the ore face, walk under the crag]
+  outcome: >
+    The Frontier's only mountain, and the first thing in the land that answers what the coaster
+    is FOR: the ride is cut into the near face of a worked hill you can walk into.
+  reset: >
+    Nothing is consumed and no state is held. The gallery is one lane ending at the chamber's own
+    back wall - a pocket you walk into and back out of, not a through route.
+  service_access: >
+    None is needed and none is claimed - there is no plant and no mechanism in this geometry.
+  bypass: >
+    The whole thing is walked past on the lawn without entering; the one mouth is set back from
+    the guest path, so nobody has to duck in.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/Park Complete.litematic
+  # The lawn's own scatter: `Park Ways` lays moss carpet across every lot at the course this
+  # design builds on. Measured, this lot holds 448 cells of it and nothing else.
+  verify_replaceable: [moss_carpet]
+origin_lock: false

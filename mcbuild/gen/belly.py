@@ -219,7 +219,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
     soft = np.concatenate([np.zeros((PAD,) + E0.shape[1:], bool), _mask_by_name(um, _is_soft)], axis=0)
 
     B = _geometry(E, hang, soft, lo, (ox, oz), p)
-    Wnew, Wsolid = _already_built(p, E, E0.shape, (ox, oy, oz), PAD)
+    Wnew, Wsolid, Wocc = _already_built(p, E, E0.shape, (ox, oy, oz), PAD)
     # "Already built" means a cell of THIS design you have placed - not any block that has appeared
     # since the baseline. Without the mask, a new build under the island (the root stair) becomes part
     # of the belly, and its vines then hang off it below the origin lock.
@@ -234,7 +234,7 @@ def build(cfg: dict, donors: list | None = None) -> Canvas:
     _paint(c, B, E, outside, p)
     # The anchor mask is world-solid AND belly: a vine may only cling to a belly cell that is really
     # there, never to something else that happens to be standing in the same place.
-    _vines(c, Bfull, Wsolid & Bfull, Wsolid, outside, p)
+    _vines(c, Bfull, Wsolid & Bfull, Wsolid | Wocc, outside, p)
     _lanterns(c, Bfull, E | Wnew, outside, p)
     c.world_origin = (ox, oy - PAD, oz)
     c.meta = {"encase_below": int(ey_world), "under": os.path.basename(p["under"]), "clear": ["vine"],
@@ -266,13 +266,17 @@ def _geometry(E, hang, soft, lo, origin_xz, p) -> np.ndarray:
 
 
 def _already_built(p, E, shape0, origin, PAD):
-    """(cells the player has already placed, full blocks in `world` that things may cling to).
+    """(cells the player has already placed, full blocks in `world` that things may cling to,
+    cells the world OCCUPIES with anything at all).
 
     The second mask matters for decoration: `under` is the PRE-build baseline, so a block that has
     since been mined still reads as solid there. Anything that clings to a neighbour has to test
-    against what is in the world today, not against the baseline."""
+    against what is in the world today, not against the baseline. The third is stricter than the
+    second the other way round: tripwire is not solid enough to cling to, but a strand cannot pass
+    THROUGH the cell it occupies either - Jack strung string lines under the plate, and the vine
+    walk skipped those cells and kept emitting below them, orphaning whole strands in context."""
     if not p.get("world"):
-        return np.zeros_like(E), E.copy()   # no world file: the baseline is all we know
+        return np.zeros_like(E), E.copy(), E.copy()   # no world file: the baseline is all we know
     ox, oy, oz = origin
     wm, (wx, wy, wz) = _load_under(p["world"])
     W0 = _existing_solid(wm, set(p["strip"]))
@@ -289,7 +293,9 @@ def _already_built(p, E, shape0, origin, PAD):
     F0 = _mask_by_name(wm, audit_mod._is_solid_name)
     F = np.zeros_like(E)
     F[dst0:dst0 + n] = F0[src0:src0 + n]
-    return W & ~E, F
+    O = np.zeros_like(E)
+    O[dst0:dst0 + n] = W0[src0:src0 + n]
+    return W & ~E, F, O
 
 
 def _hollow(B: np.ndarray, E: np.ndarray, wall: int) -> np.ndarray:

@@ -1,0 +1,59 @@
+name: Resonance Vault
+gen: prismworks
+params:
+  kind: vault
+world_contract: true
+roles: [building]
+anchors:
+  # Guests cross the service ring in a walled vestibule at either end; the service door is on
+  # the third face and opens into the ring alone.
+  - name: entry
+    kind: entry
+    position: [1, 1, 19]
+    facing: east
+    width: 3
+  - name: exit
+    kind: exit
+    position: [37, 1, 19]
+    facing: east
+    width: 3
+  - name: state_panel
+    kind: visual_front
+    position: [19, 5, 19]
+    facing: south
+    width: 5
+  - name: service_access
+    kind: maintenance
+    position: [19, 1, 37]
+    facing: north
+    width: 1
+design:
+  purpose: building
+  hierarchy: supporting
+  style: natural
+  narrative: A compact cooperative Prismworks puzzle room with three visible input stations.
+  quality:
+    min_blocks: 8000
+    min_materials: 6
+  enforce: true
+fun_contract:
+  enforce: true
+  class: experience
+  player_verbs: [coordinate, choose, solve]
+  outcome: Three stations lead to one visible shared completion state.
+  reset: Service reset returns all stations and the completion state to ready.
+  service_access: Rear maintenance access reaches all puzzle wiring and state panels.
+  bypass: Prism Concourse bypasses the Vault; entry and exit are separate.
+# DECLARED EXPENSIVE FUNCTIONAL SPEND: the shared state panel is a 3x3 redstone-lamp face on
+# each of four sides, plus one indicator per station - 39 lamps. PARK_FULL_BUILD_SPEC P5 asks
+# for a completion that is "obvious (door/panel/light) and not an invisible comparator state",
+# so the panel is the one place in Prismworks where the expensive tier earns its place.
+expensive_functional:
+  redstone_lamp: shared four-faced state panel and one per-station indicator
+
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+

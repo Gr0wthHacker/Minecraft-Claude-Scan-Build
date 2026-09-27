@@ -27,7 +27,12 @@ params:
   # CENTRED IN THE POCKET, not dropped on its measured centre point: the design is 29x18x23
   # and the first root put it 2 blocks outside the free box on the Z-low side and flush
   # against its X edge. This leaves 3-4 blocks of slack on every face.
-  root: [-24207, 104, 30018]   # the clod's lowest course; the leaf rides ~9 above it
+  # RE-SITED (2026-08-22): the Lowland Stair now descends through the old pocket at
+  # (-24207, 104, 30018) - 726 of the ladybird's cells sat in the helix's shaft. The
+  # distance search re-ran with the stair, the root and the whole town reserved: this
+  # pocket in the NW void keeps 8 clear blocks on every face, island belly overhead,
+  # the north-west lowland twenty below.
+  root: [-24238, 63, 29968]    # the clod's lowest course; the leaf rides ~9 above it
 finish:
   cheapen: false
   hollow: false

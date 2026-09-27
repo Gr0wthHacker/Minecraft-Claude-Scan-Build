@@ -1,0 +1,47 @@
+{
+  "name": "newisle",
+  "file": "newisle.litematic",
+  "format": "litematic",
+  "created": "2026-08-31T04:39:58.268825Z",
+  "player": "Enroz",
+  "server": {
+    "name": "Unknown Server",
+    "ip": "skyblock.net"
+  },
+  "dimension": "minecraft:overworld",
+  "data_version": 4903,
+  "origin": {
+    "x": 97592,
+    "y": 198,
+    "z": 80595
+  },
+  "size": {
+    "x": 12,
+    "y": 14,
+    "z": 12
+  },
+  "player_pos": {
+    "x": 97599,
+    "y": 203,
+    "z": 80601
+  },
+  "chunk_radius": 8,
+  "chunk_aligned": false,
+  "air_margin": 2,
+  "total_volume": 2016,
+  "non_air_blocks": 144,
+  "palette_size": 8,
+  "tile_entities": 1,
+  "entities": 0,
+  "chunks_included": [
+    [
+      6099,
+      5037
+    ],
+    [
+      6100,
+      5037
+    ]
+  ],
+  "chunks_missing_in_bounds": []
+}

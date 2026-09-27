@@ -1,0 +1,24 @@
+{
+  "origin": {
+    "x": 97579,
+    "y": 202,
+    "z": 80357
+  },
+  "size": {
+    "x": 17,
+    "y": 7,
+    "z": 19
+  },
+  "generated_by": "park",
+  "kind": "walkthrough",
+  "land": "frontier",
+  "facing": "east",
+  "contract": "one way in at the front, one way out at the back, and a switchback route between them - never an empty box with two doors",
+  "unverified": [],
+  "width": 17,
+  "depth": 15,
+  "height": 5,
+  "turns": 4,
+  "file": "Deep Mine.litematic",
+  "name": "Deep Mine"
+}

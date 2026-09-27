@@ -1,0 +1,506 @@
+{
+  "origin": {
+    "x": 97522,
+    "y": 98,
+    "z": 80485
+  },
+  "size": {
+    "x": 157,
+    "y": 102,
+    "z": 281
+  },
+  "generated_by": "mcbuild.gen.abyssmarket",
+  "kind": "abyssmarket",
+  "facing": "north",
+  "dig": [
+    [
+      97596,
+      149,
+      80708
+    ],
+    [
+      97596,
+      150,
+      80708
+    ],
+    [
+      97597,
+      149,
+      80708
+    ],
+    [
+      97597,
+      150,
+      80708
+    ],
+    [
+      97598,
+      148,
+      80708
+    ],
+    [
+      97598,
+      149,
+      80708
+    ],
+    [
+      97598,
+      150,
+      80708
+    ],
+    [
+      97598,
+      151,
+      80708
+    ],
+    [
+      97599,
+      148,
+      80708
+    ],
+    [
+      97599,
+      151,
+      80708
+    ],
+    [
+      97601,
+      148,
+      80708
+    ],
+    [
+      97601,
+      151,
+      80708
+    ],
+    [
+      97602,
+      148,
+      80708
+    ],
+    [
+      97602,
+      149,
+      80708
+    ],
+    [
+      97602,
+      150,
+      80708
+    ],
+    [
+      97602,
+      151,
+      80708
+    ],
+    [
+      97603,
+      149,
+      80708
+    ],
+    [
+      97603,
+      150,
+      80708
+    ],
+    [
+      97604,
+      149,
+      80708
+    ],
+    [
+      97604,
+      150,
+      80708
+    ]
+  ],
+  "exclude_boxes": [
+    [
+      97596,
+      149,
+      80708,
+      97596,
+      149,
+      80708
+    ],
+    [
+      97596,
+      150,
+      80708,
+      97596,
+      150,
+      80708
+    ],
+    [
+      97597,
+      149,
+      80708,
+      97597,
+      149,
+      80708
+    ],
+    [
+      97597,
+      150,
+      80708,
+      97597,
+      150,
+      80708
+    ],
+    [
+      97598,
+      148,
+      80708,
+      97598,
+      148,
+      80708
+    ],
+    [
+      97598,
+      149,
+      80708,
+      97598,
+      149,
+      80708
+    ],
+    [
+      97598,
+      150,
+      80708,
+      97598,
+      150,
+      80708
+    ],
+    [
+      97598,
+      151,
+      80708,
+      97598,
+      151,
+      80708
+    ],
+    [
+      97599,
+      148,
+      80708,
+      97599,
+      148,
+      80708
+    ],
+    [
+      97599,
+      151,
+      80708,
+      97599,
+      151,
+      80708
+    ],
+    [
+      97601,
+      148,
+      80708,
+      97601,
+      148,
+      80708
+    ],
+    [
+      97601,
+      151,
+      80708,
+      97601,
+      151,
+      80708
+    ],
+    [
+      97602,
+      148,
+      80708,
+      97602,
+      148,
+      80708
+    ],
+    [
+      97602,
+      149,
+      80708,
+      97602,
+      149,
+      80708
+    ],
+    [
+      97602,
+      150,
+      80708,
+      97602,
+      150,
+      80708
+    ],
+    [
+      97602,
+      151,
+      80708,
+      97602,
+      151,
+      80708
+    ],
+    [
+      97603,
+      149,
+      80708,
+      97603,
+      149,
+      80708
+    ],
+    [
+      97603,
+      150,
+      80708,
+      97603,
+      150,
+      80708
+    ],
+    [
+      97604,
+      149,
+      80708,
+      97604,
+      149,
+      80708
+    ],
+    [
+      97604,
+      150,
+      80708,
+      97604,
+      150,
+      80708
+    ]
+  ],
+  "cavity_cells": 54994,
+  "walk": {
+    "from_z": 80502,
+    "to_z": 80713,
+    "from_y": 105,
+    "to_y": 146,
+    "length": 211,
+    "ducked": 2
+  },
+  "deck_cells": 657,
+  "deck_lamps": 32,
+  "lay_bys": 8,
+  "treads": {
+    "tread": 825,
+    "landing": 21,
+    "steep": 0
+  },
+  "floor_cells": 2054,
+  "relit": 83,
+  "relight_rounds": 4,
+  "dark_left": 0,
+  "light_min": 8,
+  "entrance": "mouth",
+  "mouth": {
+    "threshold": [
+      97600,
+      148,
+      80713
+    ],
+    "entry_floor": [
+      97596,
+      142,
+      80713
+    ],
+    "exit_floor": [
+      97604,
+      142,
+      80713
+    ]
+  },
+  "shaft": {
+    "enabled": false,
+    "x": 97600,
+    "z": 80665,
+    "surface": 204,
+    "skin": 157,
+    "cavity_top": 155,
+    "drop": 49,
+    "case": 0,
+    "rung": 0,
+    "land": 0,
+    "sign": 0,
+    "rig": 0,
+    "rungs": 0,
+    "foot_y": 137
+  },
+  "collar": 45,
+  "gullet": 107,
+  "bazaar": {
+    "cells": 193,
+    "stalls": 8,
+    "signed": 8
+  },
+  "prow": {
+    "deck": 125,
+    "steps": 10,
+    "rail": 18,
+    "windows": 8,
+    "dig": 20,
+    "signed": 2
+  },
+  "sounding": {
+    "cells": 473,
+    "bell": true
+  },
+  "ribs": 508,
+  "vault": {
+    "cells": 83,
+    "signed": true
+  },
+  "yielded_to_others": 258,
+  "clipped": 0,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 2908,
+      "materials": 14,
+      "dominant_material_share": 0.3979,
+      "light_blocks": 1,
+      "massing": {
+        "width": 51,
+        "height": 50,
+        "depth": 212,
+        "fill_ratio": 0.0054
+      },
+      "silhouette": {
+        "top": {
+          "area": 1965,
+          "fill_ratio": 0.0445
+        },
+        "front": {
+          "area": 804,
+          "fill_ratio": 0.0502
+        },
+        "side": {
+          "area": 621,
+          "fill_ratio": 0.0217
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.6032,
+          0.3968,
+          0.0
+        ],
+        "top_silhouette_perimeter": 1984,
+        "surface_faces_per_block": 3.1575
+      },
+      "material_counts": {
+        "spruce_planks": 1157,
+        "cut_copper": 770,
+        "cut_copper_stairs": 463,
+        "dark_oak_fence": 153,
+        "ochre_froglight": 148,
+        "polished_blackstone_bricks": 97,
+        "cut_copper_slab": 34,
+        "deepslate_bricks": 31,
+        "copper_block": 19,
+        "iron_chain": 14,
+        "spruce_wall_sign": 12,
+        "black_stained_glass_pane": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "fd7a2e5fe8c78bfcf2d55239564388858b7a7f0bdbab2c8b058b7d4825330d98",
+    "generator_source_digest": "e0fb71af4230a6e09a800289f7a9f0b64e50e063539cc70f93c6d0b2ca783578",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 102.369867,
+    "blocks": 2908,
+    "blocks_per_second": 28.41
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 2908,
+    "mechanic_families": [
+      "light",
+      "signage"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: copper_block",
+    "not in the provisional skyblock-1.19 list: cut_copper",
+    "not in the provisional skyblock-1.19 list: cut_copper_slab",
+    "not in the provisional skyblock-1.19 list: cut_copper_stairs"
+  ],
+  "file": "Abyss Market.litematic",
+  "name": "Abyss Market"
+}

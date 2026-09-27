@@ -1,0 +1,72 @@
+# PF PLATEAU SHOP - the field shop on the lot the Vantage Lookout was retired from.
+#
+# Jack, on the north end once the tower came out: *"so now the lot where the tower was is empty,
+# just hanging vines - what can go there, and in the neighboring and diagnol plot, the two big
+# buildings, not sure theres a use for all them, maybe we keep 1 building and put another shop
+# there"* - and, choosing between the two candidate sites, *"tower lot"*.
+#
+# ---------------------------------------------------------------------------------------------
+# THE SITE, AND WHY IT IS THE ONE
+#
+# 17 x 17 at V130-146 x U0-16, and it is the LAND'S CLIMAX: a guest enters the Lost Plateau from
+# the Midway at U169 and walks north, so this is the last ground they reach. It sits on the east
+# verge of the V123-127 avenue looking straight across at `PF Broken Plateau`'s gorge mouth and
+# the belvedere cantilevered over it, and its own north edge IS the park's rim with open void
+# past U0.
+#
+# So it is two things for the price of one: a shop, and the terrace the belvedere is seen FROM.
+# The measured alternative was the Mine Works' ground, which is 22 x 100 - far too big for a
+# counter, and it would have left two thousand columns to fill.
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT IT HOLDS: NOTHING
+#
+# The Abyss Market settled this and the reason has not changed - *"a barrel standing empty in a
+# public build reads as a shop somebody has already looted, and a chest anyone can reach is a
+# chest anyone can empty."* There is not one container on this lot. The board names the server's
+# own `/shops`, which is where the trade actually happens, and the counter carries a BELL, so
+# there is something to do at it rather than a prop to look at.
+#
+# `prices.json` is still empty and `/cscan buy` is inert until somebody walks the shop, so naming
+# the command is the honest thing to put on a board rather than stock this cannot hold.
+name: PF Plateau Shop
+gen: plateaushop
+params:
+  kind: plateaushop
+  lot: [17, 17]                  # V130-146 x U0-16 - the Vantage Lookout's own lot
+  at: [130, 0]
+  sy: 18
+  seed: 37
+  title: THE FIELD SHOP
+
+  # THE RIM IS LEFT OPEN. Three courses of terrace between the brink and the building, so the
+  # view is the front of the lot rather than something behind it.
+  rim: 3
+  verge: 2                       # the avenue's own verge at v0-1, left alone
+
+  # The building: twelve wide by nine deep, open on its WEST face at v3 where the counter is.
+  # The fly oversails one cell on every side, so the whole thing reads as a tent over a counter
+  # rather than as a shed with a hole in it.
+  shop: [3, 14, 5, 13]
+  front: 3
+  height: 5
+
+  benches: [[4, 1], [12, 1]]
+  planters: [[0, 1], [15, 1]]
+
+  lines: ["casts, rubbings", "and cold drinks"]
+  shops_lines: ["TRADE HERE", "type /shops to", "buy and sell", "on the server"]
+  plaque: {v: 8, u: 2, facing: south,
+           lines: ["THE BROKEN EDGE", "the plateau", "ends here -", "mind the rail"]}
+
+finish:
+  # THE WORLD AS IT ACTUALLY IS, for the same reason the Broken Plateau uses it: `Park Complete`
+  # contains the land dressing that took this lot back the day the tower was retired, and
+  # verifying a design against a composite that already holds what stands on its own ground is
+  # the self-reference trap. The 2026-09-11 plot capture answers the question that matters -
+  # what would a printer have to break.
+  verify_against: out/islandplateau.litematic
+
+# The park lattice anchors every module itself; the island's origin lock is not this design's
+# frame - see `at` and `anchor`.
+origin_lock: false

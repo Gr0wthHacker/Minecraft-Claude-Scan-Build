@@ -1,0 +1,208 @@
+{
+  "origin": {
+    "x": 97551,
+    "y": 202,
+    "z": 80594
+  },
+  "size": {
+    "x": 11,
+    "y": 8,
+    "z": 13
+  },
+  "generated_by": "ticketing",
+  "kind": "ticketing/boxoffice",
+  "land": "midway",
+  "facing": "east",
+  "contract": "a hall you buy a ticket in: a counter you can see over, a chest of tickets at every hatch, and the price in grass on the board",
+  "unverified": [
+    "NOTHING HERE CARRIES A SIGNAL, so there is nothing to verify - which is the decision. Watching the chest itself cannot work: a comparator reads floor(1 + 14 * fullness) and a 27-slot chest moves 1/(64*27) per stackable item against the 1/14 needed, so the signal never changes. A 5-slot hopper of non-stackable tickets does step (~3 a ticket) and a delayed-copy detector for one is buildable - a comparator chain carries an analog level exactly and adds two ticks a stage, both measured here - but it was not built and asserted end to end, so it does not ship."
+  ],
+  "budget": {},
+  "concealed": 0,
+  "visible_redstone": 0,
+  "width": 11,
+  "depth": 9,
+  "height": 6,
+  "windows": 3,
+  "chests": [
+    [
+      97558,
+      203,
+      80602
+    ],
+    [
+      97558,
+      203,
+      80600
+    ],
+    [
+      97558,
+      203,
+      80598
+    ]
+  ],
+  "signed": true,
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "chest"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "oak_wall_sign"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks"
+    },
+    "roles": [
+      "building",
+      "construction"
+    ],
+    "role_contracts": {
+      "building": "legal states, supported attachments, accessible entries, and interior clearance",
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "arrival",
+      "hierarchy": "landmark",
+      "style": "midway",
+      "narrative": "Box Office serves the midway visitor journey."
+    },
+    "metrics": {
+      "blocks": 523,
+      "materials": 10,
+      "dominant_material_share": 0.3671,
+      "light_blocks": 2,
+      "massing": {
+        "width": 11,
+        "height": 8,
+        "depth": 13,
+        "fill_ratio": 0.4572
+      },
+      "silhouette": {
+        "top": {
+          "area": 143,
+          "fill_ratio": 1.0
+        },
+        "front": {
+          "area": 78,
+          "fill_ratio": 0.8864
+        },
+        "side": {
+          "area": 92,
+          "fill_ratio": 0.8846
+        }
+      },
+      "material_counts": {
+        "white_wool": 192,
+        "stone_bricks": 143,
+        "red_wool": 72,
+        "blackstone": 56,
+        "stone_brick_stairs": 22,
+        "oak_log": 20,
+        "stone_brick_slab": 9,
+        "oak_wall_sign": 4,
+        "chest": 3,
+        "lantern": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "255ad4bf23c7621ce3b9cc13fd0c181f4d51deaa47147c0eed356d146202598d",
+    "generator_source_digest": "627eace157c64c64c1860ff4d05c35aa4e7f15394fa471826c6a93746f593b6b",
+    "anchors": [],
+    "genome": {
+      "name": "midway",
+      "facades": [
+        "flat",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.3,
+        1.2
+      ],
+      "materials": [
+        "painted_structure",
+        "light_trim",
+        "accent_colour"
+      ],
+      "light_density": "bright-nodes"
+    },
+    "variation": {
+      "facade": "flat"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "signage"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "park_contract": {
+    "purpose": "arrival",
+    "hierarchy": "landmark",
+    "land": "midway",
+    "requires_path": true,
+    "access_candidates": [
+      [
+        97563,
+        204,
+        80600
+      ],
+      [
+        97549,
+        204,
+        80600
+      ]
+    ]
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 523,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage"
+    ]
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "enforce_server_blocks": true,
+    "allow_entities": false
+  },
+  "server_compatibility": [
+    "unsupported on skyblock-1.19: blackstone"
+  ],
+  "file": "Box Office.litematic",
+  "name": "Box Office"
+}

@@ -1,0 +1,429 @@
+{
+  "kind": "prismworks/array",
+  "signs": 7,
+  "pruned": 0,
+  "facing": "west",
+  "solved_entry": [
+    2,
+    1,
+    4
+  ],
+  "solved_exit": [
+    38,
+    1,
+    36
+  ],
+  "solved_route": [
+    [
+      4,
+      1,
+      4
+    ],
+    [
+      6,
+      1,
+      4
+    ],
+    [
+      8,
+      1,
+      4
+    ],
+    [
+      10,
+      1,
+      4
+    ],
+    [
+      12,
+      1,
+      4
+    ],
+    [
+      12,
+      1,
+      6
+    ],
+    [
+      12,
+      1,
+      8
+    ],
+    [
+      12,
+      1,
+      10
+    ],
+    [
+      12,
+      1,
+      12
+    ],
+    [
+      14,
+      1,
+      12
+    ],
+    [
+      16,
+      1,
+      12
+    ],
+    [
+      18,
+      1,
+      12
+    ],
+    [
+      20,
+      1,
+      12
+    ],
+    [
+      22,
+      1,
+      12
+    ],
+    [
+      24,
+      1,
+      12
+    ],
+    [
+      24,
+      1,
+      14
+    ],
+    [
+      24,
+      1,
+      16
+    ],
+    [
+      24,
+      1,
+      18
+    ],
+    [
+      24,
+      1,
+      20
+    ],
+    [
+      26,
+      1,
+      20
+    ],
+    [
+      28,
+      1,
+      20
+    ],
+    [
+      30,
+      1,
+      20
+    ],
+    [
+      32,
+      1,
+      20
+    ],
+    [
+      34,
+      1,
+      20
+    ],
+    [
+      36,
+      1,
+      20
+    ],
+    [
+      36,
+      1,
+      22
+    ],
+    [
+      36,
+      1,
+      24
+    ],
+    [
+      36,
+      1,
+      26
+    ],
+    [
+      36,
+      1,
+      28
+    ],
+    [
+      34,
+      1,
+      28
+    ],
+    [
+      32,
+      1,
+      28
+    ],
+    [
+      30,
+      1,
+      28
+    ],
+    [
+      28,
+      1,
+      28
+    ],
+    [
+      26,
+      1,
+      28
+    ],
+    [
+      24,
+      1,
+      28
+    ],
+    [
+      22,
+      1,
+      28
+    ],
+    [
+      20,
+      1,
+      28
+    ],
+    [
+      20,
+      1,
+      30
+    ],
+    [
+      20,
+      1,
+      32
+    ],
+    [
+      20,
+      1,
+      34
+    ],
+    [
+      20,
+      1,
+      36
+    ],
+    [
+      22,
+      1,
+      36
+    ],
+    [
+      24,
+      1,
+      36
+    ],
+    [
+      26,
+      1,
+      36
+    ],
+    [
+      28,
+      1,
+      36
+    ],
+    [
+      30,
+      1,
+      36
+    ],
+    [
+      32,
+      1,
+      36
+    ],
+    [
+      34,
+      1,
+      36
+    ],
+    [
+      36,
+      1,
+      36
+    ]
+  ],
+  "choice_points": [
+    {
+      "colour": "cyan",
+      "cell": [
+        4,
+        0
+      ],
+      "branch_len": 8,
+      "correct_next": [
+        4,
+        1
+      ],
+      "world": [
+        12,
+        1,
+        4
+      ],
+      "markers": 2
+    },
+    {
+      "colour": "light_blue",
+      "cell": [
+        10,
+        4
+      ],
+      "branch_len": 11,
+      "correct_next": [
+        10,
+        5
+      ],
+      "world": [
+        24,
+        1,
+        12
+      ],
+      "markers": 2
+    },
+    {
+      "colour": "blue",
+      "cell": [
+        16,
+        8
+      ],
+      "branch_len": 13,
+      "correct_next": [
+        16,
+        9
+      ],
+      "world": [
+        36,
+        1,
+        20
+      ],
+      "markers": 2
+    },
+    {
+      "colour": "white",
+      "cell": [
+        8,
+        12
+      ],
+      "branch_len": 9,
+      "correct_next": [
+        8,
+        13
+      ],
+      "world": [
+        20,
+        1,
+        28
+      ],
+      "markers": 2
+    },
+    {
+      "colour": "cyan",
+      "cell": [
+        12,
+        12
+      ],
+      "branch_len": 10,
+      "correct_next": [
+        11,
+        12
+      ],
+      "world": [
+        28,
+        1,
+        28
+      ],
+      "markers": 2
+    },
+    {
+      "colour": "light_blue",
+      "cell": [
+        4,
+        4
+      ],
+      "branch_len": 25,
+      "correct_next": [
+        5,
+        4
+      ],
+      "world": [
+        12,
+        1,
+        12
+      ],
+      "markers": 2
+    }
+  ],
+  "service_panels": [
+    [
+      38,
+      2,
+      7
+    ],
+    [
+      38,
+      2,
+      12
+    ],
+    [
+      38,
+      2,
+      17
+    ],
+    [
+      38,
+      2,
+      22
+    ],
+    [
+      38,
+      2,
+      27
+    ],
+    [
+      38,
+      2,
+      32
+    ]
+  ],
+  "branch_cells": 75,
+  "interfaces": [
+    "approach",
+    "entry",
+    "exit",
+    "service_access",
+    "observer"
+  ],
+  "requires_in_game": [
+    "walkthrough_route",
+    "signage_rules"
+  ],
+  "expensive_functional": {
+    "redstone_lamp": "one reset-state panel per choice point"
+  },
+  "size": {
+    "x": 43,
+    "y": 14,
+    "z": 43
+  },
+  "generated_by": "prismworks",
+  "note": "review sidecar: Prismworks modules carry no world origin, the WorldSpec sites them",
+  "file": "Prism Array.litematic",
+  "name": "Prism Array"
+}
