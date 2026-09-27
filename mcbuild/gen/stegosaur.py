@@ -103,6 +103,12 @@ HIDE = {
     "plate": "white_wool",          # L236
     "plate_root": "stone",          # L126 - the shaded base where a plate enters the back
     "spike": "bone_block",          # L225 - the thagomizer, the beak and the skull
+    # **THE NOSTRIL GETS ITS OWN MATERIAL, not the plate's root stone.** Sharing one meant the
+    # crest mask counted a nostril as a plate - a one-cell "crest piece" with no back under it -
+    # so the plate-count contract, the plate-rooting contract and the "the nose is all bone"
+    # contract all failed on a correct build. A mark that means something different is a
+    # different block, or every test that masks by material is measuring two things at once.
+    "nostril": "cobblestone",       # L127 - 98 under the bone it sits in, and used nowhere else
     "eye": "black_wool",
 }
 
@@ -341,25 +347,42 @@ def _dims(L: float) -> dict:
                   (-0.150 * L, 0.255 * L, 0.113 * L, 0.140 * L),
                   (-0.245 * L, 0.235 * L, 0.082 * L, 0.078 * L)],
         "section": 2.6,               # superellipse exponent: a rounded square, not a circle
-        # the relax pass. ONE round, not two: CLAUDE.md's own warning is that every
-        # smoothing pass rewards thickening, and sweeping smoothness alone took the bear's
-        # surface 0.60 -> 0.73 while its proportion went 0.88 -> 0.50 - it inflated the
-        # animal until the silhouette test called it an elephant. Measured here, a second
-        # round costs the waist the plan spindle exists for.
-        "relax_rounds": 1, "relax_fill": 15, "relax_keep": 8,
+        # **THE GIRAFFE'S OWN SMOOTHING PARAMETERS, and copying them was the fix.** Jack, with
+        # the reference in hand: *"we want this to feel like the giraffe"* - so the two were
+        # measured side by side, and the gap is not taste. Giraffe `spike_rate` 4.0 against this
+        # animal's 9.4 on its own skin, `jerk_rel` 8.4 against 20.5, notches 0 against 10.
+        #
+        # `quadruped.py` relaxes FOUR TIMES at fill 11 and keep 11. This ran ONCE at fill 15 and
+        # keep 8 - weaker on every one of the three axes - out of an over-reading of CLAUDE.md's
+        # warning that "every smoothing pass rewards thickening". That warning is about tuning
+        # smoothing ALONE against the rubric, which took the bear's proportion 0.88 -> 0.50; it is
+        # not an argument for under-smoothing, and the giraffe is the counter-example standing in
+        # the world. Swept here against every contract at once, four rounds costs 21% more cells
+        # and keeps the plan waist, the four feet, the eight crest pieces and exact symmetry.
+        "relax_rounds": 4, "relax_fill": 11, "relax_keep": 11,
         "coat_min_depth": 5.0,        # below this a part is ONE tone - see `_coat`
         "stance": 0.078 * L,          # half the gauge between the left and right legs
         "fore_f": 0.150 * L, "fore_r0": 0.048 * L, "fore_r1": 0.043 * L,
         "hind_f": -0.150 * L, "hind_r0": 0.062 * L, "hind_r1": 0.050 * L,
         "neck_f": 0.330 * L, "neck_y": 0.170 * L, "neck_r": 0.058 * L,
         "head_f": 0.440 * L, "head_y": 0.125 * L, "head_r": 0.062 * L,
+        # the skull is a TAPER, not a ball: back of the cheek -> beak tip
+        "skull_back": 0.370 * L, "skull_tip": 0.555 * L,
+        "skull_r0": 0.062 * L, "skull_r1": 0.028 * L, "skull_drop": 0.032 * L,
         "tail_f": -0.500 * L, "tail_y": 0.165 * L, "tail_r": 0.028 * L,
         # the crest: from over the shoulder to well down the tail
         "plate_f0": 0.300 * L, "plate_f1": -0.480 * L,
         "plate_h_max": 0.245 * L,     # over the hips - the tallest, and the naming feature
         "plate_h_min": 0.115 * L,     # at both ends of the run
         "plate_half": 0.075 * L,      # half the WIDEST course, a third of the way up
-        "plate_offset": 1,            # cells either side of the spine - see `_plates`
+        # **TWO CELLS EITHER SIDE OF THE SPINE, NOT ONE, AND IT IS MEASURED.** At one the gap
+        # between the paired rows is a single column, and `smooth.roughness` counts every cell of
+        # it as a NOTCH - a one-block dent, which its own docstring says "the eye reads as
+        # damage". Twelve of them, every one on the midline, and they were the entire notch count
+        # of the animal: the crest read as a cracked ridge rather than as two rows. At two the
+        # spine shows as a real channel between the plates and the count is ZERO, which is what
+        # the giraffe measures.
+        "plate_offset": 2,
         "spike_f": -0.415 * L, "spike_len": 0.135 * L, "spike_r": 0.028 * L,
     }
 
@@ -449,8 +472,12 @@ def _neck(fr: _Frame, d: dict) -> dict:
     chest = d["spine"][0]
     n = _sweep(fr, (chest[0], 0.0, chest[1]), (d["neck_f"], 0.0, d["neck_y"]),
                chest[2] * 0.80, d["neck_r"])
-    n += _sweep(fr, (d["neck_f"], 0.0, d["neck_y"]), (d["head_f"], 0.0, d["head_y"]),
-                d["neck_r"], d["head_r"] * 1.05)
+    # **THE NECK STOPS WHERE THE SKULL BEGINS.** Swept on to the nose it buries the head: the
+    # skull is the one PALE thing at the front and only its last four cells showed past the
+    # russet, so the animal read as a neck with a chip on the end. The giraffe's muzzle is most
+    # of its head, and that is why it has a face.
+    n += _sweep(fr, (d["neck_f"], 0.0, d["neck_y"]), (d["skull_back"], 0.0, d["head_y"]),
+                d["neck_r"], d["skull_r0"] * 0.95)
     return {"neck": n}
 
 
@@ -458,15 +485,69 @@ def _skull(fr: _Frame, d: dict) -> dict:
     """The head, built AFTER the relax pass - features follow the mass, never the other way round.
 
     "The rule that shaves a one-block pimple off a shoulder eats a horn whole" is this repo's own
-    sentence, and a three-cell skull on the end of a neck is exactly the shape it eats.
+    sentence, and a skull on the end of a neck is exactly the shape it eats.
+
+    **A SKULL IS A TAPER, NOT A BALL, and that is what Jack was looking at.** Set beside the
+    giraffe - *"we want this to feel like the giraffe"* - the giraffe has a face: a pale muzzle
+    narrowing to a nose, an eye set in it, a jaw. This had a SPHERE with a black cube stuck on it,
+    which is a bead on a lump however cleanly the rest of the animal is built. A stegosaur's skull
+    is the most distinctive thing about it after the plates - long, low and NARROW, ending in a
+    toothless beak - and none of that survives being drawn as a ball.
+
+    Swept back-to-front so the cheek is the widest part and the beak the narrowest, dropping as it
+    goes, with a `_thread` core first: at the tip the radius is under one cell, and a taper that
+    ends under one cell cannot be swept into existence - consecutive spheres share only a corner.
     """
-    skull = _ball(fr, d["head_f"], 0.0, d["head_y"], d["head_r"] * 1.12, "spike", protect=True)
-    # the beak: short, and DOWN. A snout as long as the skull reads as a bird
-    beak_to = (d["head_f"] + d["head_r"] * 1.35, 0.0, d["head_y"] - d["head_r"] * 0.60)
-    skull += _thread(fr, (d["head_f"], 0.0, d["head_y"]), beak_to, "spike", protect=True)
-    skull += _sweep(fr, (d["head_f"], 0.0, d["head_y"]), beak_to,
-                    d["head_r"] * 0.85, d["head_r"] * 0.50, "spike", step=0.22, protect=True)
-    return {"skull": skull}
+    a = (d["skull_back"], 0.0, d["head_y"] + d["skull_drop"] * 0.45)
+    b = (d["skull_tip"], 0.0, d["head_y"] - d["skull_drop"])
+    # **THREAD BACK TO WHAT THE RELAX ACTUALLY LEFT OF THE NECK, never to where it was drawn.**
+    # The neck is no longer protected from shaving - that is what smooths it - so `keep` eats its
+    # thin front end, and how much it eats depends on the length. Abutted to the neck's DESIGNED
+    # tip the skull came away as a separate 24-cell piece at length 22 and 26, and at neither of
+    # their neighbours: the animal shipped headless at two scales out of seven, silently. A join
+    # is made by OVERLAPPING something that is there, which is the pterosaur's own recorded rule.
+    # THE THREAD REACHES BACK; THE SWEEP DOES NOT. Moving the sweep's own start point back
+    # stretches its taper over a longer run, so the cheek came out too narrow to carry a pair of
+    # eyes and the build RAISED. The skull keeps its designed shape and a one-cell core is run
+    # back to whatever the neck actually still has.
+    n = 0
+    reach = int(math.ceil(abs(d["skull_back"] - d["neck_f"]))) + 3
+    for back in range(1, reach + 1):
+        f = d["skull_back"] - back
+        if fr.solid(f, 0, a[2]) or fr.solid(f, 0, d["neck_y"]):
+            n += _thread(fr, (f, 0.0, (a[2] + d["neck_y"]) / 2.0), a, "spike", protect=True)
+            break
+    n += _thread(fr, a, b, "spike", protect=True)
+    n += _sweep(fr, a, b, d["skull_r0"], d["skull_r1"], "spike", step=0.20, protect=True)
+    return {"skull": n}
+
+
+def _muzzle(fr: _Frame, d: dict) -> int:
+    """The nostril, and the line of the mouth - the two marks that turn a taper into a face.
+
+    **FOUND ON THE BUILT SURFACE, NEVER AT A COMPUTED OFFSET.** A relaxed and swept skull is not
+    where the arithmetic that made it says it is: the axolotl's eye beads landed a cell deep and
+    were painted over by their own pale ring, and the frog's nostrils were drawn onto a chamfered
+    edge and came out as paint over air - `nostril: 0` in its own sidecar, with a clean audit.
+
+    One cell each side and no more. This head is five cells across at the cheek and three at the
+    muzzle; anything wider than a single cell is not a nostril, it is a second pair of eyes, which
+    the frog also shipped once.
+    """
+    n = 0
+    f = d["skull_tip"] - (d["skull_tip"] - d["skull_back"]) * 0.32
+    y = _r(d["head_y"] - d["skull_drop"] * 0.35)
+    for sgn in (1, -1):
+        for s in range(int(math.ceil(d["skull_r1"] * 2.5)) + 1, -1, -1):
+            if fr.solid(f, sgn * s, y):
+                # **A NOSTRIL IS NOT BLACK.** The frog put two black cells on its brow between two
+                # black pupils and they read head-on as A SECOND PAIR OF EYES. On a bone skull the
+                # mid grey is 99 luminance under the bone and 105 over the pupil, which is a mark
+                # that reads as a nostril and cannot be mistaken for one.
+                fr.put(f, sgn * s, y, "nostril", protect=True)
+                n += 1
+                break
+    return n
 
 
 def _eyes(fr: _Frame, d: dict) -> int:
@@ -484,10 +565,10 @@ def _eyes(fr: _Frame, d: dict) -> int:
     offset BOTH sides takes the pair, and an animal that has no such course anywhere RAISES. An
     eyeless build is a fault, not a style, and this project has shipped enough of them silently.
     """
-    f = _r(d["head_f"] - d["head_r"] * 0.15)
-    reach = int(math.ceil(d["head_r"] * 2.4)) + 1
-    y0 = _r(d["head_y"] + d["head_r"] * 0.9)
-    for y in range(y0, _r(d["head_y"] - d["head_r"]) - 1, -1):
+    f = _r(d["skull_back"] + (d["skull_tip"] - d["skull_back"]) * 0.38)
+    reach = int(math.ceil(d["skull_r0"] * 2.4)) + 1
+    y0 = _r(d["head_y"] + d["skull_r0"] * 0.9)
+    for y in range(y0, _r(d["head_y"] - d["skull_r0"]) - 1, -1):
         for s in range(reach, 0, -1):
             if fr.solid(f, s, y) and fr.solid(f, -s, y):
                 fr.put(f, s, y, "eye", protect=True)
@@ -602,9 +683,20 @@ def _plates(fr: _Frame, d: dict, count: int) -> dict:
                     top = tops.get((f + df, s_off))
                     if top is None:
                         continue                  # past the body: no root, no plate column
-                    key = "plate_root" if j == 0 else "plate"
-                    if fr.put(f + df, s_off, top + 1 + j, key, protect=True):
-                        placed_here += 1
+                    # **A COLUMN REACHES DOWN TO ITS LOWER NEIGHBOUR'S ROOT.** Each column starts
+                    # on its own patch of back, and where the back drops two courses between one
+                    # column and the next their cell ranges stop overlapping - so a plate's outer
+                    # wing comes away as a two-cell stray. At length 30 and not at 26 or 34, which
+                    # is the signature of every rounding fault in this file.
+                    lo = top
+                    for dn in (-1, 1):
+                        nb = tops.get((f + df + dn, s_off))
+                        if nb is not None:
+                            lo = min(lo, nb)
+                    for yy in range(lo + 1, top + 1 + j + 1):
+                        key = "plate_root" if yy <= lo + 1 else "plate"
+                        if fr.put(f + df, s_off, yy, key, protect=True):
+                            placed_here += 1
         if placed_here:
             built += 1
             tallest = max(tallest, h)
@@ -635,7 +727,24 @@ def _spikes(fr: _Frame, d: dict) -> int:
     n = 0
     for k, back in enumerate((0.0, -0.105)):
         f = d["spike_f"] + back * d["L"]
+        # **ROOTED IN THE TAIL THAT WAS BUILT, NEVER AT THE HEIGHT IT WAS DRAWN AT.** `_tail_y_at`
+        # interpolates the tail's designed centre line, which was right while the tail was
+        # PROTECTED from the relax pass. Un-protecting it is what finally smoothed it - and the
+        # same shave moves its surface, so the spikes started in mid-air and the whole thagomizer
+        # came away as one 24-to-90-cell piece at four lengths out of seventeen. `loft.surface_out`
+        # exists for exactly this, and it has already cost this project a mane, a pair of
+        # ossicones and a tail that floated 45 cells clear.
+        # SEARCHED IN BOTH AXES, because the relax can shave the tail's TIP away entirely and
+        # then no height at that station has anything in it at all.
         base_y = _tail_y_at(d, f)
+        found = False
+        for df in range(0, int(math.ceil(d["spike_len"])) + 3):
+            for dy in (0, -1, 1, -2, 2, -3, 3, -4, 4):
+                if fr.solid(f + df, 0, base_y + dy):
+                    f, base_y, found = f + df, base_y + dy, True
+                    break
+            if found:
+                break
         for sgn in (1, -1):
             a = (f, 0.0, base_y)
             # BACK AND OUT, barely up. Aimed upward they came out as two bone cauliflowers on
@@ -822,8 +931,20 @@ def _relax_mass(fr: _Frame, d: dict, protect: set) -> dict:
             f = (v - fr.cv) * fr.fx + (u - fr.cu) * fr.fz
             sd = (v - fr.cv) * fr.sx + (u - fr.cu) * fr.sz
             floor = _belly_at(d, f)
-            inside_leg = any(abs(sd) - d["stance"] < r + 0.6 and abs(f - lf) < r + 0.6
-                             for lf, r in legs for r in (r,))
+            # **THE DISTANCE FROM THE LEG'S OWN AXIS, WHICH IS AN ABSOLUTE DIFFERENCE.** Written
+            # `abs(sd) - stance < r` this is TRUE FOR EVERY CELL ON THE MIDLINE - `0 - stance` is
+            # negative - so the entire space between the legs counted as "inside a leg", was never
+            # forbidden, and the fill pass welded the feet into pairs. Two feet instead of four at
+            # most lengths and four at the one being looked at, which is the giraffe's own
+            # recorded disaster: its legs came out as one part for the whole lower half.
+            # ...**AND THE REACH IS CLAMPED TO HALF THE LEG SPACING**, which is CLAUDE.md's own
+            # sentence: "it must be clamped to half the leg spacing or it protects nothing". At
+            # `r + 0.6` alone a thigh 1.86 wide standing 2.34 off the midline reaches the midline
+            # itself, so the gap between the two hind feet counted as leg, was never forbidden and
+            # the fill pass welded them: three feet instead of four, at most lengths and not at
+            # the one being looked at.
+            inside_leg = any(abs(abs(sd) - d["stance"]) < min(r + 0.6, d["stance"] - 0.6)
+                             and abs(f - lf) < r + 0.6 for lf, r in legs)
             for y in range(int(math.ceil(floor)) + 1):
                 if (v, y, u) in mass or inside_leg:
                     continue
@@ -950,17 +1071,21 @@ def build_stegosaur(cfg: dict, donors=None) -> Canvas:
     parts["body"] = _body(fr, d)
     seen = _solid_cells(c)
     parts["legs"] = _legs(fr, d)
-    thin = _solid_cells(c) - seen
-    seen = _solid_cells(c)
+    # **ONLY THE LEGS ARE PROTECTED, which is what `quadruped.py` does and this did not.** A
+    # protected cell is never shaved, so protecting the neck and the tail as well left them
+    # exactly as lumpy as they were built while the barrel smoothed around them - the two parts
+    # that read worst against the giraffe. A leg genuinely has too few neighbours to survive
+    # `keep`; a tail three cells thick does not.
+    legs = _solid_cells(c) - seen
     parts["tail"] = _tail(fr, d)
     parts.update(_neck(fr, d))
-    thin |= _solid_cells(c) - seen
-    parts["relax"] = _relax_mass(fr, d, protect=thin if p.get("relax_protect", True) else set())
+    parts["relax"] = _relax_mass(fr, d, protect=(legs if p.get("relax_protect", True) else set()))
     parts.update(_skull(fr, d))
     parts["coat"] = _coat(fr, d)
     parts.update(_plates(fr, d, max(3, int(p.get("plates") or 4))))
     parts["spikes"] = _spikes(fr, d)
     parts["eyes"] = _eyes(fr, d)
+    parts["nostrils"] = _muzzle(fr, d)
     parts["surface"] = _surface(fr, d)
     parts["mirror"] = _mirror(fr, d)
 

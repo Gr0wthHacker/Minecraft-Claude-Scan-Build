@@ -1,5 +1,5 @@
-"""The BESPOKE sculptures on the isthmus - `gen/balloon.py`, `gen/wyrm.py` and
-`gen/stegosaur.py`.
+"""The BESPOKE sculptures on the isthmus - `gen/balloon.py`, `gen/wyrm.py`, `gen/ankylosaur.py`
+and the RETIRED `gen/stegosaur.py`.
 
 WHAT THIS FILE IS FOR. `tests/test_isthmus.py` already checks the causeway's own contracts over
 whatever creatures `GAPS` happens to name, and it is right to be written that way. What it
@@ -29,6 +29,15 @@ EVERY ONE OF THESE EXISTS BECAUSE THE BUG HAD ALREADY SHIPPED ONCE:
       four plates fused at 30, 40 and 50. Every one of those is why the scale sweep is here;
     and its crest ALTERNATED, which is what the real animal does and which Jack rejected on
       sight - measured, it was the only asymmetry in the whole build.
+
+**THE STEGOSAUR IS RETIRED AND ITS TESTS STAY.** It is not in `GAPS` any more, so `_new_specs()`
+drops it from everything that reads the causeway's own siting - but the piece still builds, still
+loads, and the eleven bugs above are eleven bugs a second animal can inherit the moment somebody
+copies its machinery. `taxonomy.live()`'s rule: a retirement is a RECORD, not a deletion. What
+retired it is not in this file at all, because it is not a property of the build: four polish
+rounds could not make a STANDING QUADRUPED read, which is the corpus's own finding and the reason
+eight mammals were retired before it. The ankylosaur is the replacement, and it is chosen because
+its own anatomy is the shape that survives - one low mass with the legs tucked under it.
 """
 from collections import Counter
 
@@ -36,7 +45,7 @@ import numpy as np
 import pytest
 
 from mcbuild import blocks, morph, nbt, nightlight, palette
-from mcbuild.gen import balloon, isthmus, stegosaur, wyrm
+from mcbuild.gen import ankylosaur, balloon, isthmus, stegosaur, wyrm
 from mcbuild.gen.stegosaur import HIDE
 
 # THE CAUSEWAY'S WYRM IS THE RETIRED SERPENT, NOT THE DEFAULT FORM, and this file has to say so
@@ -51,13 +60,16 @@ MAKERS = {"balloon": lambda **kw: balloon.build_balloon(kw),
           # still exercise two genuinely different arithmetics - a north build and a south one
           # are separate roundings of the same shape, which is what the parametrisation is for.
           "stegosaur": lambda face=1, **kw: stegosaur.build_stegosaur(
+              {"facing": "north" if face > 0 else "south", **kw}),
+          "ankylosaur": lambda face=1, **kw: ankylosaur.build_ankylosaur(
               {"facing": "north" if face > 0 else "south", **kw})}
 
 #: The pieces that bring their own ground. **THE STEGOSAUR IS NOT ONE OF THEM AND MUST NOT BE
 #: SWEPT IN**: a balloon stands on its basket and a wyrm on its milestone, so each lands on one
 #: solid footing, while a stegosaur stands on FOUR FEET on the causeway's own plinth and its
 #: lowest course is four separate pads with air between them. That is `_site_footed`'s contract,
-#: not `_site_standing`'s, and running the wrong one over it would fail a correct build.
+#: not `_site_standing`'s, and running the wrong one over it would fail a correct build. The
+#: ankylosaur is the same case for the same reason.
 SELF_CARRYING = {"balloon", "wyrm"}
 
 
@@ -361,6 +373,21 @@ def _mask(c, mats):
 _FLIP = {"east": "west", "west": "east", "north": "north", "south": "south"}
 
 
+def _full(entry) -> str:
+    """`name[k=v,...]` for a palette entry.
+
+    **`nbt.state_name` RETURNS ONLY THE NAME**, so every comparison in this file that was written
+    to compare FULL BLOCK STATES has in fact been comparing bare names - including `_lr`, whose own
+    docstring says it exists to catch a stair facing the wrong way on one flank. That is precisely
+    the frog's 60-of-134 defect, which our renderer drew identically until `render3d.subdivide`
+    learned to expand a stair, so it was wrong in game and invisible in every sheet AND in the test
+    written to catch it. The properties are in `state_props`; they have to be asked for.
+    """
+    n = nbt.state_name(entry).split(":")[-1]
+    p = nbt.state_props(entry)
+    return n + ("[" + ",".join(f"{k}={v}" for k, v in sorted(p.items())) + "]" if p else "")
+
+
 def _mirrored(state: str) -> str:
     """A block state as its own reflection across the animal's sagittal plane.
 
@@ -393,7 +420,7 @@ def _lr(c):
     here, so the across axis is x and east/west is what flips.
     """
     m = c.to_model()
-    names = [nbt.state_name(e).split(":")[-1] for e in m.palette]
+    names = [_full(e) for e in m.palette]
     ids, mid = m.ids, c.sx // 2
     shape = colour = 0
     for y in range(ids.shape[0]):
@@ -463,9 +490,14 @@ def test_the_plates_are_PAIRED_either_side_of_the_spine():
     c = _steg()
     _ys, _zs, xs = np.nonzero(_mask(c, CREST))
     mid = c.sx // 2
-    assert set(xs.tolist()) == {mid - 1, mid + 1}, \
-        f"the plates stand at x {sorted(set(xs.tolist()))}, not one column either side of {mid}"
-    assert (xs == mid - 1).sum() == (xs == mid + 1).sum(), "the two rows are not the same size"
+    # READ THE OFFSET FROM THE GENERATOR, never a literal. It moved from one cell to two when the
+    # single-column trough between the rows measured as twelve NOTCHES - one-block dents, which
+    # `smooth.roughness` says "the eye reads as damage" - and a test carrying the old number would
+    # have failed the fix rather than the fault.
+    off = int(stegosaur._dims(float(c.meta["length"]))["plate_offset"])
+    assert set(xs.tolist()) == {mid - off, mid + off}, \
+        f"the plates stand at x {sorted(set(xs.tolist()))}, not {off} either side of {mid}"
+    assert (xs == mid - off).sum() == (xs == mid + off).sum(), "the two rows differ in size"
 
 
 def test_every_plate_STANDS_ON_THE_BACK_it_grew_from():
@@ -628,14 +660,33 @@ def test_the_SURFACE_IS_SMOOTHED_and_not_merely_stacked():
     """
     from mcbuild.gen import smooth
     c = _steg()
-    p = c.meta["parts"]
-    assert p["shell"]["slabs"] > 20, f"the half-block pass placed {p['shell']['slabs']} slabs"
-    assert p["stairs"] > 20, f"the chamfer pass placed {p['stairs']} stairs"
+    p = c.meta["parts"]["surface"]
+    assert p["slabs"] > 20, f"the half-block pass placed {p['slabs']} slabs"
+    assert p["stairs"] > 60, f"the stair pass placed {p['stairs']} ramps"
+    # **THE UNDERSIDE IS HALF OF IT, and it is the half the corpus says we never build.** 27% of
+    # outside builders' stairs are `half=top` - eaves, soffits, corbels, the underside of an
+    # overhang - against none of ours before this. On an animal it is the belly line and the jaw,
+    # which with the back line is the whole of what a profile silhouette IS.
+    assert p["stairs_under"] > 20, f"only {p['stairs_under']} of the ramps are undersides"
+    assert (p["slabs"] + p["stairs"]) / p["skin"] > 0.12,         "under an eighth of the skin is a partial - this is a stack of cubes again"
     skin = _mask(c, HIDE_BODY)
     ys, zs, xs = np.nonzero(skin)
     r = smooth.roughness({(int(x), int(y), int(z)) for x, y, z in zip(xs, ys, zs)})
-    assert r["notches"] == 0, f"the skin has {r['notches']} one-block dents in it"
     assert r["spike_rate"] < 14, f"the skin's spike rate is {r['spike_rate']:.1f} - it is gravelly"
+
+    # **EVERY REMAINING DENT MUST BE THE SPACE BETWEEN ITS LEGS**, which is supposed to be there.
+    # `roughness` counts an air cell walled on most sides as a NOTCH and cannot tell a crotch from
+    # damage - the giraffe scores zero only because its legs are far apart and its belly is high.
+    # So the assertion is exact rather than a threshold: below the belly line, on the midline. A
+    # dent anywhere else is the fault this metric exists to catch.
+    from mcbuild import morph as _m
+    ids = c.to_model().ids
+    solid = ids > 0
+    dents = (~solid) & (_m.neighbor_count(solid, conn=26) > 18)
+    d = stegosaur._dims(float(c.meta["length"]))
+    mid = c.sx // 2
+    for y, z, x in zip(*np.nonzero(dents)):
+        assert abs(int(x) - mid) <= 1 and int(y) < stegosaur._belly_at(d, 0.0) + 2,             f"a one-block dent at {(int(x), int(y), int(z))} is not the gap between its legs"
 
 
 def test_the_LEGS_do_not_stick_out_THROUGH_the_flank():
@@ -658,3 +709,403 @@ def test_the_LEGS_do_not_stick_out_THROUGH_the_flank():
         assert at[near] + 1e-6 >= d["stance"] + r, (
             f"the {name} is {at[near]:.2f} half-wide but the leg reaches "
             f"{d['stance'] + r:.2f} - it sticks out through the flank")
+
+
+# --------------------------------------------------------------------- the ankylosaur
+
+#: **THE ARMOUR IS ITS OWN MATERIAL AND NOTHING ELSE USES IT.** A mask keyed on a block that the
+#: coat also spends measures two things at once - the stegosaur's nostrils were drawn in the
+#: plates' own stone, so the plate count, the plate rooting and "the nose is all bone" all failed
+#: on a correct build. Every knob, spike, horn and club lobe here is `bone_block` and no cell of
+#: the coat is, so `ARMOUR` and `ANK_BODY` partition the animal.
+ARMOUR = {"bone_block"}
+ANK_BODY = {"dripstone_block", "brown_wool", "light_gray_wool", "black_wool", "dark_oak_planks",
+            "spruce_slab", "andesite_slab", "mossy_stone_brick_slab", "dark_oak_slab",
+            "spruce_stairs", "andesite_stairs", "mossy_stone_brick_stairs", "dark_oak_stairs"}
+
+
+def _ank(**kw):
+    return ankylosaur.build_ankylosaur({"facing": "north", **kw})
+
+
+def test_the_barrel_is_CARRIED_CLEAR_but_the_mass_still_dominates():
+    """**THIS ANIMAL HAS NOW BEEN WRONG IN BOTH DIRECTIONS, so the contract is two-sided.**
+
+    Built with the legs tucked inside the outline it had a flat back, a dragging tail and its belly
+    on the floor - a crocodilian term for term, and what it was read as on sight. The reasoning
+    behind that was the corpus's own finding, that a silhouette which decomposes into LIMBS is the
+    one thing this system cannot build; but that finding is about a barrel slung between LONG legs,
+    which is the jaguar. Four short thick pillars under a wide dome is the TURTLE, and the turtle
+    works here. So neither "the legs show" nor "the legs do not" is the property - it is the RATIO.
+
+    **AND IT IS MEASURED ON THE PROFILE, NOT THE MIDLINE.** The first version of this test measured
+    the belly down the animal's own centre line and passed the crocodile by a hair, because what a
+    walker sees in profile is the FLANK, and the flank reached the ground while the midline did not.
+    A test for how something reads has to measure the view it is read in: 1.87 courses of mean
+    daylight before against 4.33 after, where the midline said 3.18 against 6.33 and neither number
+    was the one that mattered.
+    """
+    c = _ank()
+    d = ankylosaur._dims(float(c.meta["length"]))
+    prof = (c.to_model().ids > 0).any(axis=2)
+    mid_z = c.sz // 2
+    lows = []
+    for z in range(c.sz):
+        f = mid_z - z
+        if not (d["hind_f"] + 2 <= f <= d["fore_f"] - 2):     # strictly BETWEEN the leg pairs
+            continue
+        col = np.nonzero(prof[:, z])[0]
+        if len(col):
+            lows.append(int(col.min()))
+    assert lows, "no stations between the leg pairs"
+    clear = sum(lows) / len(lows)
+    assert clear >= 3.0, \
+        f"the profile floor between the legs averages {clear:.2f}: the belly is down, and a low " \
+        f"flat-backed body with its belly on the floor is an alligator, not a dinosaur"
+
+    # ...and the other half: the mass must still dominate, or it is a jaguar.
+    body = _mask(c, ANK_BODY)
+    mid_x = c.sx // 2
+    depths = []
+    for z in range(c.sz):
+        f = mid_z - z
+        if not (d["spine"][-1][0] <= f <= d["spine"][0][0]):
+            continue
+        col = np.nonzero(body[:, z, mid_x])[0]
+        if len(col) > 1:
+            depths.append(int(col.max() - col.min() + 1))
+    depth = sum(depths) / len(depths)
+    assert depth > clear * 1.4, \
+        f"the barrel is {depth:.1f} deep on legs of {clear:.1f}: the silhouette decomposes"
+
+
+def test_it_is_a_SHIELD_and_not_a_barrel():
+    """Wider than it is deep and low for its length, which is the one thing a sphere sweep cannot
+    give you: swept as spheres the plan and the profile are the SAME SHAPE by construction, which
+    is the jaguar's recorded retirement ("a constant-depth rectangle from shoulder to rump") and
+    what made the stegosaur read as a loaf. `_dims` carries a half-DEPTH and a half-WIDTH per
+    station for this and nothing else."""
+    solid = _ank().to_model().ids > 0
+    ys, zs, xs = np.nonzero(solid)
+    wide = int(xs.max() - xs.min() + 1)
+    tall = int(ys.max() - ys.min() + 1)
+    long_ = int(zs.max() - zs.min() + 1)
+    assert wide > tall * 1.6, f"{wide} wide against {tall} tall - that is a barrel, not a shield"
+    assert long_ > tall * 3.0, f"{long_} long against {tall} tall - it is not low enough"
+
+
+def test_the_spike_fringe_BREAKS_THE_PLAN_OUTLINE():
+    """**THE PLAN IS THIS ANIMAL'S MONEY VIEW** - it is read from the causeway's own walkway and
+    from the park skyway above it, and a shield is the one shape voxels give away free from
+    overhead. A bare oval reads as a beetle; a fringe of spikes standing out past the rim reads as
+    armour. So the fringe has to actually REACH PAST the shell rather than sit on it, which is the
+    ladybird's spot-spacing lesson in a different direction."""
+    c = _ank()
+    bxs = np.nonzero(_mask(c, ANK_BODY))[2]
+    axs = np.nonzero(_mask(c, ARMOUR))[2]
+    assert axs.min() < bxs.min() and axs.max() > bxs.max(), \
+        "no armour reaches past the shell - that is studs on a dome, not a fringe"
+
+
+def test_the_CLUB_is_a_mass_and_not_a_paddle():
+    """The club is half of what names this animal and it failed three ways. Two lobes set close
+    with a big radius merge into ONE cube on a stick - a mallet. Set far apart they stop touching
+    and the thread joining them shows between as a stem, so it came out as a PLUS SIGN in the one
+    view this animal is read in. And at the small end its radii went under a cell: a fraction of
+    the length is 0.73 at length 26, `ball` fills a single course, and it shipped as a ONE-COURSE
+    PADDLE thinner than the tail carrying it - at two lengths out of five, and not the one it was
+    being looked at. A club is two knobs sharing a body: wider than it is tall, and a mass."""
+    c = _ank()
+    lab, sizes = morph.components(_mask(c, ARMOUR), conn=6)
+    rear = max(range(1, len(sizes) + 1), key=lambda i: np.nonzero(lab == i)[1].mean())
+    ys, _zs, xs = np.nonzero(lab == rear)
+    wide, tall = int(xs.max() - xs.min() + 1), int(ys.max() - ys.min() + 1)
+    assert sizes[rear - 1] >= 18, f"the club is {sizes[rear - 1]} cells - a knot on a string"
+    assert wide >= 5 and tall >= 3, f"the club is {wide} wide and {tall} tall - it is a paddle"
+    assert wide > tall, f"the club is {wide} wide and {tall} tall - it is a ball, not a club"
+
+
+def test_the_head_is_a_BLUNT_BOX_that_reads_APART_from_the_shield():
+    """An Ankylosaurus skull is famously WIDER THAN IT IS LONG - a boxy head on a broad beak - and
+    this head failed at both ends before it worked. Swept out of the mass at full width it was not
+    a head at all, it was the front of the shell tapering, and the animal read HEADLESS. Given a
+    deep pinch and a taper to a fine tip it read as a BEAK ON A STICK before smoothing and as a
+    smooth CONE after it, because the relax pass fills a narrow trough and shaves a thin ball: the
+    last five stations measured 7, 5, 5, 3, 1 and the animal had a snout.
+
+    So the contract is not a local minimum in the width - the smoothing correctly removes one - it
+    is that the head is a run of stations markedly narrower than the shield, wide enough to carry
+    a pair of eyes, and blunt at the front rather than pointed.
+    """
+    c = _ank()
+    solid = c.to_model().ids > 0
+    widths = []
+    for z in range(c.sz):
+        if solid[:, z, :].any():
+            xs = np.nonzero(solid[:, z, :].any(axis=0))[0]
+            widths.append(int(xs.max() - xs.min() + 1))
+    shield = max(widths)
+    head = []
+    for w in widths:                                # the leading run, nose backwards
+        if w > 0.60 * shield:
+            break
+        head.append(w)
+    assert len(head) >= 4, f"the head is {len(head)} stations long against a shield of {shield}"
+    assert max(head) >= 5, f"the head is {max(head)} wide - too narrow to carry a pair of eyes"
+    assert sum(1 for w in head if w < 3) <= 1,         f"the skull comes to a point: {head}. An ankylosaur's beak is blunt"
+
+
+def test_the_KNOBS_are_staggered_and_never_a_lattice():
+    """Osteoderms in rows are the pattern that names the carapace, and laid on ONE LATTICE they are
+    a field of identical studs - riveted plate, which is machinery rather than an animal. That is
+    the deck soffit's confetti failure with the sign reversed: there the fault was too little
+    regularity, here it is too much. Alternate rows carry half a pitch of offset and a per-cell
+    hash drops one in six, so no two rows line up across the animal."""
+    c = _ank()
+    # **A KNOB SITS ON THE BODY; A SPIKE STANDS OUT PAST IT.** Masked as "armour above the belly"
+    # the fringe comes in too, and the fringe runs every station of the rim - so two of its rows
+    # share every station and a correct build fails a test written to catch a lattice. The two
+    # features are told apart by what is UNDER them, which is what they actually are.
+    below = np.zeros_like(_mask(c, ARMOUR))
+    below[1:] = _mask(c, ANK_BODY)[:-1]
+    knobs = _mask(c, ARMOUR) & below
+    # **KEYED ON THE DISTANCE FROM THE SPINE, NEVER ON THE COLUMN.** The animal is exactly
+    # symmetric, so the row at +0.46 of the half-width and the row at -0.46 carry IDENTICAL
+    # stations by construction - and a test that compares the two widest columns therefore fails
+    # every correct build for being a lattice, which is the mirror doing its job. A row is one
+    # offset from the midline; the pair is one row.
+    mid = c.sx // 2
+    rows = {}
+    for _y, z, x in zip(*np.nonzero(knobs)):
+        rows.setdefault(abs(int(x) - mid), set()).add(int(z))
+    wide = sorted((v for v in rows.values() if len(v) >= 3), key=len, reverse=True)[:3]
+    assert len(wide) >= 2, f"only {len(wide)} rows of knobs run along the back"
+    for a, b in ((0, 1), (0, 2), (1, 2))[: 3 if len(wide) > 2 else 1]:
+        assert wide[a] != wide[b],             f"two rows of knobs share every station: {sorted(wide[a])} - a lattice of rivets"
+
+
+def test_every_FEATURE_placed_something():
+    """**A FEATURE THAT PLACES NOTHING IS INVISIBLE UNLESS THE COUNTS ARE UNIQUE CELLS.** The horns
+    were rooted at a computed half-width and sat entirely INSIDE the skull: 124 placements, not one
+    new cell, and the sidecar reported a healthy-looking number while the animal shipped hornless.
+    It is the frog's `forelegs: 0` exactly - a build with a part missing is still one connected
+    piece with a clean audit and a correct bill of materials - and it only surfaced when the part
+    counts stopped being `put()` calls and started being cells the model actually gained."""
+    p = _ank().meta["parts"]
+    for part in ("shell", "legs", "head", "tail", "knobs", "spikes", "club", "horns"):
+        assert p[part] > 0, f"{part} placed {p[part]} cells: the animal shipped without it"
+    assert p["eyes"] == 2, f"{p['eyes']} eyes"
+
+
+def test_it_is_MIRRORED_in_shape_AND_IN_COLOUR():
+    """Both halves, because a check that compares only solid against air passes a build whose left
+    flank is a different colour from its right - the frog's recorded fault, where every coat drift
+    carried its own signed offset, and the squid's 5,375 cells. `_lr` compares FULL STATES with the
+    facing mirrored, so a stair leaning the wrong way on one flank is caught too: our renderer drew
+    the frog's 60 reversed stairs identically until `render3d.subdivide` learned to expand one."""
+    assert _lr(_ank()) == (0, 0)
+
+
+def test_the_SURFACE_IS_SMOOTHED_and_the_relax_actually_ran():
+    """`relax` is step 2 of CLAUDE.md's build order and these are `quadruped.py`'s own numbers -
+    four rounds at fill 11, keep 11, which is what the GIRAFFE is built with. Measured side by
+    side, the stegosaur's first skin scored `spike_rate` 28.97 against the giraffe's 4.03 while
+    running ONE round at fill 15 and keep 8. Every one of these passes fails SILENTLY: a build with
+    all of them switched off is legal, one piece, correctly proportioned and audits clean."""
+    p = _ank().meta["parts"]
+    before, after = p["relax"]["spike_rate"]
+    assert after < before * 0.5, f"the relax pass barely moved the skin: {before} -> {after}"
+    assert after < 4.03, f"the relaxed mass scores {after} - the giraffe scores 4.03"
+    s = p["surface"]
+    assert s["stairs"] > 40 and s["slabs"] > 40, f"the surfacing pass placed {s}"
+    assert s["stairs_under"] > 15, f"only {s['stairs_under']} of its ramps are undersides"
+
+
+@pytest.mark.parametrize("length", [28, 32, 36, 40, 48, 56])
+def test_the_ankylosaur_survives_EVERY_LENGTH_it_can_be_built_at(length):
+    """**A SCALE SWEEP IS THE ONLY THING THAT CATCHES A FEATURE THAT HALF-EXISTS**, and on this
+    animal's own predecessor it found no eyes at one length, a detached thagomizer at two, fused
+    plates at three and welded feet at most - every one of them silent, and not one at the length
+    that happened to be under the eye. It found two more here: the club went to a ONE-COURSE
+    PADDLE below length 34, and the horns placed 124 blocks and gained zero cells."""
+    c = ankylosaur.build_ankylosaur({"length": length})
+    solid = c.to_model().ids > 0
+    _lab, sizes = morph.components(solid, conn=6)
+    assert len(sizes) == 1, f"at {length} it came out in {len(sizes)} pieces: {sorted(sizes)[-6:]}"
+    _l2, feet = morph.components(solid[0][None, :, :], conn=6)
+    assert len(feet) == 4, f"at {length} it touches down in {len(feet)} patches, not four"
+    p = c.meta["parts"]
+    assert p["eyes"] == 2 and p["horns"] > 0 and p["club"] > 0 and p["knobs"] > 0
+    assert c.meta["clipped"] == 0, f"at {length} it clips {c.meta['clipped']} cells off its box"
+
+
+@pytest.mark.parametrize("facing", ["north", "south", "east", "west"])
+def test_the_ankylosaur_is_never_CLIPPED_off_its_own_canvas(facing):
+    """A canvas that is always long in X is long in the WRONG axis for a north-south animal: the
+    sauropod built facing north came out clipped to 22 blocks of 48 - head, neck and half the tail
+    simply refused - and the render still showed a plausible small dinosaur. `clipped` is counted
+    APART from `refused`, because a foot pad's lower hemisphere is always outside the box and
+    always will be: that is the ground, not a clip, and one number for both hides this."""
+    c = ankylosaur.build_ankylosaur({"facing": facing})
+    assert c.meta["clipped"] == 0, f"facing {facing} clips {c.meta['clipped']} cells off the box"
+    assert c.meta["parts"]["mirror"]["shape"] == 0, f"facing {facing} is not symmetric"
+
+
+def test_it_REFUSES_a_length_that_cannot_carry_its_own_pattern():
+    """Its identity is a PATTERN on a shield - osteoderm rows, a spike fringe and a club - and
+    every one of those has a block floor below which it does not shrink gracefully, it stops
+    existing. `tools/scale.py`'s doctrine, so it says so rather than building something that audits
+    clean, ships one connected piece and cannot be named."""
+    with pytest.raises(ValueError, match="shield"):
+        ankylosaur.build_ankylosaur({"length": 22})
+
+
+def test_the_face_is_DRAWN_and_reads_head_on():
+    """**THE FACE WAS THE ONE THING NOTHING TESTED, AND IT SHIPPED AS A THUMB.** The head passed
+    every geometric contract there was - blunt, wide, pinched off the shield, carrying a pair of
+    eyes - and head-on it was a smooth brown lump: the surfacing pass had scattered stairs and
+    slabs of two colour families over the muzzle, and the eyes sat on the SKULL ROOF where only
+    the plan could see them. A face is a DRAWN feature and has to be asserted like one.
+
+    The four marks, and each is a recorded lesson from another animal: a pale beak (the frog's
+    panel), a dark line across it where the jaws meet (the frog's mouth line, its own single
+    biggest change), nostrils that are NOT black (or they read as a second pair of eyes), and a
+    bead a side that the coat cannot swallow and the mouth line cannot merge with.
+    """
+    c = _ank()
+    p = c.meta["parts"]
+    for mark in ("beak", "mouth", "nostril"):
+        assert p[mark] > 0, f"the face has no {mark}: {p}"
+    assert p["nostril"] == 2, f"{p['nostril']} nostrils"
+
+    cells = _cells(c.to_model())
+    black = {xyz for xyz, n in cells.items() if n == "black_wool"}
+    mid = c.sx // 2
+
+    # **A BEAD IS FOUND BY ITS RING, WHICH IS WHAT MAKES IT AN EYE.** Twice now this test has been
+    # written to find the eyes geometrically - "the outermost black cells", then "black with no
+    # black above or below" - and both times it picked the MOUTH's own carry-back along the jaw,
+    # which is black, isolated vertically, and further out than the bead. The eye is the black cell
+    # the pale ring was built around; nothing else on the animal has one.
+    beads = [(x, y, z) for (x, y, z) in black
+             if sum(cells.get(n) == "light_gray_wool" for n in
+                    ((x + 1, y, z), (x - 1, y, z), (x, y + 1, z), (x, y - 1, z),
+                     (x, y, z + 1), (x, y, z - 1))) >= 2]
+    pairs = [b for b in beads if (2 * mid - b[0], b[1], b[2]) in beads and b[0] != mid]
+    assert pairs, f"no ringed bead has a mirror twin: {len(black)} black cells, {len(beads)} ringed"
+
+    # **AND IT FACES OUTWARD**, which is the property that makes it visible at all. What made the
+    # first head a thumb was an eye whose only open face was UP.
+    for (x, y, z) in pairs:
+        out = x + (1 if x > mid else -1)
+        assert (out, y, z) not in cells,             f"the bead at {(x, y, z)} is walled in on its outboard side: only the plan sees it"
+
+
+def test_the_SURFACING_pass_keeps_off_the_face():
+    """`shell.py` chamfers a step by replacing the cell with a stair of the nearest colour, which
+    is right on a flank and vandalism on a face: it picked a green-grey slab and an orange stair
+    out of the coat's own families and scattered them across the muzzle, so the head read as a
+    staircase in three tones nothing else on the animal uses. The frog states the rule for its own
+    build - *the face, the belly, the eyes and the feet are drawn features and a stair through one
+    of them is a hole in a drawing* - and it lives in `_skin` rather than in each caller."""
+    c = _ank()
+    d = ankylosaur._dims(float(c.meta["length"]))
+    m = c.to_model()
+    names = [nbt.state_name(e).split(":")[-1] for e in m.palette]
+    mid_z = c.sz // 2
+    bad = []
+    for y, z, x in zip(*np.nonzero(m.ids > 0)):
+        n = names[int(m.ids[y, z, x])]
+        if ("_stairs" in n or "_slab" in n) and (mid_z - int(z)) >= d["head_back"] - 1:
+            bad.append((int(x), int(y), int(z), n))
+    assert not bad, f"{len(bad)} shape blocks on the face, e.g. {bad[:4]}"
+
+
+def test_the_SCUTES_scale_with_the_animal():
+    """**AN ABSOLUTE THAT IS TOO SMALL AT LARGE SCALE IS THE SAME TRAP AS ONE TOO BIG AT SMALL.**
+    The osteoderms were one cell at every size while `spike_len`, the club and everything else were
+    fractions of the length - so making the animal bigger made its carapace EMPTIER, a 37-wide back
+    carrying specks, and a build at 64 read worse than the same generator at 40. That is why size
+    alone is never the answer to "more detail": it buys resolution, and the pattern has to spend it.
+    """
+    small = ankylosaur.build_ankylosaur({"length": 32}).meta["parts"]["knobs"]
+    big = ankylosaur.build_ankylosaur({"length": 64}).meta["parts"]["knobs"]
+    assert big > small * 2.0, f"the pattern does not scale: {small} scutes at 32, {big} at 64"
+    d = ankylosaur._dims(64.0)
+    assert d["knob_r"] * max(d["knob_grade"]) > 1.0, \
+        "every scute is still a single cell at 64 blocks - the carapace will read as specks"
+
+
+def test_the_carapace_carries_a_KEEL_and_TRANSVERSE_BANDS():
+    """**A LINE SURVIVES DISTANCE AND A FIELD OF DOTS DOES NOT** - the jaguar's rosettes "turn to
+    noise rather than pattern" at a quarter scale, and that is the recorded reason its coat failed.
+    The keel is the only element on the back that still reads when the animal is a smudge, and the
+    transverse half-rings are what break a uniform field of scutes into a STRUCTURE - they are also
+    the feature an ankylosaur is actually diagnosed on."""
+    c = _ank()
+    d = ankylosaur._dims(float(c.meta["length"]))
+    cells = _cells(c.to_model())
+    mid = c.sx // 2
+    keel = sorted(z for (x, _y, z) in cells if x == mid and cells[(x, _y, z)] == "dripstone_block")
+    assert keel, "no scute material on the midline at all"
+    run = max(len(list(g)) for g in _runs(sorted(set(keel))))
+    want = int(0.35 * (d["keel_to"] - d["keel_from"]) * d["L"])
+    assert run >= want, f"the keel's longest unbroken run is {run}, wanted {want}: it is dots"
+
+
+def _runs(vals):
+    out, cur = [], []
+    for v in vals:
+        if cur and v != cur[-1] + 1:
+            out.append(cur)
+            cur = []
+        cur.append(v)
+    if cur:
+        out.append(cur)
+    return out
+
+
+def test_it_has_FOUR_horns_and_not_two():
+    """The squamosal pair off the back corners of the skull roof and the quadratojugal pair under
+    them at the cheek are what a palaeontologist names this animal on. Two alone read as a lump
+    with ears, and the lower pair is aimed DOWN as well as back so head-on it widens the jaw
+    instead of doubling the upper one."""
+    c = _ank()
+    d = ankylosaur._dims(float(c.meta["length"]))
+    armour = _mask(c, ARMOUR)
+    mid_x, mid_z = c.sx // 2, None
+    # the horns are the armour over the SKULL's own stations, and they sit at two distinct courses
+    zs = np.nonzero(c.to_model().ids > 0)[1]
+    head_from = zs.min()
+    band = armour[:, head_from:head_from + int(round(d["head_tip"] - d["cheek_f"])) + 4, :]
+    ys = sorted({int(y) for y, _z, _x in zip(*np.nonzero(band))})
+    assert len(ys) >= 4, f"the skull's armour occupies {len(ys)} courses - that is one pair"
+    gap = max(b - a for a, b in zip(ys, ys[1:])) if len(ys) > 1 else 0
+    assert gap >= 2 or len(ys) >= 6, \
+        f"the skull's armour is one continuous band at courses {ys}: the pairs have merged"
+
+
+def test_each_foot_carries_THREE_TOES_that_lean_the_right_way():
+    """**A TOE BUILT OF FULL BLOCKS ENDS AT A VERTICAL FACE, WHICH IS A PLATE.** Four arrangements
+    of cubes on the frog read as a rake, a comb, a plus sign and a set of random lines before the
+    answer turned out to be the MATERIAL: half height at the tip sloping to the ground is what a
+    toe does, and it is one block per toe. And the lean is asserted rather than eyeballed, because
+    a stair's tall side is its `facing` and this renderer drew both directions identically until
+    `render3d.subdivide` learned to expand one."""
+    c = _ank()
+    m = c.to_model()
+    names = [_full(e) for e in m.palette]
+    tips = [names[int(m.ids[0, z, x])] for z, x in zip(*np.nonzero(m.ids[0] > 0))
+            if "_stairs" in names[int(m.ids[0, z, x])]]  # full states, see `_full`
+    assert len(tips) == 12, f"{len(tips)} toe tips on four feet - wanted three a foot"
+    # facing NORTH, a toe tapers down and forward, so its tall side is BACK: south
+    assert all("facing=south" in t for t in tips), f"a toe leans the wrong way: {set(tips)}"
+
+
+def test_the_tail_carries_TENDON_RINGS():
+    """Without them the tail is a smooth taper and reads as a rat's. They are also the only thing
+    on it that survives being seen from above, which is where the causeway's own skyway looks down
+    on this stop. **RAISED, NOT REPAINTED** - written at the top course they recolour the cell
+    already there and add nothing, which reported 0 while the pass claimed success."""
+    p = _ank().meta["parts"]
+    assert p["tail_bands"] >= 8, f"{p['tail_bands']} cells of tendon ring on the whole tail"

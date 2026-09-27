@@ -27,24 +27,24 @@
     "drifts": [
       {
         "kind": "sweep",
-        "n": 43,
-        "cells": 2409,
+        "n": 60,
+        "cells": 2958,
         "by_kind": {
-          "jungle": 24,
-          "debris": 5,
-          "snag": 5,
-          "rock": 9
+          "jungle": 29,
+          "rock": 13,
+          "snag": 8,
+          "debris": 10
         }
       }
     ],
-    "pieces": 43,
+    "pieces": 60,
     "by_kind": {
       "pine": 0,
-      "snag": 5,
-      "rock": 9,
-      "debris": 5
+      "snag": 8,
+      "rock": 13,
+      "debris": 10
     },
-    "cells": 2409
+    "cells": 2958
   },
   "contract": "planting and props on the Frontier's open lawn and nowhere else: every cell stands on a column whose own ground is moss and whose neighbourhood within `path_clear` is moss too, so nothing is placed on paving, against a kerb, or on anything anybody built - and every stand is a drift with a noisy edge rather than scattered cells",
   "mechanics": {
@@ -76,50 +76,50 @@
       "narrative": "The Frontier's planting and props: stands of spruce with stepped canopies on the open lawn, dead barkless snags, mossy boulders in the land's own quarried palette, and what a mine leaves lying about - cross-piled timber, tipped ore, a barrel on a cart axle.\n"
     },
     "metrics": {
-      "blocks": 2221,
+      "blocks": 2578,
       "materials": 10,
-      "dominant_material_share": 0.869,
+      "dominant_material_share": 0.8472,
       "light_blocks": 0,
       "massing": {
         "width": 170,
         "height": 10,
         "depth": 170,
-        "fill_ratio": 0.0077
+        "fill_ratio": 0.0089
       },
       "silhouette": {
         "top": {
-          "area": 766,
-          "fill_ratio": 0.0225
+          "area": 890,
+          "fill_ratio": 0.0262
         },
         "front": {
-          "area": 327,
-          "fill_ratio": 0.1022
+          "area": 331,
+          "fill_ratio": 0.1034
         },
         "side": {
-          "area": 419,
-          "fill_ratio": 0.154
+          "area": 499,
+          "fill_ratio": 0.1835
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.2918,
-          0.7082,
+          0.4166,
+          0.5834,
           0.0
         ],
-        "top_silhouette_perimeter": 1052,
-        "surface_faces_per_block": 1.7965
+        "top_silhouette_perimeter": 1269,
+        "surface_faces_per_block": 1.8084
       },
       "material_counts": {
-        "jungle_leaves": 1930,
-        "jungle_log": 166,
-        "cobblestone": 40,
-        "stripped_jungle_log": 29,
-        "andesite": 18,
-        "mossy_cobblestone": 13,
-        "gravel": 11,
-        "rail": 9,
-        "barrel": 3,
-        "coal_ore": 2
+        "jungle_leaves": 2184,
+        "jungle_log": 188,
+        "cobblestone": 68,
+        "stripped_jungle_log": 39,
+        "andesite": 30,
+        "mossy_cobblestone": 25,
+        "gravel": 16,
+        "rail": 15,
+        "coal_ore": 8,
+        "barrel": 5
       }
     },
     "checks": [],
@@ -131,7 +131,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "dabe769632812c993d88a5b6e9d8fa0f4904e0b8940fee2d35b74673f885eac3",
+    "fingerprint": "d909623b7e8e4c0a883ceaca709f05fe3c68a55b7595a9074002e6028c94b2a4",
     "generator_source_digest": "e6972fcea459e1432052c1ce31d56d0d7cf57ac389814af26c3faf94524bec2d",
     "anchors": [],
     "genome": {
@@ -173,9 +173,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 58.411769,
-    "blocks": 2221,
-    "blocks_per_second": 38.02
+    "seconds": 49.387566,
+    "blocks": 2578,
+    "blocks_per_second": 52.2
   },
   "generator_contract": {
     "ok": true,
@@ -184,7 +184,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 2221,
+    "blocks": 2578,
     "mechanic_families": [
       "container",
       "rail"
@@ -209,9 +209,7 @@
   },
   "server_compatibility": [],
   "server_unlisted": [
-    "not in the provisional skyblock-1.19 list: coal_ore",
-    "not in the provisional skyblock-1.19 list: jungle_log",
-    "not in the provisional skyblock-1.19 list: stripped_jungle_log"
+    "not in the provisional skyblock-1.19 list: jungle_log"
   ],
   "file": "PF Frontier Scatter.litematic",
   "name": "PF Frontier Scatter"

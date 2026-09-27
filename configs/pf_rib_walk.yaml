@@ -1,0 +1,71 @@
+# THE RIB WALK - a colossal skeleton the causeway walks THROUGH, on the Frontier Reach.
+#
+# Jack, after six subjects were block-out and rejected for this stop: "i dont think any of these
+# are unique or interesting, we want something that is as awe inspiring as the other island
+# elements."
+#
+# ---------------------------------------------------------------------------------------------
+# THE FAULT IN ALL SIX WAS THE REGISTER, NOT THE SHAPE
+#
+# An ankylosaur, an ammonite, a pterosaur skull, a hatching egg, a giant dragonfly, a claw and a
+# tree fern. Every one was a thousand-to-ten-thousand block OBJECT standing beside the walk,
+# because I had matched them to the balloon (2,299) and the wyrm (985) - the two stops that were
+# already there. Nothing on this island that inspires awe is that shape of thing:
+#
+#   Abyss Squid    46,882 blocks hanging in the VOID under the park, found by parkour runners
+#   Wyrm Gate      27,857 blocks straddling a LIVE RAILWAY, the train through its mouth
+#   Mine Ridge     41,948 blocks of mountain with a COASTER CUT THROUGH IT
+#
+# What they share is that each one USES ITS SITE. The causeway's own unused resource is that it is
+# a walkway over nothing at all - so the sculpture is the corridor rather than an ornament on it.
+#
+# ---------------------------------------------------------------------------------------------
+# AND A SKELETON IS THE ONE SHAPE THIS MEDIUM CANNOT GET WRONG
+#
+# CLAUDE.md, on the Lost Plateau's bone bed: "a spine is a line, a rib is a curve one block thick,
+# a skull is a small box with holes in it. The plan is the money view, which voxels give away
+# free." There is no barrel, no haunch, no compound muscle and above all NO LIMBS - so the failure
+# that retired eight mammals, then the stegosaur after four rounds of polish, then the ankylosaur
+# after six, cannot occur here. That is a property of the subject, not a hope about the execution.
+#
+# ---------------------------------------------------------------------------------------------
+# THE CAUSEWAY IS REFUSED CELL FOR CELL, AND THAT IS THE WHOLE EFFECT
+#
+# The deck cuts the cage in two: a rib arrives at the paving, stops, and picks up again underneath.
+# So the bridge reads as having been built THROUGH a fossil rather than as a hoop over a path, and
+# a guest at the rail looks down to see the cage continuing under their feet with nothing below it.
+#
+# It also means THE DESIGN ALONE IS IN MANY PIECES AND THAT IS CORRECT - the Mine Ridge's own
+# recorded situation, where "the design alone is in six pieces... the composite is the truth".
+#
+#   length 75        Jack: "can it be just maybe 15% smaller". 88 -> 75, which keeps the same
+#                    CENTRE on the reach (z 80496) and spans 80458..80533 of its 80450..80550,
+#                    clear of the sloth at t=0.82 and of both landfalls with more margin than
+#                    before. Everything else is a fraction of the length, so one number moved it.
+#   half 0.300 L     22 either side of the centre line: the ribs still come down OUTSIDE the walk
+#                    and outside the benches, so more of the deck is inside the cage than beside it
+#   drop 0.220 L     16 courses below the deck, into open void
+#   deck             DERIVED from the drop, never passed: at a fixed 7 the whole lower half of the
+#                    cage fell off the canvas floor - 25,565 cells clipped and a render that still
+#                    showed a plausible ribcage
+name: PF Rib Walk
+gen: ribwalk
+params:
+  kind: ribwalk
+  length: 75
+  facing: north
+  # the canvas corner. x centres the cage on the causeway (97595), y puts the local deck course on
+  # world Y202, z lands f=0 at the reach's far end.
+  at: [97568, 181, 80434]
+  # THE SKULL IS OFF, and that is a decision. Built, it came out a filled oval plate with a slot in
+  # it, because consecutive rings overlap and fill - a skull is a box with HOLES in it or it is
+  # nothing. More to the point this park already has a walk-through skull at the Wyrm Gate, and
+  # repeating it is the reason the gecko and the bat were removed from the hollow reach.
+  skull: false
+  refuse:
+    - out/Isthmus.litematic
+finish:
+  verify_against: out/Isthmus.litematic
+
+# the island lock is 121,878 blocks away: rule 1 says say so loudly rather than pad to it.
+origin_lock: false

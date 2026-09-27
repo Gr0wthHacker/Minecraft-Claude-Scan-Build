@@ -19,6 +19,14 @@ params:
   at: [97617, 117, 80817]      # canvas corner; centres the bell at (97655, 80855), crown Y182
   tent_out: 0.22
   tent_wave: 0.15
+  # GLASS BUDGET: the bell is stained glass and glass is smelted sand, so the shell is kept THIN.
+  # bell_t 2->1 halves the dome's glass with an identical silhouette (wall thickness is invisible
+  # from outside, and 1-thick glass reads MORE translucent so the internal glow shows better); the
+  # bell shrinks a touch (R15->13, H12->11) on top. Net glass 6050 -> ~2620, dome 30->26 wide.
+  bell_t: 1
+  bell_r: 13
+  bell_h: 11
+  window_frac: 0.40            # the dome is a wool lantern; glass fills 40% of each panel sector
 
 finish:
   cheapen: false               # the palette is the squid's, all cheap-or-ok and 1.19

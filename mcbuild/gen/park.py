@@ -55,12 +55,16 @@ TEXT looks, which is away from the block holding it up.
 """
 from __future__ import annotations
 
+from .. import blocks
 from .canvas import Canvas, hash01
 from .vertical import Ctx, World
 
 _STEP = {"north": (0, -1), "south": (0, 1), "west": (-1, 0), "east": (1, 0)}
 _BACK = {"north": "south", "south": "north", "east": "west", "west": "east"}
 _LEAN = {"east": "west", "west": "east", "north": "south", "south": "north"}
+
+#: the inverse of _STEP: a unit step back to the compass name that produced it
+_DIR = {v: k for k, v in _STEP.items()}
 
 SIGN_WIDTH = 15         # a sign line clips mid-word past this; asserted, never hoped for
 ROOM_H = 5              # floor to ceiling: four clear courses, which is a room not a corridor
@@ -247,16 +251,23 @@ class _Frame:
                 self.z - self.dz * d + self.sz * i)
 
     def inward(self, i, d, width, depth):
-        """Which way a wall cell's INTERIOR side faces, so a cornice stair leans into the room."""
+        """Which way a wall cell's INTERIOR side faces, so a cornice stair leans into the room.
+
+        **THE i-AXIS IS DERIVED FROM THE FRAME, NOT FROM A TABLE.** `sx, sz = -dz, -dx` is a
+        REFLECTION rather than a rotation, so a hand-written left/right map is right for north and
+        south and inverted for east and west - which is half of every building, and the facing the
+        tests default to. Every cornice on an east- or west-facing building leaned outward on its
+        i-runs, and nothing could see it: until `render3d.subdivide` learned to draw a stair's real
+        shape, our renderer drew a stair the wrong way round identically to a right one.
+        """
         if d == 0:
             return self.back
         if d == depth - 1:
             return self.facing
-        left = {"east": "north", "west": "south", "north": "west", "south": "east"}[self.facing]
-        if i == 0:
-            return _BACK[left]
+        if i == 0:                      # i grows along (sx, sz), so the i=0 edge looks back down it
+            return _DIR[(self.sx, self.sz)]
         if i == width - 1:
-            return left
+            return _DIR[(-self.sx, -self.sz)]
         return None
 
 
@@ -333,6 +344,102 @@ def _hang_light(w, f, pal, i, d, h):
     """
     w.put(*f.at(i, d, h + 1), pal["trim"])
     w.put(*f.at(i, d, h), pal["light"], hanging="true", waterlogged="false")
+
+
+# -------------------------------------------------------------- trim, as CUT blocks
+
+#: A course that stands PROUD of the wall under it is a cornice, a plinth or a coping, and none of
+#: those is a full cube on any building anybody admires. Measured against `reference/amazingsteal`
+#: - another player's island on this same server - their detail-block share is 12.0% against our
+#: 3.4%, their slabs are 66% `type=top` against our 10%, and their stairs 46% `half=top` against
+#: our 21%. Closing that costs NOTHING: off the stonecutter one block cuts to TWO slabs and to one
+#: stair, so a cut course is at worst the same material and usually half.
+#:
+#: THE COURSE KEEPS ITS OWN FAMILY. `pal["stair"]` is not `pal["trim"]` - on the midway the trim is
+#: `polished_blackstone_bricks` (45) and the stair is `stone_brick_stairs` (128) - so laying a trim
+#: ring out of `pal["stair"]` would erase the one dark line the trim exists to draw. That is the
+#: ladder rule `test_every_land_can_actually_draw_a_line` already checks, one course up.
+_CUT_STEMS = ("_planks",)
+
+
+def _cut(name: str, suffix: str) -> str | None:
+    """`stone_bricks` -> `stone_brick_slab`, `spruce_planks` -> `spruce_slab`, or None.
+
+    The registry is asked (rule 11) rather than a map being remembered: the plural stem catches the
+    brick families and the `_planks` stem the woods, and anything the game does not actually have -
+    `smooth_basalt`, every wool, `dripstone_block` - answers None so the caller keeps its full cube.
+    """
+    stems = [name]
+    if name.endswith("s"):
+        stems.append(name[:-1])
+    for suf in _CUT_STEMS:
+        if name.endswith(suf):
+            stems.append(name[: -len(suf)])
+    for stem in stems:
+        cand = stem + suffix
+        if blocks.exists(cand):
+            return cand
+    return None
+
+
+def _ring_and_core(f, lo, hi):
+    """Split the square `lo..hi` into its proud ring - each cell with the way it leans - and its core.
+
+    THE LEAN COMES FROM `_Frame.inward`, NOT FROM A COMPASS NAME WRITTEN HERE. A frame is rotated by
+    the building's own facing, so a ring cell's direction is only knowable through the frame: written
+    as raw compass names this laid every run's step profile ALONG the run instead of across it, and a
+    course that should read as one continuous moulding came out as a sawtooth. It looked like a
+    facing bug and was a coordinate-space bug, which is the same class as picking a view axis by hand.
+    Reusing `inward` is also the one-source rule - a second copy of the rotation drifts.
+    """
+    n = hi - lo + 1
+    ring, core = [], []
+    for i in range(lo, hi + 1):
+        for d in range(lo, hi + 1):
+            face = f.inward(i - lo, d - lo, n, n)
+            (ring.append((i, d, face)) if face else core.append((i, d)))
+    return ring, core
+
+
+def _coping(w, f, pal, cells, h, mat, *, half="top"):
+    """Lay a proud ring as a CORBEL - a stair leaning into the mass it grows from.
+
+    A stair's TALL side IS its `facing`, so a corbel under an overhang faces the wall below it and
+    a plinth splay faces the shaft above it. Our renderer draws a stair the wrong way round
+    identically to a right one, so this is asserted rather than eyeballed.
+
+    Falls back to the full cube where the family has no stair, because a cornice in the WRONG
+    material is worse than a cornice in full blocks.
+    """
+    st = _cut(mat, "_stairs")
+    n = 0
+    for (i, d, face) in cells:
+        if st:
+            # `face` is already the INWARD direction, and a stair's TALL side IS its facing - so the
+            # step fills the junction against the mass and the undercut is on the side you see.
+            w.put(*f.at(i, d, h), st, facing=face, half=half,
+                  shape="straight", waterlogged="false")
+        else:
+            w.put(*f.at(i, d, h), mat)
+        n += 1
+    return n
+
+
+def _lid(w, f, pal, cells, h, mat):
+    """A roof or ceiling plane laid as TOP slabs - the half of the cell nobody stands under.
+
+    This is the single biggest source of `type=top` in a building, and it is free: a lid of slabs
+    is half the material of a lid of blocks and leaves the room under it one course taller.
+    """
+    sl = _cut(mat, "_slab")
+    n = 0
+    for (i, d) in cells:
+        if sl:
+            w.put(*f.at(i, d, h), sl, type="top", waterlogged="false")
+        else:
+            w.put(*f.at(i, d, h), mat)
+        n += 1
+    return n
 
 
 def _flush(w, f, pal, run, d, h, min_run, half="top"):
@@ -469,9 +576,10 @@ def _gate(w: World, p: dict, ctx) -> dict:
 
     # Roof and parapet. The wall stops at `height`; the crenellation course is left EMPTY for
     # `_crenellate` to alternate into.
-    for i in range(width):
-        for d in range(depth):
-            w.put(*f.at(i, d, height), pal["trim"])
+    # TOP slabs: the top face of a `type=top` slab IS the cell boundary, so the roof is walked on
+    # and the merlons stand on it exactly as before, at half the material. `_cornice` then overwrites
+    # the perimeter with its stair run.
+    _lid(w, f, pal, [(i, d) for i in range(width) for d in range(depth)], height, pal["trim"])
     _crenellate(w, f, pal, width, depth, height + 1)
     _cornice(w, f, pal, width, depth, height, int(p["min_run"]))
 
@@ -924,10 +1032,12 @@ def _tower(w: World, p: dict, ctx) -> dict:
     height = tiers * storey
 
     _pad(w, f, pal, side, side, margin=2)
-    # a flared plinth: one course proud of the shaft on every face
-    for i in range(-1, side + 1):
-        for d in range(-1, side + 1):
-            w.put(*f.at(i, d, 0), pal["trim"])
+    # A FLARED PLINTH. Its proud ring IS the splay - a bottom-half stair whose tall side stands
+    # against the shaft - and only the ring is ever seen: the interior is the floor under the tower.
+    ring, core = _ring_and_core(f, -1, side)
+    for (i, d) in core:
+        w.put(*f.at(i, d, 0), pal["trim"])
+    _coping(w, f, pal, ring, 0, pal["trim"], half="bottom")
 
     holes = []
     for t in range(tiers):
@@ -945,16 +1055,15 @@ def _tower(w: World, p: dict, ctx) -> dict:
     # stands one cell proud of the shaft.
     for t in range(1, tiers):
         h = t * storey
-        for i in range(-1, side + 1):
-            for d in range(-1, side + 1):
-                if i in (-1, side) or d in (-1, side):
-                    w.put(*f.at(i, d, h), pal["trim"])
+        _coping(w, f, pal, _ring_and_core(f, -1, side)[0], h, pal["trim"])
 
     # The deck: a corbelled overhang, a floor, then a parapet whose crown course is left EMPTY.
     top = height + 1
-    for i in range(-1, side + 1):
-        for d in range(-1, side + 1):
-            w.put(*f.at(i, d, top), pal["trim"])
+    ring, core = _ring_and_core(f, -1, side)
+    for (i, d) in core:                       # the deck you stand on stays a full course
+        w.put(*f.at(i, d, top), pal["trim"])
+    # A `half=top` stair's own top face is FULL, so the corbel is still walkable at the deck's edge.
+    _coping(w, f, pal, ring, top, pal["trim"])
     for i in range(-1, side + 1):
         for d in range(-1, side + 1):
             if i in (-1, side) or d in (-1, side):
@@ -1093,9 +1202,10 @@ def _walkthrough(w: World, p: dict, ctx) -> dict:
     # A CEILING, AND IT IS DARK. A bright lid over a dark floor reads as a lightwell; and a room
     # has a ceiling where a deck does not, which is the distinction the deck soffit settled after
     # a deck-wide "ceiling" came out as 25 lacy patches at six different heights.
-    for i in range(width):
-        for d in range(depth):
-            w.put(*f.at(i, d, height), pal["trim"])
+    # Laid as TOP slabs, which gives the room back half a course of headroom and costs half the
+    # stone. `_hang_light` runs AFTER this and re-puts a full block at each lantern's own anchor,
+    # because a lantern under a slab reads as hanging from air - see `_hang_light`.
+    _lid(w, f, pal, [(i, d) for i in range(width) for d in range(depth)], height, pal["trim"])
 
     # THE ROUTE: baffle walls that make you turn, rather than an empty box with two doors. Each
     # leaves a gap at the opposite end, so the path is a switchback and the building has an inside.

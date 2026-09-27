@@ -64,8 +64,9 @@ VIEWS = {
     "spire_launch":   ((12, 520), (70, 562), 100, 100, "Prism Spire at launch level"),
     "spire_catch":    ((12, 520), (70, 562), 14, 12, "Prism Spire at catch level"),
     "forge_deck":     ((12, 500), (75, 560), 8, 60, "Forge Deck side, looking back at the Spire"),
-    "heron":          ((12, 20), (67, 20), 12, 35, "Signal Heron at its intended approach"),
-    "heron_close":    ((36, 20), (67, 20), 34, 44, "Signal Heron, close"),
+    # THE TWO HERON VIEWS ARE GONE WITH THE BIRD (2026-09-07). A camera named for a retired
+    # module renders an empty lawn under its own caption, which reads as a broken renderer
+    # rather than as a module nobody placed - the leftover class the signage audit found.
     "sloth":          ((12, 358), (118, 358), 6, 18, "Sky Lift Sloth from below"),
     "wyrm":           ((12, 400), (48, 405), 5, 14, "Wyrm's Crossing at its approach"),
     # the composition view: high, and OFF the axis so the look direction is not straight down -

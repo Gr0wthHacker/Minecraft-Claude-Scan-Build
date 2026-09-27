@@ -93,8 +93,13 @@ def built():
     cave = am.Cave(SQUID)
     solid = _composite(d, origin, meta, cave)
     ox, oy, oz = origin
-    sh = meta["shaft"]
-    seen = _walk(solid, (sh["foot_y"] - oy, sh["z"] - oz, sh["x"] - ox))
+    if meta.get("entrance") == "mouth":
+        x, y, z = meta["mouth"]["entry_floor"]
+        seed = (y - oy, z - oz, x - ox)
+    else:
+        sh = meta["shaft"]
+        seed = (sh["foot_y"] - oy, sh["z"] - oz, sh["x"] - ox)
+    seen = _walk(solid, seed)
     return dict(d=d, origin=origin, meta=meta, cave=cave, solid=solid, seen=seen,
                 pal=[nbt.state_name(q) for q in d.palette])
 
@@ -132,7 +137,7 @@ def test_the_walk_reaches_every_room_from_the_shaft_foot(built):
         assert n > 20, f"{name} has {n} cells reachable on foot from the shaft"
 
 
-def test_the_climb_has_a_rung_in_every_course(built):
+def test_the_configured_entrance_is_complete(built):
     """A ladder that stops looks exactly like a ladder that starts.
 
     The shaft is built above the animal and the rig below it, and each stopped at its own end -
@@ -140,6 +145,12 @@ def test_the_climb_has_a_rung_in_every_course(built):
     a render, a BOM or an audit can see a gap in a climb.
     """
     d, meta, pal = built["d"], built["meta"], built["pal"]
+    if meta.get("entrance") == "mouth":
+        assert meta["shaft"]["enabled"] is False
+        assert not any(n == "minecraft:ladder" for n in pal), \
+            "mouth-only market still contains a hidden surface climb"
+        assert meta["mouth"]["entry_floor"] != meta["mouth"]["exit_floor"]
+        return
     (ox, oy, oz) = built["origin"]
     sh = meta["shaft"]
     rungs = set()
@@ -263,6 +274,16 @@ def test_the_shaft_is_DRY(built):
     """The best-scoring column by drop alone is under a pond, and cutting it drops that pond
     forty-two courses into a sealed animal. This repo has drained 199,959 cells to Y-1908 once.
     """
+    if built["meta"].get("entrance") == "mouth":
+        d, (ox, oy, oz), meta = built["d"], built["origin"], built["meta"]
+        sh = meta["shaft"]
+        cells=[]
+        for y,z,x in zip(*np.nonzero(d.ids)):
+            wx,wy,wz=x+ox,y+oy,z+oz
+            if abs(wx-sh["x"])<=1 and abs(wz-sh["z"])<=1 and sh["foot_y"]<wy<sh["surface"]:
+                cells.append((wx,wy,wz))
+        assert not cells, f"mouth-only market still builds {len(cells)} surface-shaft cells"
+        return
     if not os.path.exists(PARK):
         pytest.skip("needs Park Complete for the surface")
     m = schem.load(PARK)
@@ -278,7 +299,7 @@ def test_the_shaft_is_DRY(built):
     assert not found, f"standing water within five of the shaft: {found}"
 
 
-def test_every_dig_cell_is_the_MOUTH_or_a_WINDOW(built):
+def test_every_dig_cell_is_a_declared_entrance_cut_or_window(built):
     """A dig is the one operation with no undo, so what it may take is STATED.
 
     This used to assert a flat count of thirty-six - the shaft's 3x3 mouth - and that was the
@@ -292,8 +313,11 @@ def test_every_dig_cell_is_the_MOUTH_or_a_WINDOW(built):
     mouth = [c for c in dig if abs(c[0] - sx) <= 1 and abs(c[2] - sz) <= 1]
     window = [c for c in dig if c not in set(mouth)]
 
-    assert len(mouth) == 36, f"{len(mouth)} mouth cells - it is a 3x3 through four courses"
-    assert len({y for _, y, _ in mouth}) == 4
+    if meta.get("entrance") == "mouth":
+        assert not mouth, "mouth-only access must not retain the obsolete surface shaft cut"
+    else:
+        assert len(mouth) == 36, f"{len(mouth)} mouth cells - it is a 3x3 through four courses"
+        assert len({y for _, y, _ in mouth}) == 4
 
     budget = int(meta["prow"]["dig"])
     assert len(window) == budget, f"{len(window)} window cells against a declared {budget}"

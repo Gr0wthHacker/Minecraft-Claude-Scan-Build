@@ -1,0 +1,40 @@
+{
+ "name": "plateau_world",
+ "file": "plateau_world.litematic",
+ "format": "litematic",
+ "created": "2026-09-13T04:59:57.933795400Z",
+ "player": "Enroniti",
+ "server": {
+  "name": "Unknown Server",
+  "ip": "skyblock.net"
+ },
+ "dimension": "minecraft:overworld",
+ "data_version": 4903,
+ "origin": {
+  "x": 97500,
+  "y": 196,
+  "z": 80300
+ },
+ "size": {
+  "x": 200,
+  "y": 67,
+  "z": 200
+ },
+ "player_pos": {
+  "x": 97583,
+  "y": 265,
+  "z": 80402
+ },
+ "air_margin": 2,
+ "total_volume": 7922278,
+ "non_air_blocks": 101053,
+ "palette_size": 132,
+ "tile_entities": 0,
+ "entities": 0,
+ "merged_from": [
+  "prismisland1.litematic",
+  "carnivalisland.litematic",
+  "dinoisland.litematic"
+ ],
+ "cut_from": "park_world.litematic"
+}

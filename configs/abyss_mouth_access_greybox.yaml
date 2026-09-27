@@ -1,0 +1,32 @@
+name: Abyss Mouth Access Greybox
+gen: abyss_access
+params:
+  under:
+    - out/Park Complete.litematic
+    - out/PF Prism Well.litematic
+    - out/PF Prism Rig.litematic
+    - out/PF Crown Descent.litematic
+    - out/PF Prism Descent.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+  greybox: true
+roles: [construction]
+design:
+  purpose: ride
+  hierarchy: supporting
+  style: prismworks
+  narrative: Mouth-only route and recovery greybox.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against:
+    - out/Park Complete.litematic
+    - out/PF Prism Well.litematic
+    - out/PF Prism Rig.litematic
+    - out/PF Crown Descent.litematic
+    - out/PF Prism Descent.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+origin_lock: false

@@ -7,6 +7,7 @@
     python -m mcbuild hollow    <file> [--out]
     python -m mcbuild cheapen   <file> [--out] [--keep orange_concrete]
     python -m mcbuild declutter <design> [--in-place] [--also vine] [--keep fern]
+    python -m mcbuild unseen    <design> [--dry-run] [--in-place] [--shell 1] [--only stone]
     python -m mcbuild gen       <config.yaml> [--set params.trunk_height=18] [--ship]
     python -m mcbuild fromimage <image.png> --height 27 [--depth 10] [--out]
 """
@@ -132,6 +133,24 @@ def cmd_cheapen(a):
     schem.save(out, m)
     print("wrote", out)
     print(audit_mod.audit(m).report())
+
+
+def cmd_unseen(a):
+    """Take out every block the outside cannot see - see `mcbuild/ops/unseen.py`."""
+    from .ops.unseen import hollow_unseen
+    lit, _ = scan_mod.resolve(a.file, Settings().schem_dir)
+    m = schem.load(lit)
+    r = hollow_unseen(m, shell=a.shell, only=set(a.only) if a.only else None,
+                      keep=set(a.keep or []), mech_clear=a.mech_clear,
+                      connect=not a.no_connect)
+    print(r.report())
+    if a.dry_run:
+        print("(dry run - nothing written)")
+        return 0
+    out = lit if a.in_place else _out(lit, a.out, "_hollow")
+    schem.save(out, m)
+    print("wrote", out)
+    return 0
 
 
 def cmd_declutter(a):
@@ -653,6 +672,19 @@ def main(argv=None):
                    help="use the SERVER's real prices (from /cscan prices) instead of the tier table")
     p.add_argument("--tolerance", type=float, default=30.0, help="max RGB distance a swap may move the colour")
     p.set_defaults(fn=cmd_cheapen)
+    p = sub.add_parser("unseen", help="remove every block the outside cannot see - the visible "
+                                      "skin is left bit-identical")
+    p.add_argument("file", help="design NAME or a path")
+    p.add_argument("--shell", type=int, default=1,
+                   help="how deep the skin is (1 is exact; more is paranoia paid for in cells)")
+    p.add_argument("--only", action="append", help="restrict removal to this block (repeatable)")
+    p.add_argument("--keep", action="append", help="a block name to leave alone (repeatable)")
+    p.add_argument("--mech-clear", type=int, default=3, help="cells held round every mechanism")
+    p.add_argument("--no-connect", action="store_true",
+                   help="do NOT keep the corner cells a printer needs - leaves a sloped skin as a "
+                        "staircase of edge diagonals that has to be built by hand")
+    p.add_argument("--dry-run", action="store_true"); p.add_argument("--in-place", action="store_true")
+    p.add_argument("--out"); p.set_defaults(fn=cmd_unseen)
     p = sub.add_parser("declutter", help="hide ground clutter (moss carpet, ferns, shrubs, flowers) "
                                          "and swap blocks that are not earning their place")
     p.add_argument("file", help="design NAME or a path")

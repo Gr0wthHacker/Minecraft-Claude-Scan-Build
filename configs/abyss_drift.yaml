@@ -25,6 +25,13 @@ params:
   avoid:
     - out/Abyss Jelly.litematic     # keep the field off the jellyfish
 
+  # PRINTING SCAFFOLD. The field hangs free (194 islands, nothing to place against), so for
+  # printing every island is fused by an MST of connectors in a distinct block. Print the design,
+  # then `delete all moss_block` in game to strip every connector and leave the rocks. Set
+  # scaffold: false to build the clean art with no connectors.
+  scaffold: true
+  scaffold_block: moss_block
+
 # no `roles`: like the squid, this is a bespoke void field, not a construction/path/ride, and
 # the drift is deliberately NOT one connected silhouette, so `sculpture` would mis-audit it.
 

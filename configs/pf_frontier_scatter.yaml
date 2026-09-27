@@ -50,10 +50,19 @@ params:
     # this repo has recorded four times, so the whole west end is off limits here.
     - [24, 122, 0, 46]       # PF Plateau Vale
     - [24, 122, 47, 92]      # PF Plateau Bone Bed
-    - [130, 146, 0, 16]      # Vantage Frontier Lookout
+    # **THE LOOKOUT'S LOT IS RELEASED (2026-09-12).** It was held out because a 17 x 17 tower
+    # stood on it; the tower is retired - `PF Broken Plateau`'s belvedere replaces it - and a
+    # keep-out for a module nobody places is ground nothing may use, which is the leftover
+    # class the signage audit was written about. Jungle takes it back until it is given a job.
+    #     - [130, 146, 0, 16]      # Vantage Frontier Lookout
+    # ...AND HELD AGAIN THE SAME DAY, because `PF Plateau Shop` now stands on it. The release
+    # above is kept as the record of WHY the box moved rather than being quietly rewritten: it
+    # was held for a tower, released when the tower went, and is held again for the shop that
+    # replaced it. A keep-out with no reason beside it gets removed by whoever finds it awkward.
+    - [130, 146, 0, 15]      # PF Plateau Shop
     - [130, 149, 47, 92]     # Assay and Prize Office
     - [24, 147, 99, 169]     # Mine Coaster and Mine Ridge
-    - [148, 169, 6, 105]     # Mine Works
+    - [148, 169, 6, 105]     # PF Prep Works (was Mine Works)
     - [157, 169, 125, 160]   # Works Yard
     # THE SAUROPOD'S GROUND. The land had no site for a 48-block animal anywhere but the outer rim
     # (see `configs/pf_sauropod.yaml` for the search), and the scatter had already planted 240
@@ -78,7 +87,11 @@ params:
   # at 1,881 blocks. The step and the density are set against what is actually available rather
   # than against the lot's nominal 200 x 170.
   sweep:
-    step: 4
+    # STEP 4 -> 3 against the MEASURED world (2026-09-13). The three park scans say the Lost
+    # Plateau is the thinnest land in the park - 2.61 blocks per column, and only 2.4% of its
+    # columns carry anything twelve courses up - so its verges are where planting is worth most.
+    # The density stays at 0.85: what was short was the LATTICE, not the odds at each point.
+    step: 3
     density: 0.85
     # PINES DOMINATE, and the rest are what a worked hillside carries. Two entries of `pine`
     # against one each of the others is what makes a stand read as woodland rather than as a

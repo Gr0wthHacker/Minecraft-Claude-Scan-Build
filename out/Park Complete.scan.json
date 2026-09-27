@@ -21,6 +21,7 @@
     "Snack Window",
     "Welcome Court",
     "Works Yard",
+    "PF Broken Plateau",
     "PF Claim Lake Menagerie",
     "PF Crown Descent",
     "PF Entry Gate",
@@ -37,14 +38,16 @@
     "PF Helter Skelter",
     "PF Lost Plateau",
     "PF Midway Garden",
+    "PF Midway Skies",
     "PF Mine Cart Escape",
     "PF Mine Ridge",
-    "PF Mine Works",
     "PF Park Green",
     "PF Park Rim Green",
     "PF Plateau Bone Bed",
     "PF Plateau Plaques",
-    "PF Plateau Vale",
+    "PF Plateau Shop",
+    "PF Plateau Skies",
+    "PF Prep Works",
     "PF Prism Descent",
     "PF Prism Downs",
     "PF Prism Rig",
@@ -52,10 +55,10 @@
     "PF Pterosaur",
     "PF Sauropod",
     "PF Signal Zero",
-    "PF Vantage Frontier Lookout",
     "PF Water Claim Lake",
     "PF Water Wyrm Garden",
-    "PF Wyrm Gate"
+    "PF Wyrm Gate",
+    "PF Premium Refinement"
   ],
   "dig": [
     [
@@ -49290,5 +49293,12 @@
     ]
   ],
   "dig_note": "cells to BREAK before printing - see `contains` for their designs",
-  "file": "Park Complete.litematic"
+  "file": "Park Complete.litematic",
+  "refinement": {
+    "added": 136,
+    "removed": 0,
+    "replaced": 0,
+    "source": "configs/pf_premium_refinement.yaml"
+  },
+  "stitched": 388
 }

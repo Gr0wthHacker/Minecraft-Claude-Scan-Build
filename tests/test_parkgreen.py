@@ -22,6 +22,11 @@ OUT = os.path.join(ROOT, "out")
 PARK = os.path.join(OUT, "Park Complete.litematic")
 GREEN = os.path.join(OUT, "PF Park Green.litematic")
 RIM = os.path.join(OUT, "PF Park Rim Green.litematic")
+#: The THIRD dressing pass. It is not this test's subject and it must still come out of the
+#: baseline: `without` is what stops the before/after being a snapshot, and leaving one dressing
+#: design in it made the "before" fall from 5,000-odd to 4,868 the day that pass got denser - the
+#: measurement moving because of something it was not measuring.
+SCATTER = os.path.join(OUT, "PF Frontier Scatter.litematic")
 
 
 def _cfg(name):
@@ -159,12 +164,29 @@ def test_the_plot_edge_is_sky_and_not_a_refusal():
     assert loose.clearing(0, 0), "the plot edge is sky, and sky is not an obstruction"
 
 
-def test_the_openness_gate_leaves_a_verge_alone():
-    """A two-cell verge beside a kerb is DESIGNED lawn. The whole point of driving density from a
-    measured distance is that it does not get planted."""
+def test_the_openness_gate_leaves_the_NARROWEST_verge_alone():
+    """A verge one cell wide is DESIGNED lawn and is never planted. A WIDER one now is.
+
+    **THIS ASSERTION MOVED WITH A DECISION, NOT WITH A FAILURE.** It used to demand
+    `open_min >= 3` - no planting within three of anything - on the reasoning that a verge
+    narrower than `path_clear` would otherwise be planted. The three park scans of 2026-09-13
+    measured what that bought: 17.3% of the park's ground columns carry anything three courses
+    above the lawn, against 65% on `reference/amazingsteal`, because this park's lawn IS verges.
+
+    A KERB IS STILL PROTECTED, and by the mechanism that actually protects it: `_Ground.clearing`
+    refuses any candidate whose whole `path_clear` neighbourhood is not lawn, so a column two from
+    a path has a path cell inside that neighbourhood and is refused whatever `open_min` says. What
+    `open_min` alone governs is the gap between BUILDINGS - and below `(open_min + open_full)//2`
+    only a FLAT kind can be drawn there, so a narrow gap gets ground cover and never a tree.
+
+    The property that has to hold is PASSAGE, and it is checked for real rather than inferred from
+    a constant: `tools/park_empty.py --walk` floods the park before and after the planting and
+    reports 0 columns cut off behind it.
+    """
     cfg = _cfg("pf_park_green.yaml")["params"]
-    assert cfg["open_min"] >= 3, "a verge narrower than the path clearance would be planted"
+    assert cfg["open_min"] >= 2, "a one-cell verge must never be planted"
     assert cfg["open_full"] > cfg["open_min"], "the ramp has to ramp"
+    assert cfg["path_clear"] >= 2, "the kerb's own guard is what keeps planting off a path"
 
 
 def test_a_hedge_shorter_than_its_minimum_places_nothing():
@@ -316,13 +338,20 @@ def test_the_cleanup_actually_cleans_up():
     os.chdir(ROOT)
     try:
         spec.loader.exec_module(pe)
-        bare0, built0 = pe.masks(without=[GREEN, RIM])
+        bare0, built0 = pe.masks(without=[GREEN, RIM, SCATTER])
         before = int((bare0 & (pe.openness(built0) > 4)).sum())
         # ...and the AFTER is composited the same way whether or not it has been shipped, so
         # this test says the same thing on both sides of a `park_place --ship`.
-        bare, built = pe.masks([GREEN, RIM], without=[GREEN, RIM])
+        bare, built = pe.masks([GREEN, RIM], without=[GREEN, RIM, SCATTER])
         after = int((bare & (pe.openness(built) > 4)).sum())
     finally:
         os.chdir(cwd)
-    assert before > 5000, f"the park used to have thousands of dead columns, measured {before}"
+    # **THE GUARD IS RELATIVE, BECAUSE A BASELINE IS NOT A CONSTANT.** It was `before > 5000` and
+    # that is a snapshot of one day's park: the baseline legitimately moves as the park gets
+    # denser, and it fell to 4,928 the day the dressing was retuned - a magic number failing for
+    # the very improvement it exists to witness. What the guard is actually for is stopping the
+    # RATIO below from being vacuous on a tiny number, and a share of the bare ground says that
+    # without going stale.
+    assert before > 0.10 * int(bare0.sum()), (
+        f"only {before} dead columns of {int(bare0.sum())} bare - the ratio below would prove nothing")
     assert after < before * 0.35, f"dead ground {before} -> {after}: the pass is not earning its place"

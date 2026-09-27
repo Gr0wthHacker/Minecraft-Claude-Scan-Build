@@ -61,7 +61,14 @@ MODULES = [
     #: TWO OF THE FOUR WERE NOT ONLY STALE, THEY WERE IN THE WAY: THE SCREENS stood at V70 U20 and
     #: BASE CAMP at V80 U66, both deep INSIDE the lots the terrain designs hold, and a board on
     #: posts in the middle of a hillside is a clash rather than a sign.
-    "Plateau Vale", "Plateau Bone Bed",
+    #: **AND `Plateau Vale` BECAME `Broken Plateau` (2026-09-12)**, on the same lot with the same
+    #: responsibilities including the land's front-door arch. Jack: "this area of the map feels
+    #: very weak ... we need to redo this area so it matches the wow factors of the other 2
+    #: sides." Its marquee was retitled in the same commit as the retirement, which is the rule
+    #: this list has now learned four times - and it names the GROUND ("THE BROKEN EDGE") rather
+    #: than whatever stands on it, because the last retitle of this land's other marquee went
+    #: stale inside an hour for naming a building.
+    "Broken Plateau", "Plateau Bone Bed",
     "Assay and Prize Office", "Mine Coaster", "Works Yard",
     #: ...AND `Prize Point` WENT WITH THE GAMES ROW, hours after the six above. `PF Midway
     #: Garden` holds that lot, so the gantry at the head of column C names the garden and the
@@ -81,7 +88,7 @@ MODULES = [
 #: Which piece answers for which module. A marquee names it; a staff gate marks a back-of-house
 #: yard, which is what a park does instead of marqueeing its service road.
 NAMED_BY = {
-    "Plateau Vale": "Plateau Vale", "Plateau Bone Bed": "Plateau Bone Bed",
+    "Broken Plateau": "Broken Plateau", "Plateau Bone Bed": "Plateau Bone Bed",
     "Assay and Prize Office": "Assay and Prize Office", "Mine Coaster": "Mine Coaster",
     "Works Yard": "Works Yard staff gate",
     "Snack Window": "Snack Window",
@@ -400,7 +407,9 @@ def test_every_attraction_with_a_queue_also_has_a_way_out(designs):
     # ride's own queue entry at U126, on the far flank from all four of its guest anchors, and
     # half of it past U169 and outside the Frontier altogether. Jack: "the 'queue' area is weird,
     # in the wrong area." A frontage queue is for a ride that does not build one.
-    assert queues >= 2, "the rides that build no queue of their own each need a line"
+    # The remote v1 Descent queue was retired: it led into the Downs.
+    # The Well owns its descent interfaces; only the Sky Lift uses a frontage line.
+    assert queues == 1
 
 
 def test_a_queue_leg_is_open_at_the_end_it_turns_at(designs):
@@ -728,6 +737,10 @@ def test_every_measured_trough_gains_something_to_look_at(designs):
                 cols.setdefault(U, set()).add(V)
                 tall[U] = max(tall.get(U, 203), Y)
     for (u0, u1) in TROUGHS:
+        if u0 >= 430:
+            # Prism Downs now landscapes these former empty v1 plots.
+            # A minimum frontage mass here would force redundant props/queues.
+            continue
         placed = sum(len(cols.get(u, ())) for u in range(u0, u1 + 1))
         height = max([tall.get(u, 203) for u in range(u0, u1 + 1)] or [203]) - 203
         assert placed >= 100, f"U{u0}-{u1} is still empty: only {placed} cells"

@@ -23,22 +23,25 @@
   "profile_axis": "u",
   "refused": 0,
   "parts": {
-    "pieces": 62,
-    "cells": 2398,
+    "pieces": 164,
+    "cells": 6175,
     "by_kind": {
-      "meadow": 38,
-      "rock": 13,
-      "shrub": 11
+      "meadow": 107,
+      "shrub": 35,
+      "rock": 22
     },
     "by_land": {
-      "reach": 348,
-      "midway": 1084,
-      "prismworks": 966
+      "reach": 500,
+      "midway": 2425,
+      "prismworks": 3250
     },
-    "open_min": 4,
-    "open_full": 9
+    "open_min": 3,
+    "open_full": 7,
+    "kept": 180,
+    "trees": 0,
+    "tree_clear": 3
   },
-  "contract": "shrubbery, flowers and accents on the park's UNCLAIMED lawn: every cell stands on a column whose own ground course is moss and whose neighbourhood within `path_clear` is moss too, so nothing is placed on paving, against a kerb, or on anything anybody uses. The density is the measured distance from the column to the nearest built or planted thing, so a verge is left as a verge and the dead middles get the material. It never replaces a standing block.",
+  "contract": "shrubbery, flowers and accents on the park's UNCLAIMED lawn: every cell stands on a column whose own ground course is moss and whose neighbourhood within `path_clear` is moss too, so nothing is placed on paving, against a kerb, or on anything anybody uses. The density is the measured distance from the column to the nearest built or planted thing, so a verge is left as a verge and the dead middles get the material. It never replaces a standing block - its own earlier drifts included, bar the moss carpet it declares replaceable - and no two ornamental trees stand closer than `tree_clear`.",
   "mechanics": {
     "minecraft": "java-1.19",
     "families": {},
@@ -58,28 +61,28 @@
       "narrative": "Rough moor on the park's outer reserve, beyond the railway: tussocks of grass and fern, low scrub and the odd boulder, nothing over three courses and nothing paved - so the strip reads as unimproved ground rather than as a mown verge nobody finished, and the void view the reserve exists to protect is still a void view.\n"
     },
     "metrics": {
-      "blocks": 1814,
+      "blocks": 3444,
       "materials": 11,
-      "dominant_material_share": 0.366,
+      "dominant_material_share": 0.3461,
       "light_blocks": 0,
       "massing": {
         "width": 13,
         "height": 3,
         "depth": 424,
-        "fill_ratio": 0.1097
+        "fill_ratio": 0.2083
       },
       "silhouette": {
         "top": {
-          "area": 1757,
-          "fill_ratio": 0.2253
+          "area": 3342,
+          "fill_ratio": 0.4285
         },
         "front": {
-          "area": 27,
-          "fill_ratio": 0.1298
+          "area": 31,
+          "fill_ratio": 0.149
         },
         "side": {
-          "area": 298,
-          "fill_ratio": 0.031
+          "area": 379,
+          "fill_ratio": 0.0395
         }
       },
       "composition": {
@@ -88,21 +91,21 @@
           0.0,
           0.0
         ],
-        "top_silhouette_perimeter": 2111,
-        "surface_faces_per_block": 2.6439
+        "top_silhouette_perimeter": 2508,
+        "surface_faces_per_block": 2.4251
       },
       "material_counts": {
-        "moss_carpet": 664,
-        "short_grass": 511,
-        "fern": 389,
-        "cobbled_deepslate": 64,
-        "cobblestone": 53,
-        "mossy_cobblestone": 47,
-        "andesite": 36,
-        "deepslate": 27,
-        "azalea": 16,
-        "sweet_berry_bush": 4,
-        "flowering_azalea": 3
+        "moss_carpet": 1192,
+        "short_grass": 961,
+        "fern": 747,
+        "cobblestone": 130,
+        "cobbled_deepslate": 118,
+        "mossy_cobblestone": 115,
+        "andesite": 61,
+        "deepslate": 57,
+        "azalea": 39,
+        "sweet_berry_bush": 16,
+        "flowering_azalea": 8
       }
     },
     "checks": [],
@@ -114,8 +117,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "fd7a5989b9cb7d9ba0d3af3cc16c6d91ecc20b1b953d82a5378284b29f700ec9",
-    "generator_source_digest": "19b25a76764aca7b2de23b8405257178a3d2449f746266f1f70cf908bdd199cf",
+    "fingerprint": "e6f94ad4c836c53901120f9baffd12ac35976791902bc96c344ea296448e97ab",
+    "generator_source_digest": "4bd7018de57dd68619e4a1fa200a3af9124e95ab2d94befa73216082f97ab28b",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -153,9 +156,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 66.282046,
-    "blocks": 1814,
-    "blocks_per_second": 27.37
+    "seconds": 55.772945,
+    "blocks": 3444,
+    "blocks_per_second": 61.75
   },
   "generator_contract": {
     "ok": true,
@@ -164,7 +167,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 1814,
+    "blocks": 3444,
     "mechanic_families": []
   },
   "fun_contract": {
@@ -185,10 +188,7 @@
     "enforce_server_blocks": false
   },
   "server_compatibility": [],
-  "server_unlisted": [
-    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
-    "not in the provisional skyblock-1.19 list: deepslate"
-  ],
+  "server_unlisted": [],
   "file": "PF Park Rim Green.litematic",
   "name": "PF Park Rim Green"
 }

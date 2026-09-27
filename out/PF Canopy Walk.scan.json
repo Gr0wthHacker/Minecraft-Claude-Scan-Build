@@ -1,0 +1,194 @@
+{
+  "origin": {
+    "x": 97500,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 160,
+    "y": 64,
+    "z": 140
+  },
+  "generated_by": "canopywalk",
+  "kind": "canopywalk",
+  "lot": [
+    160,
+    140
+  ],
+  "at": [
+    0,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "v",
+  "deck_y": 228,
+  "route": {
+    "v0": 65,
+    "v1": 145,
+    "u_min": 100,
+    "u_max": 117,
+    "length": 81
+  },
+  "parts": {
+    "deck": 379,
+    "rails": 150,
+    "piers": 305,
+    "lamps": 9,
+    "truss": 20,
+    "west stair": 35,
+    "east stair": 70,
+    "pruned": 4
+  },
+  "refused": 13,
+  "ride_cells_refused": 33,
+  "rider_clearance_refused": 0,
+  "truss_cables_declined": 2,
+  "note": "The route is re-derived from the world on every build: the ridge under it is 36% built and hard-coded waypoints would be a snapshot of one day's rock.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "path",
+      "hierarchy": "landmark",
+      "style": "frontier",
+      "narrative": "A timber walkway carried through the Lost Plateau's canopy on jungle posts, from the ridge's west shoulder to its east, with a flight down to the rock at either end - the one route in the park that is above the ground rather than on it.\n"
+    },
+    "metrics": {
+      "blocks": 826,
+      "materials": 6,
+      "dominant_material_share": 0.3329,
+      "light_blocks": 0,
+      "massing": {
+        "width": 102,
+        "height": 22,
+        "depth": 22,
+        "fill_ratio": 0.0167
+      },
+      "silhouette": {
+        "top": {
+          "area": 443,
+          "fill_ratio": 0.0198
+        },
+        "front": {
+          "area": 322,
+          "fill_ratio": 0.0314
+        },
+        "side": {
+          "area": 182,
+          "fill_ratio": 0.0203
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.2373,
+          0.7627,
+          0.0
+        ],
+        "top_silhouette_perimeter": 573,
+        "surface_faces_per_block": 3.1235
+      },
+      "material_counts": {
+        "jungle_planks": 275,
+        "jungle_log": 199,
+        "jungle_fence": 185,
+        "jungle_slab": 138,
+        "jungle_stairs": 21,
+        "ochre_froglight": 8
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "098ca997fbae592e25e296ad12edb60d312f2476d7b5594e889e4ad040402e37",
+    "generator_source_digest": "f28eca251e43534b0486c11da4d0427456ef6ce1de43984990bd76dabb8a6c5c",
+    "anchors": [],
+    "genome": {
+      "name": "frontier",
+      "facades": [
+        "gable",
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.35,
+        0.8
+      ],
+      "materials": [
+        "warm_timber",
+        "dusty_stone",
+        "dark_hardware"
+      ],
+      "light_density": "sparse-warm"
+    },
+    "variation": {
+      "facade": "gable"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 5.084771,
+    "blocks": 826,
+    "blocks_per_second": 162.45
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 826,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: jungle_log"
+  ],
+  "file": "PF Canopy Walk.litematic",
+  "name": "PF Canopy Walk"
+}

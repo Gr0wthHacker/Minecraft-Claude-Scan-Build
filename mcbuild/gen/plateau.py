@@ -153,7 +153,25 @@ class _Relief:
                 nz = np.nonzero(col)[0]
                 if not len(nz):
                     continue
-                k = int(nz[-1])
+                # **RULE 15 WAS ANSWERED IN THE DOCSTRING AND NOT IN THE CODE.** `mine` is
+                # taken from `previous:`, stored on this object, and was read by nothing - so
+                # the surface probed here was the world WITH this pass already standing on it,
+                # and a column this pass capped last time read as `moss_block` rather than as
+                # ROCK. `dressable` then refused it, and regenerating a shipped design
+                # collapsed it from 15,374 cells to 3,440: the canopy deleting itself, quietly,
+                # on any rebuild. A field that is stored and never read is a rule nobody keeps.
+                #
+                # The surface wanted is the rock as it was BEFORE this pass, so this design's
+                # own cells are walked past rather than counted as ground.
+                wx, wz = self.ax + self.at_v + v, self.az + self.at_u + u
+                k = -1
+                for cand in reversed(nz.tolist()):
+                    if (wx, int(cand) + ctx.oy, wz) in self.mine:
+                        continue
+                    k = int(cand)
+                    break
+                if k < 0:
+                    continue
                 self.top[v, u] = k + ctx.oy
                 self.name[v, u] = names[col[k]]
 
@@ -297,6 +315,14 @@ def _trees(lot: _Lot, r: _Relief, p: dict, caps: set, seed: int) -> dict:
             y = r.top[a, b] + 2 - r.ay        # on TOP of the moss cap
             if y < 0 or y + 11 >= lot.c.sy:
                 continue
+            # **A TREE ROOTS IN THE CAP, NOT IN ITS NEIGHBOUR'S CANOPY.** `(a, b) in caps`
+            # says the cap was LAID; it does not say it is still there. A crown drawn earlier in
+            # this same sweep overwrites the cap it spreads across, and the next trunk then
+            # stands on leaves - four of them, three courses of foliage under a tree. The cell
+            # is CHECKED rather than assumed, which is `loft.surface_out`'s rule: read the
+            # surface the build actually left, never the one it was going to leave.
+            if lot.has(a, y, b) or lot.name_at(a, y - 1, b) != JUNGLE["turf"]:
+                continue
             got = _tree(lot, r, a, b, y, seed)
             if got:
                 trees += 1
@@ -348,6 +374,27 @@ def _vines(lot: _Lot, r: _Relief, p: dict, seed: int) -> dict:
                         break
                     props = {s: "false" for s, _, _ in _SIDES}
                     props[back] = "true"
+                    # **A CURTAIN MAY NOT EAT THE TREE IT HANGS BESIDE.** `Canvas.put`
+                    # overwrites, and this pass runs AFTER `_trees` - so where a face fell away
+                    # beside a planted column the curtain was written straight down through the
+                    # moss cap and the bottom two logs of the trunk standing on it, leaving
+                    # EIGHT trees hanging three to five courses over the rock with a rope of
+                    # green in the gap. Nothing could see it: every cell is legal and supported,
+                    # a vine clings to the wall beside it whatever is below, and `render3d` draws
+                    # a floating tree exactly as it draws a planted one.
+                    #
+                    # A curtain hangs into AIR by definition, so refusing an occupied cell costs
+                    # this pass nothing it was entitled to - and the `break` is right rather than
+                    # a `continue`: a curtain that resumes under the thing it just ran into is a
+                    # rope of vines with a hole in it.
+                    # ...but a curtain meeting ANOTHER CURTAIN is not a collision, it is the
+                    # same material in a cell that already has it. Broken on that too, the
+                    # pass lost 1,112 vines of 4,103 - a quarter of the greenery on the
+                    # ridge - to curtains truncating each other where they cross.
+                    if lot.has(a, y, b):
+                        if lot.name_at(a, y, b) == JUNGLE["vine"]:
+                            continue
+                        break
                     if not lot.put(a, y, b, JUNGLE["vine"], up="false", **props):
                         break
                     run += 1

@@ -876,7 +876,7 @@ def _bunting(w, f, pal, q) -> dict:
     as a run because a single string is washing: `span` masts, a strung line at `height`, and a
     trapdoor pennant hanging off each course of it.
     """
-    span = max(2, int(q.get("span", 3)))
+    span = max(1, int(q.get("span", 3)))
     step = max(6, int(q.get("step", 8)))
     height = max(5, int(q.get("height") or 6))
     masts = 0

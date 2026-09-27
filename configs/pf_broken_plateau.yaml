@@ -1,0 +1,188 @@
+# PF BROKEN PLATEAU - the Lost Plateau's north end, and the third axis this park did not have.
+#
+# Jack, looking north from the middle of the land: *"this area of the map for park complete feels
+# very weak, the buildings have unclear purposes, and i think the tower is a cop out and feels
+# lazy ... we need to redo this area so it matches the wow factors of the other 2 sides."*
+#
+# ---------------------------------------------------------------------------------------------
+# EVERY HALF OF THAT IS A MEASUREMENT, TAKEN OFF THE SHIPPED COMPOSITE BEFORE ANYTHING WAS DRAWN
+#
+#                                       blocks/col   >=3 tall   >=12 tall   tallest
+#     Lost Plateau, mountain end          6.10         63%        45%        Y279
+#     Lost Plateau, north end             3.45         54%        22%        Y253
+#     ...the far end alone, tower out     2.68         61%        11%        Y242
+#
+# **THE TOWER IS MEASURABLY A COP-OUT.** `PF Vantage Frontier Lookout` is 4,154 blocks, 17 x 17,
+# 56 courses, and **100% of its own footprint stands at full height** - a solid shaft, one
+# interactive block in the whole of it. It is also the LAND'S CLIMAX: a guest enters the Lost
+# Plateau from the Midway at U169 and walks north, so U0 is the last thing they see, and it was
+# the emptiest ground in the land.
+#
+# **AND THE STRUCTURAL REASON THE OTHER TWO WORK.** Both are terrain-scale geology with a route
+# driven through it - the Mine Ridge (41,948) with a coaster bored through it, and the Prism Well
+# (36,503) with a descent down it. UP is taken and DOWN is taken. The axis nobody had used is
+# OUT: the land is called the Lost Plateau, which is by definition a flat land that ENDS IN
+# CLIFFS, and the park's own north rim was sitting unused at U0 with open void past it.
+#
+# ---------------------------------------------------------------------------------------------
+# IT IS THE SAME GENERATOR AS THE VALE AND THE BONE BED
+#
+# `gen/bonebed.py` at mountain scale. A gorge is a very deep pit whose floor is the plane and
+# whose relief is spoil, which is what that generator already builds; four things had to be
+# added and every one is opt-in, so the Vale and the Bone Bed rebuild bit-identical (asserted in
+# `tests/test_broken_plateau.py`, because a shared generator changing under its other callers is
+# a different bug and this repo has written that rule down twice).
+#
+#     brink       the north edge gets no dead-level apron: the mass runs to the boundary at
+#                 full height and BREAKS. Without it the margin ramps the mesa down to the plane
+#                 at the rim and hands a guest a lawn that stops.
+#     seams       fossil beds exposed in the pit walls - the dig moves INTO the scarp, which is
+#                 what fixes 2.7%-of-it-stands-12-courses rather than decorating around it
+#     bridge      a level deck on sagging cables, at the crest, over the gorge
+#     belvedere   the cantilever at the brink - what the tower is replaced BY
+#
+# ---------------------------------------------------------------------------------------------
+# THE SEQUENCE, WHICH IS THE DESIGN
+#
+# The mass climbs NORTHWARD from the avenue and is highest at the rim, because `slope` binds on
+# distance from the nearest street and the avenue is the nearest street. That is also how a real
+# canyon forms - headward erosion cuts BACK from the edge - so the gorge is deepest at the mouth
+# and shallows to nothing at its head. What it buys is a walk that gets better the further you go:
+#
+#     the arch on the avenue  ->  a ramp down into a notch  ->  the walls rise around you to
+#     thirty courses  ->  the bridge crosses overhead against the sky  ->  the gorge opens and
+#     you are standing at the edge of the world with the belvedere cantilevered over your head
+#
+# ---------------------------------------------------------------------------------------------
+# WHAT IT COSTS, MEASURED AGAINST THE CAPTURE Jack took on 2026-09-11
+#
+# `PF Plateau Vale` held this lot and is retired for it; this design takes the SAME lot and the
+# same responsibilities, including the land's front-door arch. Of the Vale's 4,542 built cells on
+# this ground **4,046 are the Y202 moss lawn**, which belongs to `Park Ways` and stays - so about
+# five hundred placed blocks are at risk, against a tower that is 345 of 4,943 built (7%).
+name: PF Broken Plateau
+gen: bonebed
+params:
+  kind: bonebed
+  lot: [99, 47]                  # V24-122 x U0-46 - the Vale's own lot, unchanged
+  at: [24, 0]
+  sy: 56                         # the belvedere's mast tops out at 47 above the plane
+  seed: 23
+  title: THE BROKEN PLATEAU
+
+  # THE LAND'S CROSS AVENUE, measured: `Park Ways` runs it U41-45 from V1 to V170. Five lanes at
+  # the plane, and the arch straddles it exactly as the Vale's did.
+  level_u: [[41, 45]]
+  margin: 2
+  # THE NORTH RIM, AND ONLY THE NORTH RIM. Dropping the WEST apron as well was tried and looked
+  # wrong for a reason worth keeping: at the lot's own boundary the mass simply STOPS, so V24 came
+  # out as a thirty-course sawn plane facing the west promenade - a retaining wall, not a cliff.
+  # At U0 the identical cut is right, because that IS the park's edge and there is open void past
+  # it; a plateau that has broken off is supposed to end in one face. The difference is not the
+  # geometry, it is whether anybody stands at the foot of it.
+  brink: [u0]
+
+  # 0.78 against the Vale's 0.62 and the bone bed's 0.85: this is a LANDFORM rather than ground a
+  # guest crosses, and the ramps and the benches carry the route. 41 cells from the avenue to the
+  # rim x 0.92 = 38, so `cap` is what actually decides the crest at the rim and the distance
+  # from the west promenade is what decides it over the mesa.
+  slope: 0.92
+  cap: 30
+  bench_run: 1
+  bench_rise: 4                  # four courses to a one-cell tread: a gorge scarp, not a quarry
+  roll: {grain: 19, amp: 1.6}
+  wobble: {amp: 3.6, grain: 11}
+
+  # THE GORGE. u0 is negative on purpose: the box runs off the north edge, so `_dist_out` never
+  # finds a rim there and no wall is built across the mouth. That is what makes it OPEN.
+  pits:
+    - [30, 68, -8, 31, 28]
+
+  # THE WAY IN, cut down the head of the gorge - thirteen courses over fourteen cells. A benched
+  # wall is deliberately unclimbable, so a gorge with no ramp is a gorge a guest can only look at.
+  ramps:
+    - {v: 47, u: 31, axis: u, sign: -1, length: 14, width: 3, step: 2}
+
+  # THE OVERLOOK ACROSS THE HEAD, looking north down the whole length of the cut to the rim. The
+  # rail is FLIPPED onto the low-u side, because the drop is north of this deck rather than south
+  # of it, and the flight turns with it.
+  # ...AND IT NEEDS NO FLIGHT. **A FLIPPED GALLERY'S STAIR RUNS THE OTHER WAY**, which is the
+  # whole point of the flip - the drop is at falling u, so the approach is at rising u - and at
+  # rising u from this deck is the AVENUE. Eight courses of deck is eight cells of run, so the
+  # flight came down into the street's own outer lanes at four places: legal, supported, invisible
+  # in every render, and a stair standing in a road. The deck is seated one course over the mesa
+  # at both of its ends, so a guest steps onto it off the ground and no stair has to exist.
+  gallery: {v0: 32, v1: 66, u: 33, w: 4, flip: true, steps: []}
+
+  # THE SPAN, at the crest near the mouth: a line against the sky from the floor, and the only
+  # place in the land you look straight down thirty courses.
+  bridge: {v0: 29, v1: 69, u: 7, w: 3, rise: 6, sag: 4}
+
+  # THE CANTILEVER AT THE BRINK - what the 56-course shaft is replaced by. It leaves the west lip
+  # at the rim and reaches out over the gorge mouth; the mast is the part the park sees.
+  belvedere: {v: 29, u: 0, out: 13, d: 5, mast: 16}
+
+  # THE BEDS IN THE WALL. Two, so the wall reads as stratified rather than as one painted line.
+  seams:
+    - [10, 2]
+    - [19, 2]
+
+  # ON THE FLAT FLOOR, and that is measured rather than eyeballed: a bench dies eight cells in
+  # at rise 4 run 1, so the floor of a 39-wide cut is v38-60, and it is only flat at all where
+  # `soft` has stopped binding too - u0-23. A leg outside that stands on a bench.
+  gantry: {v: 47, u: 10, w: 7, d: 8, h: 9, drop: 5}
+  shelter: [70, 34, 6, 6]
+  # A PARTIAL FIND ON THE FLOOR, because the gorge's own walls carry the bed - see `seams`. The
+  # bone bed one lot south is the complete animal; this is the same seam cut into eighty courses
+  # later, and what is lying on the floor is what has come out of the wall.
+  skeletons:
+    - {v: 41, u: 7, length: 18, bow: 2.5, bounds: [38, 3, 60, 22],
+       ribs: {from: 3, to: 15, span: 5.5, every: 2},
+       loose: [[-1, 6, 7, 0.5], [8, -6, 8, 2.2], [16, 5, 6, 1.4]]}
+  skulls:
+    - {v: 56, u: 20, facing_v: -1, neck: 5, bow: true}
+  jackets: [[44, 20], [54, 14], [40, 11]]
+  crates: [[45, 22], [57, 17], [72, 33]]
+  # ON THE FLANKS AS WELL AS AT THE HEAD. A soft-limited flank can only ever be SMOOTH - the roll
+  # is added to the bank and then clipped back to `soft`, so on a slope that is already at the
+  # limit only the negative half of the noise survives and both sides came out as clean ramps.
+  # The relief there has to be props rather than field, which is what these are.
+  spoil:
+    - [24, 34, 5, 4]
+    - [74, 26, 6, 4]
+    - [82, 12, 5, 3]
+    - [16, 9, 6, 5]
+    - [21, 22, 5, 4]
+    - [78, 5, 5, 4]
+
+  grid: {step: 7}
+  walks:
+    - [39, 59, 12, 2]
+    - [44, 56, 20, 1]
+
+  # THE JUNGLE IS ON THE MESA TOP AND NOWHERE ELSE - `_fill` never turfs a pit cell, so nothing
+  # can grow inside the cut. This is the wood the plateau's canopy comes down into.
+  plant: {tree: 0.026, fern: 0.18, vine: 0.22}
+  light: 12
+
+  arch: {v: 4, u0: 40, u1: 46, h: 7, d: 3,
+         lines: ["THE LOST", "PLATEAU", "dig, ride,", "and look up"]}
+
+  boards:
+    - {v: 42, u: 21, facing: south,
+       lines: ["THE GORGE", "cut back from", "the rim by", "water, once"]}
+    - {v: 40, u: 12, facing: south,
+       lines: ["THE SEAM", "bone in the", "wall - the bed", "runs on"]}
+    - {v: 50, u: 2, facing: south,
+       lines: ["THE BRINK", "nothing past", "this floor but", "the drop"]}
+
+finish:
+  # THE WORLD AS IT ACTUALLY IS. `Park Complete` still contains `PF Plateau Vale`, which held this
+  # exact ground - verifying against a composite that contains the design being replaced is the
+  # self-reference trap this repo has now recorded seven times. The 2026-09-11 plot capture has no
+  # such problem and answers the question that matters: what would a printer have to break.
+  verify_against: out/islandplateau.litematic
+
+# The park lattice anchors every module itself; the island's origin lock is not this design's
+# frame - see `at` and `anchor`.
+origin_lock: false

@@ -26,18 +26,18 @@
   "refused": 0,
   "parts": {
     "turf": {
-      "cells": 3517
+      "cells": 3069
     },
     "trees": {
-      "trees": 63,
-      "cells": 6026
+      "trees": 55,
+      "cells": 5078
     },
     "vines": {
-      "cells": 6421,
-      "curtains": 1502
+      "cells": 4174,
+      "curtains": 1076
     },
     "undergrowth": {
-      "ferns": 1167,
+      "ferns": 1007,
       "lichen": 36
     }
   },
@@ -67,48 +67,48 @@
       "narrative": "The jungle over the plateau: a moss cap one course above the rock, jungle and azalea canopies on the crest and the benches, vine curtains down the faces, and ferns and glow lichen beneath.\n"
     },
     "metrics": {
-      "blocks": 15374,
+      "blocks": 13153,
       "materials": 9,
-      "dominant_material_share": 0.3622,
+      "dominant_material_share": 0.3173,
       "light_blocks": 0,
       "massing": {
         "width": 118,
-        "height": 58,
+        "height": 64,
         "depth": 71,
-        "fill_ratio": 0.0316
+        "fill_ratio": 0.0245
       },
       "silhouette": {
         "top": {
-          "area": 4632,
-          "fill_ratio": 0.5261
+          "area": 4067,
+          "fill_ratio": 0.4619
         },
         "front": {
-          "area": 3181,
-          "fill_ratio": 0.4008
+          "area": 2982,
+          "fill_ratio": 0.3758
         },
         "side": {
-          "area": 2450,
-          "fill_ratio": 0.5392
+          "area": 2204,
+          "fill_ratio": 0.485
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.591,
-          0.3396,
-          0.0694
+          0.6253,
+          0.3233,
+          0.0514
         ],
-        "top_silhouette_perimeter": 4387,
-        "surface_faces_per_block": 2.8451
+        "top_silhouette_perimeter": 4550,
+        "surface_faces_per_block": 2.8643
       },
       "material_counts": {
-        "vine": 5568,
-        "jungle_leaves": 4309,
-        "moss_block": 2924,
-        "fern": 892,
-        "azalea_leaves": 763,
-        "jungle_log": 357,
-        "moss_carpet": 275,
-        "flowering_azalea_leaves": 250,
+        "vine": 4174,
+        "jungle_leaves": 3734,
+        "moss_block": 2984,
+        "fern": 767,
+        "azalea_leaves": 659,
+        "jungle_log": 342,
+        "moss_carpet": 240,
+        "flowering_azalea_leaves": 217,
         "glow_lichen": 36
       }
     },
@@ -121,8 +121,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "4508f7cddc4189989f996d88f3ac31c4060e16121478129693dc6c67a7c89b74",
-    "generator_source_digest": "f4f4e5a2460a867670b193630ae1cb04ef73da391c45c4c22949bbc7b03e943e",
+    "fingerprint": "d11ee0ee82a6918d87cebc393fbd2aad0e0e112b373830f1f68dc85695740e3d",
+    "generator_source_digest": "9952b4fbbefc973c5d5c2be9ec03a168f168154e097e78a33a9d2e52bbf37443",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -162,9 +162,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 57.974507,
-    "blocks": 15374,
-    "blocks_per_second": 265.19
+    "seconds": 63.122107,
+    "blocks": 13153,
+    "blocks_per_second": 208.37
   },
   "generator_contract": {
     "ok": true,
@@ -173,7 +173,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 15374,
+    "blocks": 13153,
     "mechanic_families": [
       "traversal"
     ]

@@ -166,13 +166,24 @@ def test_no_lamp_stands_on_paving_or_inside_reserved_ground(ground, params):
         assert not inside, f"lamps inside the reserved {f['name']}: {inside}"
 
 
-def test_two_lamps_never_bunch(ground):
+def test_two_lamps_never_bunch(ground, params):
     """Two nudged off the same plaza from opposite verges came out one and two blocks apart -
-    a pair of posts side by side, which reads worse than the gap they were avoiding."""
+    a pair of posts side by side, which reads worse than the gap they were avoiding.
+
+    A PAIR IS NOT A BUNCH. A mid-block walk is four wide and the rule is eight, so read as a flat
+    minimum it forbade the one arrangement a narrow street wants - a post either side, facing
+    each other - and both walks came out staggered by four instead. What is forbidden is two
+    masts crowding along a run; two masts on the two verges of one street at the SAME station are
+    the pair the whole run exists to lay.
+    """
     pts = _mast_cells(ground[1])
+    verges = {(w, e) for _nm, w, e in _street_verges(params)}
     for i, (a, b) in enumerate(pts):
         for c2, d in pts[i + 1:]:
-            assert abs(a - c2) + abs(b - d) >= 8, f"lamps bunched at V{a} U{b} and V{c2} U{d}"
+            if abs(a - c2) + abs(b - d) >= parkways.MAST_CLEAR:
+                continue
+            assert b == d and (min(a, c2), max(a, c2)) in verges, \
+                f"lamps bunched at V{a} U{b} and V{c2} U{d}"
 
 
 # --------------------------------------------------------------------------- THE PROGRAMME
@@ -263,15 +274,37 @@ def test_the_balloon_sits_wholly_on_the_circus_island(params):
         f"balloon reaches {d.max():.1f} from the circus centre, past its island"
 
 
-def test_the_heron_sits_wholly_inside_its_own_garden(params):
-    from mcbuild.gen import heron
-    m = heron.build_heron({"variant": "heron", "at": [0, 0, 0], "scale": 1.0, "seed": 0})
-    occ = (m.ids > 0).any(axis=0)
-    zs, xs = np.nonzero(occ)
-    v0, v1, u0, u1 = 26 + xs.min(), 26 + xs.max(), 176 + zs.min(), 176 + zs.max()
-    g = [f for f in params["feature_lots"] if f["name"] == "heron garden"][0]
-    assert g["v0"] <= v0 and v1 <= g["v1"] and g["u0"] <= u0 and u1 <= g["u1"], \
-        f"heron V{v0}-{v1} U{u0}-{u1} is not inside {g}"
+def test_the_ground_layer_builds_NO_HERON():
+    """RETIRED 2026-09-07, Jack's call: "we need to remove the heron".
+
+    A retirement is a RECORD and needs a tripwire, because the bird had no lot of its own - it was
+    one `gen: heron` source inside `configs/park_ways.yaml`, and one line is exactly the kind of
+    thing that gets put back. `mcbuild/gen/heron.py` is untouched and still builds: the lowland
+    flamingo runs on it and `isthmus.py` still lists it as a siteable creature. What is asserted
+    here is only that the PARK's ground layer no longer carries one.
+    """
+    import yaml
+    cfg = yaml.safe_load(open("configs/park_ways.yaml", encoding="utf-8"))
+    parts = cfg["params"]["parts"]
+    heron = [p for p in parts if p.get("gen") == "heron"]
+    assert not heron, "the Signal Heron is retired; see this config's header"
+
+
+def test_the_lake_garden_lot_still_covers_the_water_it_now_protects(params):
+    """The lot outlived the bird it was cut for, and its job changed rather than lapsed.
+
+    V34-60 x U174-210 lies wholly inside `PF Water Claim Lake` (V24-112 x U173-211), and
+    `park_water.put` treats a paved cell, a lamp mast or a bench inside the lake as an ERROR
+    naming the cell rather than a silent skip. Deleting the lot along with the heron would have
+    left the ground layer free to furnish the middle of a lake - so it is kept, and renamed for
+    what it now protects.
+    """
+    lots = {f["name"] for f in params["feature_lots"]}
+    assert "heron garden" not in lots, "a lot named for a retired module is a leftover"
+    g = [f for f in params["feature_lots"] if f["name"] == "lake garden"][0]
+    lake = {"v0": 24, "u0": 173, "v1": 112, "u1": 211}          # configs/pf_water_claim_lake.yaml
+    assert lake["v0"] <= g["v0"] and g["v1"] <= lake["v1"], f"{g} reaches past the lake in V"
+    assert lake["u0"] <= g["u0"] and g["u1"] <= lake["u1"], f"{g} reaches past the lake in U"
 
 
 # --------------------------------------------------------------------------- MATERIALS
@@ -416,7 +449,19 @@ def test_every_crossing_the_street_reaches_actually_gets_its_four(ground, params
                    for uu in (u - half - 2, u + half + 2))
 
     ths = {int(th["at"]) for th in (params.get("thresholds") or ())}
+
+    # AND A CROSSING INSIDE A HOLE IS NOT A CROSSING. The Prism Well's mouth swallows the one at
+    # V125/U524 whole - the well digs the deck out from under it, so the four corners this test
+    # asks for would be four lamp masts standing in open air. The ground layer keeps the mouth
+    # unfurnished on purpose; demanding light there is this test encoding the decision that was
+    # just reversed. The PAVING is left alone and dug by the well, which is why the crossing is
+    # still in `_crossings` at all.
+    def in_a_hole(cv, u):
+        return any((cv - int(k["v"])) ** 2 + (u - int(k["u"])) ** 2 < float(k["r"]) ** 2
+                   for k in (params.get("keep_clear") or []) if "r" in k)
+
     unlit = [(cv, u, open_sides(cv, half, u)) for cv, half, u in _crossings(params)
+             if not in_a_hole(cv, u)
              # a threshold meets the SPINE on one verge only - it leaves the spine rather than
              # crossing it, so two masts is its complete answer and there is no far quadrant
              if len([1 for v, z in pts if abs(z - u) <= 14 and abs(v - cv) <= half + 3])
@@ -424,27 +469,108 @@ def test_every_crossing_the_street_reaches_actually_gets_its_four(ground, params
     assert not unlit, f"crossings the street reaches but nothing lights: {unlit}"
 
 
-def test_the_two_verges_of_a_street_carry_the_same_lamps(ground, params):
-    """A street read walking down it is symmetric ACROSS, and that is the symmetry you actually
-    see. Both verges are driven from one run, so their U positions must be identical."""
+def _street_verges(params):
+    """Every street in the park that has TWO verges, as (name, west line, east line).
+
+    THE MID-BLOCK WALKS WERE NOT IN HERE AND BOTH OF THEM WERE BROKEN. The old check covered the
+    spine and the promenade only; measured off the shipped park, the walks at V74 and V77 had
+    NOT ONE matched pair between them - all four staggered by exactly four. A street left out of
+    the symmetry test is a street with no symmetry test.
+    """
+    out = [("spine", params["spine_v"], params["spine_half"] + 2),
+           ("promenade", params["promenade_v"], params["promenade_half"] + 2)]
+    for land in params["lands"]:
+        for wk in (land.get("walks") or ()):
+            if wk.get("lit", True):
+                out.append((f"walk V{wk['v']}", int(wk["v"]), int(wk.get("half", 1)) + 1))
+    # ...and a street too narrow to carry two crossbeams is not a paired street: its posts
+    # ALTERNATE, which `test_a_narrow_street_alternates_its_posts` is the check for.
+    return [(nm, cv - d, cv + d) for nm, cv, d in out if d > parkways.ARM_REACH]
+
+
+def _narrow_streets(params):
+    return [(f"walk V{wk['v']}", int(wk["v"]) - int(wk.get("half", 1)) - 1,
+             int(wk["v"]) + int(wk.get("half", 1)) + 1)
+            for land in params["lands"] for wk in (land.get("walks") or ())
+            if wk.get("lit", True) and int(wk.get("half", 1)) + 1 <= parkways.ARM_REACH]
+
+
+def test_a_narrow_street_alternates_its_posts(ground, params):
+    """A `half: 1` walk is three wide and its verges are four apart - closer than the crossbeam
+    lamp's own arms, which reach two either side. Two facing masts there SHARE their beam: one
+    nine-wide gantry over a three-wide path. So a narrow street takes one post per station and
+    alternates, and what must hold is that no station carries two."""
     _lawn, c = ground
     pts = _masts(c)
-    # A THRESHOLD IS THE ONE THING THAT BREAKS THIS, AND LEGITIMATELY. It leaves the spine at
-    # the spine's own centre line and runs south to the service lane, so it meets ONE verge and
-    # there is no northern quadrant to mirror. Its columns are excluded and nothing else is.
-    # A SPUR IS ON ONE SIDE OF ITS STREET, so the two verges legitimately differ at its column:
-    # the spine's east verge is paved there and its west verge is not, and the run on the paved
-    # side steps aside. Excluded exactly like a threshold, and for the same reason.
+    for nm, wv, ev in _narrow_streets(params):
+        west = {z for v, z in pts if v == wv}
+        east = {z for v, z in pts if v == ev}
+        both = sorted(west & east)
+        assert not both, f"{nm}: two masts facing each other across a street too narrow: {both}"
+        # ...and alternating is only alternating if it actually swaps sides down the run.
+        run = sorted([(z, wv) for z in west] + [(z, ev) for z in east])
+        sides = [v for _z, v in run]
+        assert len(set(sides)) == min(2, len(sides)) or len(sides) < 2, \
+            f"{nm}: every post on one flank: {run}"
+
+
+def test_the_two_verges_of_a_street_carry_the_same_lamps(ground, params):
+    """A street read walking down it is symmetric ACROSS, and that is the symmetry you actually
+    see. Both verges are driven from one run, so their U positions must be identical.
+
+    THIS TEST COULD NOT FAIL, AND THAT IS WHY SIXTEEN UNPAIRED MASTS SHIPPED. It skipped
+    `half + 26` either side of every threshold AND every spur - seventeen columns on the spine at
+    thirty-two blocks each - and the union of those windows covered 609 cells of a 600-cell
+    street. It compared an empty list against an empty list and passed; the spine's fifty-four
+    lamps were never looked at. `test_the_exclusions_cannot_swallow_the_street` is the guard on
+    the guard, and the windows below are the narrowest that state a real reason.
+    """
+    _lawn, c = ground
+    pts = _masts(c)
     ths = {int(th["at"]) for th in (params.get("thresholds") or [])}
-    ths |= {int(sp["u"]) for sp in (params.get("spurs") or [])}
-    for cv, half in ((params["spine_v"], params["spine_half"]),
-                     (params["promenade_v"], params["promenade_half"])):
-        def side(sign):
-            return sorted(z for v, z in pts if v == cv + sign * (half + 2)
-                          and not any(abs(z - t) <= half + 26 for t in ths))
-        west, east = side(-1), side(1)
-        assert west == east, (f"the verges of the street at V{cv} do not match: "
-                              f"{len(west)} west, {len(east)} east")
+    spurs = {int(sp["u"]) for sp in (params.get("spurs") or [])}
+    for nm, wv, ev in _street_verges(params):
+        west = {z for v, z in pts if v == wv}
+        east = {z for v, z in pts if v == ev}
+        # A THRESHOLD LEAVES THE SPINE AND DOES NOT CROSS IT, so its masts stand on one verge and
+        # there is no far quadrant to mirror; they sit at the crossing's own probed setback, well
+        # inside JUNCTION_CLEAR of its centre. A SPUR is on ONE side of its street - the spine's
+        # east verge is paved at its column and the west verge is not - so it is three cells wide
+        # and no more. Nothing else may differ.
+        def excused(z):
+            return (any(abs(z - t) <= parkways.JUNCTION_CLEAR for t in ths)
+                    or any(abs(z - s) <= 2 for s in spurs))
+        lone = sorted([(wv, z) for z in west - east if not excused(z)]
+                      + [(ev, z) for z in east - west if not excused(z)])
+        assert not lone, f"{nm}: masts with no partner across the street: {lone}"
+        # ...AND A PAIR MAY NEVER DRIFT APART, excused column or not. The nudge stepped each mast
+        # along its own line on its own: three pairs on the spine came out two blocks offset and
+        # both walks four, which no count of lamps per verge can see. Checked everywhere,
+        # because an offset pair inside a threshold's window is still an offset pair.
+        drift = sorted((a, b) for a in west - east for b in east - west if 0 < abs(a - b) <= 6)
+        assert not drift, f"{nm}: masts offset across the street rather than paired: {drift}"
+
+
+def test_the_exclusions_cannot_swallow_the_street(params):
+    """A CHECK CONFIGURED NOT TO SEE THE THING IT WAS WRITTEN FOR IS WORSE THAN NO CHECK.
+
+    The symmetry test above excuses a threshold's own crossing and a spur's own column. This
+    pins that those excuses stay a minority of every street: at `half + 26` around seventeen
+    columns they covered the spine twice over, and the test that exists to catch two verges
+    coming apart compared nothing at all for as long as that was true.
+    """
+    ths = {int(th["at"]) for th in (params.get("thresholds") or [])}
+    spurs = {int(sp["u"]) for sp in (params.get("spurs") or [])}
+    v0, u0, v1, u1 = params["bounds"]
+    excused = set()
+    for t in ths:
+        excused |= set(range(t - parkways.JUNCTION_CLEAR, t + parkways.JUNCTION_CLEAR + 1))
+    for s in spurs:
+        excused |= set(range(s - 2, s + 3))
+    span = u1 - u0 + 1
+    share = len(excused & set(range(u0, u1 + 1))) * 100 // span
+    assert share <= 40, (f"the symmetry test excuses {share}% of the street - at that width it "
+                         f"stops being able to fail")
 
 
 def test_no_lamp_stands_off_a_verge_line(ground, params):
@@ -466,3 +592,49 @@ def test_no_lamp_stands_off_a_verge_line(ground, params):
             lines |= {wv - wh - 1, wv + wh + 1}
     off = sorted({v for v, _z in _masts(c)} - lines)
     assert not off, f"masts standing off every verge line: V{off}"
+
+
+# --------------------------------------------------- THE HOLE THE GROUND LAYER MAY NOT FURNISH
+
+def _discs(params):
+    return [k for k in (params.get("keep_clear") or []) if "r" in k]
+
+
+def test_the_prism_well_mouth_is_kept_clear_AND_MATCHES_THE_WELL_S_OWN_CONFIG():
+    """A DECLARATION THAT HAS TO BE KEPT IN STEP WITH THE THING IT DECLARES GOES STALE, so it is
+    DERIVED here rather than read twice. `park_ways.yaml` names a disc; `pf_prism_well.yaml` owns
+    the centre and the radius; move the well and this fails instead of putting fourteen lamp
+    masts back over a two-hundred-course void.
+
+    Park lattice: V = x - 97500, U = z - 80300 - the anchor the whole park is laid on."""
+    import yaml
+    well = yaml.safe_load(open("configs/pf_prism_well.yaml", encoding="utf-8"))["params"]
+    cx, cz = well["centre"]
+    want = (cx - 97500, cz - 80300, float(well["r_mouth"]))
+
+    discs = _discs(params_from_config())
+    got = [(int(k["v"]), int(k["u"]), float(k["r"])) for k in discs]
+    assert want in got, (
+        f"the ground layer does not keep the Prism Well's mouth clear: it declares {got}, "
+        f"the well is at V{want[0]} U{want[1]} r{want[2]:g}")
+
+
+def test_no_lamp_mast_stands_inside_a_round_keep_clear(ground, params):
+    """Jack, 2026-09-10: "the prism parkour area has floating full lamp posts in its area."
+    Fourteen signal masts stood inside the Prism Well's r50 mouth and nine of them had not one
+    solid cell within a 5x5 box at their own course.
+
+    The mouth is a HOLE - the well digs the deck out from under them - so a mast there is a pad,
+    four wall cells, a caged soul lantern and an end rod hanging in open air. The well's own cut
+    cannot reach them: it reads `park_future`, whose cylinder `prismchain` empties down to the
+    deck course, so it digs one block per mast column and leaves the eight above it standing.
+
+    ASSERTED ON THE WHOLE FIVE-CELL SPREAD, not the post: a mast one cell outside the mouth
+    still hangs its cage over the lip, which is the same reason the vista bands are tested that
+    way. The disc's own radius carries the tolerance."""
+    c = ground[1]
+    for k in _discs(params):
+        cv, cu, r = int(k["v"]), int(k["u"]), float(k["r"])
+        inside = [(v, u) for v, u in _mast_cells(c)
+                  if (v - cv) ** 2 + (u - cu) ** 2 < r * r]
+        assert not inside, f"lamp masts inside the {k['name']}: {inside}"

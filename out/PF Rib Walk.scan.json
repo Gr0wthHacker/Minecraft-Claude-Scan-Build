@@ -1,0 +1,139 @@
+{
+  "origin": {
+    "x": 97568,
+    "y": 181,
+    "z": 80434
+  },
+  "size": {
+    "x": 55,
+    "y": 56,
+    "z": 108
+  },
+  "generated_by": "ribwalk",
+  "kind": "ribwalk",
+  "facing": "north",
+  "length": 75.0,
+  "profile_axis": "v",
+  "refused": 0,
+  "clipped": 0,
+  "declined": 145,
+  "parts": {
+    "spine": 1069,
+    "ribs": 2578
+  },
+  "contract": "a colossal skeleton the causeway walks THROUGH: a spine arched over the deck, ribs one cell thick with real sky between them carried DOWN PAST the deck into the void, and a skull at the head end whose mouth is the gate. Not an object beside the walk.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 3647,
+      "materials": 2,
+      "dominant_material_share": 0.8456,
+      "light_blocks": 0,
+      "massing": {
+        "width": 45,
+        "height": 47,
+        "depth": 76,
+        "fill_ratio": 0.0227
+      },
+      "silhouette": {
+        "top": {
+          "area": 1040,
+          "fill_ratio": 0.1751
+        },
+        "front": {
+          "area": 914,
+          "fill_ratio": 0.2968
+        },
+        "side": {
+          "area": 1045,
+          "fill_ratio": 0.1728
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.2512,
+          0.3321,
+          0.4168
+        ],
+        "top_silhouette_perimeter": 3476,
+        "surface_faces_per_block": 3.4044
+      },
+      "material_counts": {
+        "bone_block": 3084,
+        "smooth_stone": 563
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "ef8e586d1eaa3170609896c6811478e509a5e3c6cad841bbdd018b32821bdc07",
+    "generator_source_digest": "ecd85013b2deba3cd68f5eb49c9f824cc2c8522662cef293d85f305e661ad910",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 1.992372,
+    "blocks": 3647,
+    "blocks_per_second": 1830.48
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 3647,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "PF Rib Walk.litematic",
+  "name": "PF Rib Walk"
+}

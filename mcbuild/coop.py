@@ -268,8 +268,12 @@ def merge_scans(paths: list[str], out: str) -> str:
     box = _union_box(scans)
     (x0, y0, z0), (x1, y1, z1) = box
     ids = np.zeros((y1 - y0 + 1, z1 - z0 + 1, x1 - x0 + 1), np.int32)
+    # **THE SEED MUST BE REGISTERED, OR IT IS A DUPLICATE WAITING TO HAPPEN.** `pal` starts with
+    # air at index 0 and `key_index` was left empty, so the first scan's air did not match anything
+    # and was appended as a SECOND air entry - 2.3 million cells that `ids != 0` reads as solid.
     pal: list = [scans[0].model.palette[0]]
-    key_index = {}
+    from .nbt import state_key as _sk
+    key_index = {_sk(pal[0]): 0}
     claimed = np.zeros((z1 - z0 + 1, x1 - x0 + 1), bool)          # columns already owned by a newer scan
     chunks_all = set()
     for s in reversed(scans):                                       # newest first
@@ -288,7 +292,7 @@ def merge_scans(paths: list[str], out: str) -> str:
     m.compact_palette()
     meta = {**scans[-1].meta, "origin": {"x": x0, "y": y0, "z": z0}, "size": {"x": ids.shape[2], "y": ids.shape[0], "z": ids.shape[1]},
             "merged_from": [os.path.basename(s.litematic_path) for s in scans], "chunks_included": sorted(list(c) for c in chunks_all),
-            "non_air_blocks": int((ids > 0).sum())}
+            "non_air_blocks": int(m.solid().sum())}
     return scan.save_pair(out, m, meta, name=os.path.splitext(os.path.basename(out))[0])
 
 
@@ -301,10 +305,21 @@ def _union_box(scans):
 
 def _paste_columns(ids, pal, key_index, g: Grid, own: np.ndarray, origin):
     """Copy every column of g where own[z,x] is set (air included), re-indexing its palette."""
-    from .nbt import state_key
+    from .nbt import state_key, state_name
     x0, y0, z0 = origin
     remap = {}
     for i, tag in enumerate(g.s.model.palette):
+        # **EVERY AIR-LIKE STATE IS INDEX 0, WHATEVER ITS NBT.** Two captures can spell air with
+        # different tags - one carrying an empty `Properties`, one not - and `state_key` tells them
+        # apart, so the union grew a SECOND air entry holding 2.3 million cells. `compact_palette`
+        # cannot merge them either: they are genuinely different tags. Nothing that reads the model
+        # through `Model.solid()` notices, and everything that asks `ids != 0` - which is the
+        # ordinary way to ask - reads all that air as SOLID. It put the merge's own
+        # `non_air_blocks` at 33,021,122 against a true 379,768, and reported every cell of a design
+        # verified against the cut as an overlap.
+        if state_name(tag).split(":")[-1].split("[")[0] in AIR:
+            remap[i] = 0
+            continue
         k = state_key(tag)
         if k not in key_index:
             key_index[k] = len(pal); pal.append(tag)

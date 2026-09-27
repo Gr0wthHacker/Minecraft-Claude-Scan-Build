@@ -70,6 +70,10 @@ gen: abyssmarket
 params:
   squid: out/Abyss Squid.litematic
   park: out/Park Complete.litematic
+  # Public access is exclusively the parkour landing at the squid's anatomical
+  # mouth.  The former surface shaft is retained below only as a legacy spatial
+  # reference used by the interior layout; it generates no blocks or dig cells.
+  entrance: mouth
   shaft: [97600, 80665]
   surface: 204
   park_floor: [202, 203]

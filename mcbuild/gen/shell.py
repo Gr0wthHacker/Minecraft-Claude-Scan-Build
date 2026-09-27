@@ -61,6 +61,8 @@ _COMPASS = {(0, -1): "north", (0, 1): "south", (1, 0): "east", (-1, 0): "west"}
 
 # Beyond this RGB distance a partial is not worth having: the geometry gain does not pay for a
 # visible colour seam down the animal's back. Such a cell simply stays a full block.
+MAX_HUE_SHIFT = 25
+#: ...and how far the red-minus-blue balance may move: see `slab_for`.
 MAX_SHIFT = 30.0
 
 
@@ -140,16 +142,28 @@ def slab_for(name: str, max_shift: float = MAX_SHIFT, witnesses: tuple = ()) -> 
 
     This is the known-wrong note about top-face sampling turning into a real defect rather than a
     theoretical one. When the colour DB grows side-face colours, this restriction can be lifted.
+
+    **AND A SUBSTITUTE MAY NOT FLIP THE HUE FAMILY, however near it measures.** Euclidean distance
+    in RGB has no idea which channel is winning: `dripstone_block` is (134,108,93) - warm tan, red
+    over blue by 41 - and its nearest trusted slab is `mossy_stone_brick_slab` at (115,121,105),
+    which is GREEN-GREY with red over blue by 10. That is 26 apart and well inside the shift
+    budget, and it painted a fifth of a warm brown animal's most-seen surfaces cool green. A
+    partial is the same material seen thinner; it must not change what the material IS. Comparing
+    red-minus-blue is the cheapest test that catches it and it turns down nothing that was right:
+    `brown_wool` -> `spruce_slab` differs by 7 and `light_gray_wool` -> `andesite_slab` by 8.
     """
     if blocks.kind(name) == "rotated_pillar":
         return None
     want = blocks.color(name)
     if not want:
         return None
+    warmth = want[0] - want[2]
     best, bd = None, 1e9
     for s in trusted_slabs(tuple(witnesses)):
         c = blocks.color(s)
         if not c or blocks.kind(s) == "rotated_pillar":
+            continue
+        if abs((c[0] - c[2]) - warmth) > MAX_HUE_SHIFT:
             continue
         d = math.dist(want, c)
         if d < bd:

@@ -1,0 +1,38 @@
+name: Abyss Sperm Whale
+gen: sperm_whale
+params:
+  at: [97500, 95, 80255]
+  size: [115, 85, 215]
+  seed: 11
+  greybox: false
+  shell: 2
+roles: [construction]
+design:
+  purpose: landmark
+  hierarchy: supporting
+  style: prismworks
+  visual_review: true
+  narrative: >
+    A leviathan-scale sperm whale follows the Abyss Squid through the lower dark.
+    Its open red mouth, projecting pale jaw, teeth, sucker scars and broad flukes
+    are revealed from the squid's tail.
+quality:
+  min_blocks: 50000
+  min_materials: 5
+  enforce: true
+  visual_review: true
+animal_contract:
+  enforce: true
+  min_blocks: 50000
+  min_materials: 5
+  required_features: [body, head, jaw, fin, fluke, peduncle, eye, mouth, teeth, blowhole, scar]
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against:
+    - out/Park Complete.litematic
+    - out/Abyss Squid.litematic
+    - out/Abyss Market.litematic
+origin_lock: false

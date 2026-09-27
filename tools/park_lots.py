@@ -202,13 +202,14 @@ PLACEMENT = {
     # --- Claim Line reach ------------------------------------------ U174-210 (37 usable)
     # "Claim Line" is not here and needs no lot: PARK_FINAL_ARCHITECTED_PLAN calls the reach
     # "one safe, 5-wide causeway", which is the spine and the promenade running through it.
-    # **`Signal Heron` IS SUPERSEDED AND HAS NO LOT (2026-09-03).** The bird is built by
-    # `park_ways.yaml` itself - `- gen: heron, offset: [26, 1, 176]` - into the `heron garden`
-    # feature lot, which is the same ground this entry reserved. So the old
-    # `out/park_final/artifacts/Signal Heron.litematic` is never placed and never will be, and a
-    # lot held for a module nobody places is ground nothing else may use. It is also what
+    # **`Signal Heron` HAS NO LOT (2026-09-03) AND NO BIRD (2026-09-07).** It was superseded
+    # first - the old `out/park_final/artifacts/Signal Heron.litematic` is never placed, and a
+    # lot held for a module nobody places is ground nothing else may use, which is what
     # `test_worldrender.py` fails on: "module Signal Heron footprint does not fit its plot".
-    # The garden itself is untouched - `Park Ways` still reserves it and still stands the bird.
+    # Then Jack retired the bird outright: "we need to remove the heron". `park_ways.yaml`'s
+    # one `gen: heron` source is gone; its feature lot is KEPT and renamed `lake garden`,
+    # because that rectangle lies inside `PF Water Claim Lake` and the ground layer must stay
+    # out of it whether or not anything stands there.
     # --- Midway ---------------------------------------------------- col A  U215-255 (41)
     # THE CAROUSEL TOOK THIS LOT AND THE ARRIVAL COURT CAME OUT. Jack: "i want to put the carousel
     # where currently there is a large rectangular building with an open center, just between the
@@ -388,11 +389,11 @@ RETIRED = {
     #: `PF Games Row` replaces both with the frontage `PARK_MIDWAY.md` asks for by name and
     #: carries all four machines in the open. See the notes in `PLACEMENT` above.
     "Skill Arcade", "Prize Point",
-    #: 2026-09-03. **SUPERSEDED RATHER THAN RETIRED, AND THE DISTINCTION IS THE POINT.** The bird
-    #: still stands - `park_ways.yaml` builds it itself, `- gen: heron, offset: [26, 1, 176]`, into
-    #: the `heron garden` feature lot - so what left is the old `park_final` ARTIFACT and the lot
-    #: this table held for it, which was the same ground twice. A lot reserved for a module nobody
-    #: places is ground nothing else may use, and it is what `test_worldrender.py` failed on.
+    #: 2026-09-03 SUPERSEDED, then 2026-09-07 RETIRED OUTRIGHT. What left first was the old
+    #: `park_final` ARTIFACT and the lot this table held for it, while `park_ways.yaml` went on
+    #: building the bird itself. Jack then took the bird as well: "we need to remove the heron".
+    #: `mcbuild/gen/heron.py` is untouched and still builds - the lowland flamingo runs on it -
+    #: so this is a record of a PLACEMENT retired, not a generator deleted.
     "Signal Heron",
     #: 2026-09-03. **BOOMTOWN SPINE**, retired when the Lost Plateau took its ground. Jack, three
     #: times: "they are visually great - but all serve no actual defined purpose"; "i dont want a

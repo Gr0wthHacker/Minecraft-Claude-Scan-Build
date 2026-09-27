@@ -164,6 +164,18 @@ GREEN_CFG = {
     #: Height cap in courses. The rim reserve is a VOID-VIEW reserve, so anything placed there
     #: has to stay under the sightline - see `configs/pf_park_green.yaml`.
     "max_height": 99,
+    #: HOW CLOSE TWO ORNAMENTAL TREES MAY STAND, chebyshev - so 3 forbids a neighbour within
+    #: 2. A crown is radius 2, so trunks three or four apart still touch canopies, and that is
+    #: a COPSE and is wanted; what is not wanted is the cluster of four trunks inside a 5x3
+    #: patch under one blob of leaves that the shipped park had. Swept over the whole lot:
+    #:
+    #:     tree_clear   cells   columns   3+ tall   trees
+    #:              0   13104      7218      1794     129    <- the thicket
+    #:              3   12181      7166      1599      99    <- here
+    #:              5   11073      7091      1245      75    <- an orchard, and 30% less mass
+    #:
+    #: 0 switches the rule off.
+    "tree_clear": 3,
     "seed": 0,
 }
 
@@ -259,6 +271,94 @@ class _Green(_Ground):
                 if not self.lawn(a, b):
                     return False
         return True
+
+
+# --------------------------------------------------------------------------- the lot
+
+
+class _Soft:
+    """The lot, with the module's own contract ENFORCED instead of merely claimed.
+
+    `Canvas.put` OVERWRITES, and the pieces here are drawn one after another over a shared
+    canvas with no idea what is already on it - so a meadow drifting past a tree replaced the
+    tree's own bottom log with a tuft of grass, and the tree shipped one course in the air with a
+    flower under it. Measured on the shipped park: **4,522 of 14,530 cells - 31% of everything
+    this pass places - were written over something it had already placed**, and 68 of its 159
+    ornamental trees had lost their base. A boulder through a crown, grass through a hedge and a
+    trunk through another tree's canopy are all the same fault.
+
+    Nothing could see it. Every cell is legal, supported, affordable and in 1.19; the audit
+    passes, the bill of materials is right, and `render3d` draws a floating tree exactly as it
+    draws a planted one. The only symptom is a park full of half-eaten planting - which is
+    precisely the complaint that found it.
+
+    `g.free` cannot answer this: it asks the WORLD, which is the capture, and the capture does
+    not contain what this pass laid ten iterations ago. **A DESIGN'S OWN CANVAS IS NOT THE
+    WORLD.** This module's own contract already said *"It never replaces a standing block"*; this
+    is the line that makes the sentence true rather than aspirational.
+
+    MOSS CARPET IS THE ONE EXCEPTION, and it is the design's own declaration rather than a
+    loophole: `verify_replaceable: [moss_carpet]` in both configs, and `OWN` carries it. It is
+    ground COVER - the lowest thing in the hierarchy - so a flower bed drawn over a meadow's
+    carpet is a bed, while the same bed drawn over a hedge is a hole in a hedge.
+    """
+
+    #: WHAT A LATER PIECE MAY STILL DRAW OVER: this pass's own one-cell GROUND COVER, and
+    #: nothing else. A carpet, a tuft, a fern and a flower are all the same class of thing - the
+    #: lowest layer in the planting, laid one cell deep on the plane - and a tree rooting through
+    #: a tuft is a tree standing in a meadow, which is the picture wanted. Everything with a
+    #: STRUCTURE to it stands: a trunk, a leaf, a bush, a hedge, a boulder, a kerb.
+    #:
+    #: DERIVED FROM THE PALETTES rather than typed, because a land that swaps its grass for some
+    #: other tuft would otherwise have that tuft silently promoted to something a tree cannot root
+    #: through - which is the fault this class exists to end, wearing the next costume.
+    SOFT = frozenset(
+        {pal[k] for pal in (GREEN, *PALETTES.values())
+         for k in ("turf", "grass", "fern", "tall") if k in pal}
+        | {f for pal in (GREEN, *PALETTES.values())
+           for pair in pal.get("flowers", []) for f in pair})
+
+    def __init__(self, lot: _Lot):
+        self._lot = lot
+        self.kept = 0                     # cells refused because something already stood there
+        #: Where this pass has planted a TREE, so the next one can stand clear of it. Kept on the
+        #: lot rather than on a `_Green`, because there is one `_Green` PER LAND and two trees
+        #: either side of a land boundary have to be able to see each other.
+        self.trees: list[tuple[int, int]] = []
+
+    def __getattr__(self, k):             # signs, doors, refused, has, name_at, weather...
+        return getattr(self._lot, k)
+
+    def put(self, v: int, y: int, u: int, key: str, **props) -> bool:
+        v, y, u = int(v), int(y), int(u)
+        c = self._lot.c
+        if c.inb(v, y, u) and c.solid(v, y, u) and c.get_name(v, y, u).split(":")[-1] not in self.SOFT:
+            self.kept += 1
+            return False
+        return self._lot.put(v, y, u, key, **props)
+
+    def rootable(self, v: int, u: int) -> bool:
+        """Can something with a TRUNK take this cell, or is a piece already standing in it?
+
+        **A REFUSED BASE IS A FLOATING TREE**, and that is the fault in its second costume: with
+        `put` honest, a tree whose base cell already held a hedge, a bush or a boulder simply lost
+        its bottom log and shipped one course in the air exactly as before. Sixteen of them. So
+        the SITE is tested before a cell is laid: no tree is better than a floating one, and this
+        park's ground is not short of candidates.
+        """
+        c = self._lot.c
+        return not (c.inb(v, 0, u) and c.solid(v, 0, u)
+                    and c.get_name(v, 0, u).split(":")[-1] not in self.SOFT)
+
+    def crowded(self, v: int, u: int, clear: int) -> bool:
+        """Is there already a tree within `clear` of here?
+
+        A CROWN IS RADIUS 2, SO TWO TRUNKS THREE APART ARE ONE BLOB WITH TWO POLES IN IT.
+        Measured on the shipped park, the median gap between neighbouring ornamentals was THREE
+        and 74 of 193 trunks stood within two of another - which is not a stand of trees, it is a
+        thicket. Chebyshev, because a crown is square here.
+        """
+        return any(max(abs(v - a), abs(u - b)) < clear for a, b in self.trees)
 
 
 # --------------------------------------------------------------------------- the pieces
@@ -360,6 +460,14 @@ def _tree(lot: _Lot, g: _Green, v: int, u: int, seed: int, cap: int, room: int =
     h = min(max(3, cap - 2), 4 + int(hash01(v, u, seed + 93) * 3))
     if h < 3 or cap < 5:
         return 0
+    # A STAND OF TREES, NOT A THICKET OF POLES. Nothing here ever asked where the last tree
+    # went, so two grid cells that both drew `tree` planted trunks one block apart with their
+    # crowns entirely merged - the median gap between neighbouring ornamentals on the shipped
+    # park was THREE, and 74 of 193 trunks stood within two of another. The gate is on the
+    # PIECE rather than on the scan, because the scan cannot know which kind a candidate will
+    # become until after it has passed every other test.
+    if lot.crowded(v, u, lot.tree_clear) or not lot.rootable(v, u):
+        return 0
     n = 0
     for y in range(h):
         n += 1 if lot.put(v, y, u, g.flora["trunk"], axis="y") else 0
@@ -376,6 +484,8 @@ def _tree(lot: _Lot, g: _Green, v: int, u: int, seed: int, cap: int, room: int =
                     continue
                 n += 1 if lot.put(v + dv, dy, u + du, g.flora["leaf"], persistent="true",
                                   distance="7", waterlogged="false") else 0
+    if n:
+        lot.trees.append((int(v), int(u)))
     return n
 
 
@@ -438,7 +548,8 @@ def build(cfg: dict, donors=None) -> Canvas:
     anchor = [int(x) for x in p["anchor"]]
     seed = int(p.get("seed", 0))
     c = Canvas(dv, 16, du, donors)
-    lot = _Lot(c, dv, du, seed=seed)
+    lot = _Soft(_Lot(c, dv, du, seed=seed))
+    lot.tree_clear = int(p.get("tree_clear", 4))
 
     ctx = Ctx(p["under"])
     mine = shipped_cells(p.get("previous"))
@@ -500,13 +611,20 @@ def build(cfg: dict, donors=None) -> Canvas:
         "refused": lot.refused,
         "parts": {"pieces": pieces, "cells": placed,
                   "by_kind": tally, "by_land": by_land,
-                  "open_min": o_min, "open_full": o_full},
+                  "open_min": o_min, "open_full": o_full,
+                  #: Cells a later piece WOULD have drawn over something this pass had
+                  #: already placed, and did not. Reported rather than silent: a number
+                  #: climbing here says the drifts are fighting and the density is too high.
+                  "kept": lot.kept, "trees": len(lot.trees),
+                  "tree_clear": lot.tree_clear},
         "contract": (
             "shrubbery, flowers and accents on the park's UNCLAIMED lawn: every cell stands on a "
             "column whose own ground course is moss and whose neighbourhood within `path_clear` "
             "is moss too, so nothing is placed on paving, against a kerb, or on anything anybody "
             "uses. The density is the measured distance from the column to the nearest built or "
             "planted thing, so a verge is left as a verge and the dead middles get the material. "
-            "It never replaces a standing block."),
+            "It never replaces a standing block - its own earlier drifts included, bar the moss "
+            "carpet it declares replaceable - and no two ornamental trees stand closer than "
+            "`tree_clear`."),
     }
     return c

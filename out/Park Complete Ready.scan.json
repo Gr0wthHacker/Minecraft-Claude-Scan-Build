@@ -21,6 +21,7 @@
     "Snack Window",
     "Welcome Court",
     "Works Yard",
+    "PF Broken Plateau",
     "PF Claim Lake Menagerie",
     "PF Crown Descent",
     "PF Entry Gate",
@@ -44,7 +45,7 @@
     "PF Park Rim Green",
     "PF Plateau Bone Bed",
     "PF Plateau Plaques",
-    "PF Plateau Vale",
+    "PF Plateau Shop",
     "PF Prism Descent",
     "PF Prism Downs",
     "PF Prism Rig",
@@ -52,7 +53,6 @@
     "PF Pterosaur",
     "PF Sauropod",
     "PF Signal Zero",
-    "PF Vantage Frontier Lookout",
     "PF Water Claim Lake",
     "PF Water Wyrm Garden",
     "PF Wyrm Gate"
@@ -49292,7 +49292,7 @@
   "dig_note": "cells to BREAK before printing - see `contains` for their designs",
   "file": "Park Complete Ready.litematic",
   "package_of": "Park Complete.litematic",
-  "coverage_pct": 58.6,
-  "non_air_blocks": 308229,
+  "coverage_pct": 69.1,
+  "non_air_blocks": 294813,
   "note": "the part of the parent design whose materials are covered - `/cscan follow` this and it can finish; the parent cannot and could not say so"
 }

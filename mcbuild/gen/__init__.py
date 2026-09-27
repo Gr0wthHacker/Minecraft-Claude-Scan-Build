@@ -46,6 +46,8 @@ from . import squid  # noqa: E402
 from . import spermwhale  # noqa: E402
 from . import abysssound  # noqa: E402
 from . import abysswreck  # noqa: E402
+from . import abyssdrift  # noqa: E402
+from . import jellyfish  # noqa: E402
 
 
 GENERATORS = {
@@ -96,6 +98,10 @@ GENERATORS = {
     "sperm_whale": spermwhale,
     "abyss_sounding": abysssound,
     "abyss_wreck": abysswreck,
+    # the field the squid swims through, filling the empty void under the whole park
+    "abyssdrift": abyssdrift,
+    # a giant bioluminescent jellyfish - the squid's companion, a dome on trailing lines
+    "jelly": jellyfish,
     # THE ABYSS MARKET - the fit-out of the squid's own 54,994-cell sealed cavity,
     # entered by a shaft from Prismworks that never touches the well's fall column.
     # mcbuild/gen/abyssmarket.py

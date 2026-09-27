@@ -34,7 +34,7 @@
         "THE CRUSHER",
         "five heads",
         "press to run",
-        "matrix from"
+        "one stroke"
       ]
     },
     {
@@ -48,7 +48,7 @@
         "MATRIX FROM",
         "THE CUTTING",
         "crushed here",
-        "shipped by rail"
+        "bone comes out"
       ]
     },
     {
@@ -60,8 +60,8 @@
       "facing": "west",
       "lines": [
         "THE LOADING",
-        "loads for the",
-        "plateau line"
+        "jacketed finds",
+        "go out here"
       ]
     }
   ],
@@ -319,7 +319,7 @@
       "purpose": "ride",
       "hierarchy": "supporting",
       "style": "frontier",
-      "narrative": "The mine's works: an elevated ore railway on timber trestles from the ridge's east foot, crossing the guest walk and the service lane over them; a three-step stamp mill stepping down the way the ore travels, with a five-head battery a guest fires from a console in its own plinth; and a tipple over a stone loading bank beside the park railway.\n"
+      "narrative": "The dig's prep works: a three-step building stepping down the way the material travels, with a five-head crusher a guest fires from a console in its own plinth - matrix out of the cutting goes in at the top and bone comes out at the bottom - and a hoist over a stone loading bank beside the park railway, where the jacketed finds go out.\n"
     },
     "metrics": {
       "blocks": 4779,
@@ -379,8 +379,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "0e274ba61c4823aa15f5c49d3a84fb6efb38fd44df3d1a4224dc008d77cd65b6",
-    "generator_source_digest": "4f7eef70feaf925456b2bda002ace98b7eb19436891f43d943a9bb8fd7294096",
+    "fingerprint": "8882a90dff86dd66ae12d86173e3cb31a56f29a0c2a94510c78181989c41837f",
+    "generator_source_digest": "1461c0ec377388a0ef9718ad43a73192d56243df29ce72678ad609a1506a440e",
     "anchors": [],
     "genome": {
       "name": "frontier",
@@ -424,9 +424,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 57.910151,
+    "seconds": 50.513413,
     "blocks": 4779,
-    "blocks_per_second": 82.52
+    "blocks_per_second": 94.61
   },
   "generator_contract": {
     "ok": false,
@@ -453,11 +453,11 @@
     "declared": true,
     "class": "experience",
     "player_verbs": [
-      "press the mill's button",
-      "watch the battery drop",
-      "walk under the ore line"
+      "press the crusher's button",
+      "watch the heads drop",
+      "walk the works corridor"
     ],
-    "outcome": "One press - however long it is held - drops every stamp head once, rings the bell over the battery and lights the running lamp. It is the only mechanism in the Frontier that moves.\n",
+    "outcome": "One press - however long it is held - drops every crusher head once, rings the bell over the battery and lights the running lamp. It is the only mechanism in the Lost Plateau that moves, and the nearest standing spot within reach of its button is two blocks away and on the guest network.\n",
     "ok": true,
     "failures": []
   },
@@ -482,6 +482,6 @@
     "not in the provisional skyblock-1.19 list: polished_blackstone_bricks",
     "not in the provisional skyblock-1.19 list: redstone_lamp"
   ],
-  "file": "PF Mine Works.litematic",
-  "name": "PF Mine Works"
+  "file": "PF Prep Works.litematic",
+  "name": "PF Prep Works"
 }

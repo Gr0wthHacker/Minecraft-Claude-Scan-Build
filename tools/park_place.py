@@ -37,6 +37,7 @@ sys.path.insert(0, str(ROOT))
 from mcbuild import nbt, printable, profile as mcprofile, scan, schem  # noqa: E402
 from mcbuild.ops import declutter as declutter_op  # noqa: E402
 from mcbuild.ops.declutter import report as declutter_report  # noqa: E402
+from mcbuild.ops.unseen import hollow_unseen  # noqa: E402
 from tools.park_lots import PLACEMENT  # noqa: E402
 
 ARTIFACTS = ROOT / "out" / "park_final" / "artifacts"
@@ -114,7 +115,34 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # take a cell the ground, the overgrowth or the rim wanted - first writer
                 # wins, and a board a guest reads is worth less than the walk it stands on.
                 "PF Plateau Plaques",
-                "PF Vantage Frontier Lookout",
+                # THE TWO SKIES (2026-09-13). Jack: *"add more sky elements that are
+                # disconnected"*, then *"this applies to carnival area as well"*. Measured over
+                # the park as placed, the Lost Plateau carried 0.88% of its mass above Y250 -
+                # ONE object, the pterosaur, and it is perched on a crag - and the Midway had
+                # 165 cells above Y270 and nothing at all over Y280.
+                #
+                # They are placed LAST of all the extras and it costs nothing to do so: both
+                # hang in open air, so they contend for no cell with anything in the park and
+                # the cross-design check reports zero against all 44 modules.
+                "PF Plateau Skies", "PF Midway Skies",
+
+                # **THE VANTAGE LOOKOUT IS RETIRED (2026-09-12).** Jack, looking north at the
+                # land's far end: *"i think the tower is a cop out and feels lazy."* Measured off
+                # the shipped composite it was exactly that - 4,154 blocks, 17 x 17, 56 courses,
+                # and **100% of its own footprint standing at full height**, with one interactive
+                # block in the whole of it. A shaft is the most height a lot can be given for the
+                # least idea, and this one stood at the LAND'S CLIMAX: guests enter the Lost
+                # Plateau from the Midway at U169 and walk north, so it was the last thing they
+                # saw. Against the 2026-09-11 plot capture it was **345 of 4,943 built - 7%** - so
+                # retiring it costs about three hundred placed blocks.
+                #
+                # `PF Broken Plateau`'s belvedere replaces it and keeps the skyline it was holding:
+                # a timber deck that leaves the west lip at the rim and cantilevers out over the
+                # gorge mouth, with a mast on it. The height is the same order and it is EARNED -
+                # the drop is under your feet rather than something you climbed above.
+                # `configs/pf_vantage_frontier_lookout.yaml`, its generator and its artifact all
+                # stand as the record; this set is the one thing that decides what is placed.
+                #     "PF Vantage Frontier Lookout",
                 # THE BELVEDERE IS WITHDRAWN. Jack, standing on its crown: "there is a large
                 # building/tower right next to the air balloon design... its squished between
                 # the balloon and the railway" - and he was right to pull it rather than nudge
@@ -160,7 +188,13 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # THE FRONTIER'S MOUNTAIN AND ITS WORKS. `PF Mine Ridge` wraps the Mine Coaster
                 # without taking one cell of it; `PF Mine Works` is the ore line, the stamp mill
                 # and the dock. See configs/pf_mine_ridge.yaml and configs/pf_mine_works.yaml.
-                "PF Mine Ridge", "PF Mine Works",
+                #: `PF Prep Works` was `PF Mine Works` until 2026-09-12. Jack: "not sure theres
+                #: a use for all them ... retheme it." It was the last MINING building in a land
+                #: re-themed to palaeontology - and it was re-themed rather than retired because
+                #: the plot capture says it is 37% built (2,806 placed blocks) and it carries the
+                #: land's only moving mechanism. The rebuild is bit-identical: the name changed,
+                #: the prose changed, three boards changed, and not one block moved.
+                "PF Mine Ridge", "PF Prep Works",
                 # **THREE GAMES WERE BUILT FOR THE FRONTIER AND NEVER PLACED.** Measured over the
                 # shipped `Park Complete`, the whole land's interactive inventory was 646 rails,
                 # 2 buttons, 2 bells and 2 detector rails - every verb in it belonging to the
@@ -190,7 +224,31 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 # ORDER MATTERS: the vale carries the arch that straddles the U41-45 avenue and the
                 # bone bed reserves the ground the three re-sited games stand on, so both go in
                 # before the land dressing that keeps out of module lots.
-                "PF Plateau Vale", "PF Plateau Bone Bed",
+                # **AND THE VALE IS REPLACED BY `PF Broken Plateau` (2026-09-12)**, on the same
+                # lot, with the same responsibilities including the arch. Jack: *"this area of the
+                # map feels very weak, the buildings have unclear purposes ... we need to redo this
+                # area so it matches the wow factors of the other 2 sides."* Both of those wow
+                # factors are terrain-scale geology with a route driven through it - the Mine Ridge
+                # with a coaster bored through it, the Prism Well with a descent down it - and the
+                # axis neither uses is OUT. The north end is the park's own rim with open void past
+                # it, so the mass now runs to that boundary at full height and BREAKS, and a gorge
+                # is cut back from the edge with the fossil bed in its walls.
+                #
+                # The Vale is kept whole on disk. Of its 4,542 built cells on this ground 4,046 are
+                # the Y202 moss lawn, which is `Park Ways`' and stays.
+                #     "PF Plateau Vale",
+                "PF Broken Plateau", "PF Plateau Bone Bed",
+                #: **AND THE FIELD SHOP ON THE LOT THE TOWER LEFT (2026-09-12).** Jack: "the lot
+                #: where the tower was is empty ... maybe we keep 1 building and put another shop
+                #: there", and on where: "tower lot". 17 x 17 at the land's climax, on the east
+                #: verge of the V123-127 avenue looking across at the gorge mouth - so it is a
+                #: shop AND the terrace the belvedere is seen from. Open-fronted, and it holds not
+                #: one container: the board names the server's own `/shops`.
+                #:
+                #: It goes in AFTER the terrain and BEFORE the land dressing, like every other
+                #: building here - the dressing keeps out of module lots and cannot do that for a
+                #: lot that is not occupied yet.
+                "PF Plateau Shop",
                 #
                 # RETIRED WITH THEM, and each was measured before it was cut:
                 #   PF Frontier Diggings  5,577 - a 30x16 trench with a 25-block spine in a 53x46
@@ -437,7 +495,8 @@ def modules(report=False) -> list:
                           f"outside its {deep}x{wide} lot")
         out.append((name, int(v), int(u), m, plane_of(m, roles.get(name, ""))))
     out.extend(extras())
-    return out
+    from tools.park_dressing_repairs import apply as repair_dressing
+    return repair_dressing(out)
 
 
 #: A TILE ENTITY BELONGS TO A BLOCK THAT CAN HOLD ONE. Carried on position alone, two of them
@@ -664,6 +723,56 @@ def complete(items):
 APPROVAL_KEYS = ("anchor_status", "automation_approved")
 
 
+#: THE LANDSCAPE, AND NOTHING ELSE. Jack, after the first run went wide: *"nope you screwed up, you
+#: hollowed things like the train station etc, i said landscape terraforming etc only"*. He is
+#: right, and "etc" was mine to read narrowly. These are the five modules that ARE ground - a
+#: mountain, two stretches of downland, an excavation and the canopy over the ridge. A ride, a
+#: station, a building, a sculpture and the railway are all somebody's structure and are context:
+#: they still decide what is hidden, they are never themselves touched.
+TERRAIN_MODULES = frozenset({
+    "PF Mine Ridge",            # the mountain the coaster is cut into
+    "PF Prism Downs",           # the Prismworks terrain
+    "PF Broken Plateau",        # the mesa, the gorge and its spoil
+    "PF Plateau Bone Bed",      # the excavation and its spoil
+    "PF Lost Plateau",          # the moss cap and canopy over the ridge
+
+})
+
+#: ...and inside those, only what a terraforming pass actually lays. A module's footprint holds
+#: lanterns, signs, timber sets and rails as well as rock, and a mask drawn round the module alone
+#: would offer all of it. Natural rock and ground only - no brick, no plank, no wool, no
+#: `smooth_stone`, which is masonry however grey it looks.
+TERRAIN_BLOCKS = frozenset({
+    "stone", "cobblestone", "mossy_cobblestone", "cobbled_deepslate", "deepslate",
+    "smooth_basalt", "basalt", "blackstone", "granite", "diorite", "andesite", "calcite",
+    "dripstone_block", "moss_block", "gravel", "tuff", "clay", "obsidian",
+    "coal_ore", "gold_ore", "iron_ore", "copper_ore", "redstone_ore", "lapis_ore",
+    "sand", "red_sand", "sandstone", "red_sandstone", "soul_sand", "soul_soil",
+})
+
+
+def terrain_mask(items, whole, worigin):
+    """Cells the hollow pass may touch: laid by a landscape module AND made of ground.
+
+    Both halves are needed. The module list alone would offer a terrain pass's own lanterns and
+    timber; the material list alone would offer a building's cobblestone core, and a station is
+    exactly what this is not allowed to touch.
+    """
+    import numpy as np
+    h, sz, sx = whole.ids.shape
+    mask = np.zeros((h, sz, sx), bool)
+    oy = worigin[1]
+    for name, v, u, m, plane in items:
+        if name not in TERRAIN_MODULES:
+            continue
+        ys, zs, xs = m.solid().nonzero()
+        Y, Z, X = ys - plane + 1 - oy, zs + u, xs + v
+        ok = (Y >= 0) & (Y < h) & (Z >= 0) & (Z < sz) & (X >= 0) & (X < sx)
+        mask[Y[ok], Z[ok], X[ok]] = True
+    ground = np.array([n.split(":")[-1] in TERRAIN_BLOCKS for n in whole.names])[whole.ids]
+    return mask & ground
+
+
 def _carry_approval(out_path) -> dict:
     """The approval keys already on disk, or the cautious default for a design nobody has approved."""
     side = str(out_path)[: -len(".litematic")] + ".scan.json"
@@ -706,6 +815,8 @@ def main() -> int:
         # whole park - a design that lands in the schematics folder must not behave differently
         # from the one beside it. The full report is printed once, under Park Complete.
         b_removed, b_swapped = declutter_op(model)
+        # NO HOLLOW PASS HERE. This composite is the BUILDINGS, and the pass is scoped to
+        # the landscape - there is nothing in it the pass is allowed to touch.
         print("")
         print(f"Park Buildings: {sum(b_removed.values()):,} clutter cells hidden, "
               f"{sum(b_swapped.values()):,} swapped")
@@ -734,6 +845,21 @@ def main() -> int:
         removed, swapped = declutter_op(whole)
         print("")
         print(declutter_report(removed, swapped))
+        # AND THEN THE INSIDE OF THE LANDSCAPE. The Mine Ridge, the Downs, the Vale, the Bone
+        # Bed and the Plateau's cap are solid masses, and a solid mass costs the same to print as
+        # a hollow one and looks the same from every angle a guest has. `unseen` removes a block
+        # only when all six of its neighbours are opaque full cubes, so anything with a face onto
+        # air - INCLUDING air the outside cannot reach, which is what a station room and a tunnel
+        # bore are - stays. `terrain_mask` is the scope: the five modules that ARE ground, and
+        # inside them only the rock and soil a terraforming pass lays. Everything else in the park
+        # is context, deciding what is hidden and never touched.
+        #
+        # It runs BEFORE the stitch below on purpose: hollowing is what turns a sloped skin into a
+        # staircase of edge diagonals, `_connect` closes those with the design's OWN blocks, and
+        # the stitch is the backstop for what is left rather than the thing doing the work.
+        unseen = hollow_unseen(whole, carve_only=terrain_mask(items, whole, worigin))
+        print("")
+        print(unseen.report())
         # A DIAGONAL JOIN IS NOT A JOIN. A printer clicks a FACE, so two cells that meet only at a
         # corner leave everything behind them unreachable - and a break BETWEEN two modules belongs
         # to neither of them, so nothing upstream of this merge can see it. Measured before this
@@ -763,6 +889,10 @@ def main() -> int:
                  # be forgotten again: leave them and the lake is a lawn with water drawn on it.
                  "dig": _dig_of(["Park Rail"] + [i[0] for i in items]),
                  "dig_note": "cells to BREAK before printing - see `contains` for their designs"}
+        # Furnishings are checked against the finished surface, after clutter and hollowing.
+        from tools.park_refinement import apply as apply_refinement
+        whole = apply_refinement(whole, tuple(wmeta["origin"][k] for k in ("x", "y", "z")))
+        wmeta["contains"].append("PF Premium Refinement")
         scan.save_pair(str(wout), whole, wmeta, name="Park Complete")
         shutil.copy2(wout, dest / wout.name)
         (dest / "Park Complete.scan.json").write_text(json.dumps(wmeta, indent=2), encoding="utf-8")

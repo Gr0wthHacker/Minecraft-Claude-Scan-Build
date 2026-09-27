@@ -25,18 +25,18 @@
   "refused": 0,
   "parts": {
     "vines": {
-      "cells": 9222,
-      "curtains": 2712
+      "cells": 3046,
+      "curtains": 1097
     },
     "roofs": {
-      "cells": 1900,
-      "leaves": 125
+      "cells": 1605,
+      "leaves": 127
     },
     "ferns": {
       "cells": 0
     },
     "roots": {
-      "cells": 437
+      "cells": 344
     }
   },
   "contract": "the jungle taking the camp back: vine curtains down the walls from above head height, moss and azalea creeping over the roofs, ferns at the foot of a wall where the ground is soil, and hanging roots under the overhangs. Every cell goes into AIR beside or above a standing block, so nothing is replaced, a printer can place all of it, and it can be undone by breaking what it placed.",
@@ -65,44 +65,44 @@
       "narrative": "Vine curtains down the camp's walls from above head height, moss and azalea creeping over the roofs, ferns at the foot of a wall where the ground is soil, and hanging roots under the overhangs - the jungle reclaiming an expedition camp.\n"
     },
     "metrics": {
-      "blocks": 6585,
+      "blocks": 3493,
       "materials": 4,
-      "dominant_material_share": 0.6451,
+      "dominant_material_share": 0.442,
       "light_blocks": 0,
       "massing": {
-        "width": 181,
-        "height": 39,
+        "width": 179,
+        "height": 38,
         "depth": 170,
-        "fill_ratio": 0.0055
+        "fill_ratio": 0.003
       },
       "silhouette": {
         "top": {
-          "area": 2430,
-          "fill_ratio": 0.0715
+          "area": 1954,
+          "fill_ratio": 0.0575
         },
         "front": {
-          "area": 1401,
-          "fill_ratio": 0.1751
+          "area": 682,
+          "fill_ratio": 0.0853
         },
         "side": {
-          "area": 2326,
-          "fill_ratio": 0.3421
+          "area": 1324,
+          "fill_ratio": 0.1947
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.6774,
-          0.2345,
-          0.0881
+          0.647,
+          0.31,
+          0.0429
         ],
-        "top_silhouette_perimeter": 6759,
-        "surface_faces_per_block": 3.5812
+        "top_silhouette_perimeter": 5633,
+        "surface_faces_per_block": 3.917
       },
       "material_counts": {
-        "vine": 4248,
-        "moss_carpet": 1775,
-        "hanging_roots": 437,
-        "azalea_leaves": 125
+        "vine": 1544,
+        "moss_carpet": 1478,
+        "hanging_roots": 344,
+        "azalea_leaves": 127
       }
     },
     "checks": [],
@@ -155,9 +155,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 66.445649,
-    "blocks": 6585,
-    "blocks_per_second": 99.1
+    "seconds": 56.60761,
+    "blocks": 3493,
+    "blocks_per_second": 61.71
   },
   "generator_contract": {
     "ok": true,
@@ -166,7 +166,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 6585,
+    "blocks": 3493,
     "mechanic_families": [
       "traversal"
     ]

@@ -1,0 +1,366 @@
+{
+  "origin": {
+    "x": 97524,
+    "y": 203,
+    "z": 80300
+  },
+  "size": {
+    "x": 99,
+    "y": 56,
+    "z": 47
+  },
+  "generated_by": "bonebed",
+  "kind": "bonebed",
+  "lot": [
+    99,
+    47
+  ],
+  "at": [
+    24,
+    0
+  ],
+  "land": "frontier",
+  "facing": "west",
+  "profile_axis": "u",
+  "signs": [
+    {
+      "at": [
+        3,
+        7,
+        43
+      ],
+      "facing": "west",
+      "lines": [
+        "THE LOST",
+        "PLATEAU",
+        "dig, ride,",
+        "and look up"
+      ]
+    },
+    {
+      "at": [
+        42,
+        5,
+        22
+      ],
+      "facing": "south",
+      "lines": [
+        "THE GORGE",
+        "cut back from",
+        "the rim by",
+        "water, once"
+      ]
+    },
+    {
+      "at": [
+        40,
+        4,
+        13
+      ],
+      "facing": "south",
+      "lines": [
+        "THE SEAM",
+        "bone in the",
+        "wall - the bed",
+        "runs on"
+      ]
+    },
+    {
+      "at": [
+        50,
+        3,
+        3
+      ],
+      "facing": "south",
+      "lines": [
+        "THE BRINK",
+        "nothing past",
+        "this floor but",
+        "the drop"
+      ]
+    }
+  ],
+  "refused": 0,
+  "parts": {
+    "mass": {
+      "rock": 34471,
+      "turf": 2667
+    },
+    "seams": 346,
+    "floor": {
+      "floor": 1174,
+      "road": 0,
+      "kerb": 0
+    },
+    "ramps": [
+      {
+        "tread": 42,
+        "kerb": 0
+      }
+    ],
+    "grid": {
+      "stake": 22,
+      "walk": 52
+    },
+    "spoil": 1130,
+    "skeletons": [
+      {
+        "at": [
+          41,
+          7
+        ],
+        "spine": {
+          "cells": 29,
+          "vertebrae": 10
+        },
+        "ribs": {
+          "cells": 98,
+          "pairs": 6
+        },
+        "girdles": 40,
+        "skull": {
+          "cells": 30,
+          "at": [
+            61.0,
+            7.0
+          ]
+        },
+        "neck": 5,
+        "loose": 60
+      }
+    ],
+    "skulls": [
+      {
+        "at": [
+          56,
+          20
+        ],
+        "skull": 30,
+        "neck": 5
+      }
+    ],
+    "jackets": 30,
+    "gantry": {
+      "leg": 36,
+      "beam": 22,
+      "rope": 5,
+      "load": 4,
+      "brace": 4
+    },
+    "shelter": {
+      "pad": 36,
+      "post": 16,
+      "fly": 36,
+      "bench": 4,
+      "crate": 1
+    },
+    "gallery": {
+      "deck": 140,
+      "rail": 35,
+      "post": 23,
+      "step": 0,
+      "lamp": 5,
+      "y": 7
+    },
+    "bridge": {
+      "deck": 117,
+      "abut": 46,
+      "cable": 178,
+      "hanger": 26,
+      "rail": 82,
+      "lamp": 2,
+      "y": 27
+    },
+    "belvedere": {
+      "deck": 65,
+      "strut": 30,
+      "rail": 31,
+      "mast": 18,
+      "lamp": 1,
+      "y": 27
+    },
+    "arch": {
+      "pier": 45,
+      "lintel": 35,
+      "lamp": 2,
+      "sign": 1,
+      "brace": 4
+    },
+    "crates": 3,
+    "plant": {
+      "tree": 998,
+      "fern": 357,
+      "vine": 403,
+      "carpet": 405
+    },
+    "light": 2,
+    "boards": 3
+  },
+  "contract": "one excavation across two retired building lots: a floor at the park's own plane with the relief made of SPOIL rather than of a dig list, benched walls stepped by construction, the park's own V77-79 cross walk kept level and used as the causeway into it, a timber gallery on the avenue bank that reads the skeleton in plan, and not one building with a door in it",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {
+      "container": [
+        "barrel"
+      ],
+      "light": [
+        "lantern"
+      ],
+      "signage": [
+        "spruce_wall_sign"
+      ],
+      "traversal": [
+        "vine"
+      ]
+    },
+    "verifiers": {
+      "container": "mcbuild.circuit inputs or operator-stocked metadata",
+      "light": "mcbuild.nightlight",
+      "signage": "mcbuild.audit support/state checks",
+      "traversal": "mcbuild.walk / audit.check_climb"
+    },
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 41343,
+      "materials": 31,
+      "dominant_material_share": 0.2773,
+      "light_blocks": 9,
+      "massing": {
+        "width": 95,
+        "height": 45,
+        "depth": 47,
+        "fill_ratio": 0.2058
+      },
+      "silhouette": {
+        "top": {
+          "area": 3867,
+          "fill_ratio": 0.8311
+        },
+        "front": {
+          "area": 1891,
+          "fill_ratio": 0.3411
+        },
+        "side": {
+          "area": 961,
+          "fill_ratio": 0.3651
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.9229,
+          0.0769,
+          0.0002
+        ],
+        "top_silhouette_perimeter": 502,
+        "surface_faces_per_block": 0.4858
+      },
+      "material_counts": {
+        "stone": 11464,
+        "cobblestone": 6514,
+        "cobbled_deepslate": 3766,
+        "andesite": 3233,
+        "granite": 2267,
+        "tuff": 2038,
+        "moss_block": 2023,
+        "coal_ore": 1804,
+        "deepslate": 1626,
+        "dripstone_block": 1601,
+        "gold_ore": 1036,
+        "jungle_leaves": 779
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "94a8e973ada041fdeda6d5e01cc9df2cdef999f9ed39a530ee959b6abd104b15",
+    "generator_source_digest": "df14d5a95e3dc2871d4e05d19bb5c6ec1c7a8445dec1628987df34ac54f96662",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [
+        "container",
+        "light",
+        "signage",
+        "traversal"
+      ],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 9.837421,
+    "blocks": 41343,
+    "blocks_per_second": 4202.63
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 41343,
+    "mechanic_families": [
+      "container",
+      "light",
+      "signage",
+      "traversal"
+    ]
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: coal_ore",
+    "not in the provisional skyblock-1.19 list: cobbled_deepslate",
+    "not in the provisional skyblock-1.19 list: deepslate",
+    "not in the provisional skyblock-1.19 list: dripstone_block",
+    "not in the provisional skyblock-1.19 list: gold_ore",
+    "not in the provisional skyblock-1.19 list: granite",
+    "not in the provisional skyblock-1.19 list: jungle_fence",
+    "not in the provisional skyblock-1.19 list: jungle_log",
+    "not in the provisional skyblock-1.19 list: jungle_planks",
+    "not in the provisional skyblock-1.19 list: jungle_slab",
+    "not in the provisional skyblock-1.19 list: jungle_stairs",
+    "not in the provisional skyblock-1.19 list: stripped_jungle_log",
+    "not in the provisional skyblock-1.19 list: tuff"
+  ],
+  "file": "PF Broken Plateau.litematic",
+  "name": "PF Broken Plateau"
+}

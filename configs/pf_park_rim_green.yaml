@@ -52,10 +52,14 @@ params:
   # `open_min: 3` the ramp would run the whole strip at full density - which is a hedge along the
   # railway, not a moor. Starting the ramp at 4 and topping it at 9 puts what little there is in
   # the middle of the strip and leaves the courses either side of it clear.
-  open_min: 4
-  open_full: 9
-  density: 0.22
-  step: 4
+  # A MODEST LIFT ONLY, and the kit is unchanged - no trees, no hedges, capped at three courses.
+  # This is the protected rim reserve and its job is an OUTWARD SIGHTLINE; `PF Park Green` beside
+  # it went to step 2 / density 0.95 on the 2026-09-13 measurement and this deliberately did not,
+  # because the one thing that would spoil the reserve is mass tall enough to close the view.
+  open_min: 3
+  open_full: 7
+  density: 0.35
+  step: 3
   # NO TREE AND NO HEDGE. Both are sightline blockers, and a clipped hedge on a wild reserve reads
   # as somebody's garden that ran out of fence.
   kinds: [meadow, meadow, meadow, shrub, rock]

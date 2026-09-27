@@ -1,6 +1,25 @@
-# PF MINE WORKS - the ore line, the stamp mill and the dock. The Frontier's only working machine.
+# PF PREP WORKS - the crusher, the loading dock, and the land's only working machine.
 #
 # Jack: "figure out what we can build that supports the coaster, and is interesting + visual."
+#
+# ---------------------------------------------------------------------------------------------
+# RENAMED FROM `PF Mine Works` (2026-09-12), AND NOT ONE BLOCK MOVED
+#
+# Jack, on the two buildings left at the land's north end: *"not sure theres a use for all them"*
+# - and then, given the numbers, *"retheme it"*. It was built when this land was a gold-rush
+# mining camp; the land is the LOST PLATEAU now, a palaeontology dig, and an ore works in a
+# dinosaur excavation is the last leftover of a theme that left.
+#
+# **RE-THEMED RATHER THAN RETIRED, and the capture is why.** Measured against the 2026-09-11 plot
+# scan it is 37% BUILT - 2,806 blocks already placed - and it carries the land's ONLY moving
+# mechanism. Retiring it would have cost both. A crusher is exactly what a fossil lab uses to free
+# bone from matrix, so the structure, the redstone and the contract all keep working under a name
+# that fits, and the rebuild is BIT-IDENTICAL to what is standing.
+#
+# **AND ITS BUTTON IS REACHABLE**, measured rather than assumed: flooding the shipped park from
+# the land's own walks - two clear cells over a solid one, one course of step either way, no
+# jumps - the nearest standing spot within a player's reach is Y206 U50 V159, two blocks off, and
+# it is on the guest network.
 #
 # ---------------------------------------------------------------------------------------------
 # THE SITE WAS MEASURED, COLUMN BY COLUMN
@@ -37,7 +56,7 @@
 # cannot be switched, and the whole point of a machine a guest fires is that something CHANGES.
 # One running lamp is the entire allowance and it is stated here so the trade is visible.
 expensive_allowance: 2
-name: PF Mine Works
+name: PF Prep Works
 gen: mineworks
 params:
   kind: works
@@ -70,25 +89,27 @@ design:
   hierarchy: supporting
   style: frontier
   narrative: >
-    The mine's works: an elevated ore railway on timber trestles from the ridge's east foot,
-    crossing the guest walk and the service lane over them; a three-step stamp mill stepping down
-    the way the ore travels, with a five-head battery a guest fires from a console in its own
-    plinth; and a tipple over a stone loading bank beside the park railway.
+    The dig's prep works: a three-step building stepping down the way the material travels,
+    with a five-head crusher a guest fires from a console in its own plinth - matrix out of the
+    cutting goes in at the top and bone comes out at the bottom - and a hoist over a stone
+    loading bank beside the park railway, where the jacketed finds go out.
 fun_contract:
   enforce: true
   class: experience
-  player_verbs: [press the mill's button, watch the battery drop, walk under the ore line]
+  player_verbs: [press the crusher's button, watch the heads drop, walk the works corridor]
   outcome: >
-    One press - however long it is held - drops every stamp head once, rings the bell over the
-    battery and lights the running lamp. It is the only mechanism in the Frontier that moves.
+    One press - however long it is held - drops every crusher head once, rings the bell over
+    the battery and lights the running lamp. It is the only mechanism in the Lost Plateau that
+    moves, and the nearest standing spot within reach of its button is two blocks away and on
+    the guest network.
   reset: >
     The pulse is a monostable, so a held button gives exactly one stroke and the battery returns
     to rest by itself. Nothing is consumed and no stock is held.
   service_access: >
-    The machine course is inside the mill's own plinth and reached from the works' floor; the
-    service lane runs past the whole corridor at V154-156.
+    The machine course is inside the crusher's own plinth and reached from the works' floor;
+    the service lane runs past the whole corridor at V154-156.
   bypass: >
-    The mill is entered off the lane side and walked past entirely; the line is overhead.
+    The works is entered off the lane side and walked past entirely; the line is overhead.
 finish:
   cheapen: false
   hollow: false

@@ -1,0 +1,96 @@
+# PF CANOPY WALK - the Lost Plateau's route through its own treetops.
+#
+# THE PARK'S FIRST UPWARD ADDITION, and it is upward because the ground is full. The three scans
+# of 2026-09-13 merge into `out/park_world.litematic` and say so exactly: of 82,482 bare lawn
+# columns only 20,769 are two clear of anything standing, and the biggest free pads in the whole
+# 600x200 are one 15x54 and six with a short side of 13. There is nowhere to put a module.
+#
+# The air is the opposite. 78% of everything built sits in the twelve courses above the lawn, the
+# median column has 117 courses of headroom, and **the Lost Plateau holds 21 cells above Y250 in
+# the entire land** - the thinnest land in the park at 2.61 blocks per column against
+# `reference/amazingsteal`'s 10.30. A canopy walk is also the one upward thing that needs NO
+# ground: it stands on piers in the verges, which is what this park has a surplus of.
+#
+# THE ROUTE IS MEASURED, AND THEN RE-MEASURED ON EVERY BUILD. The ridge's top surface runs Y202-250
+# with a median of 219, so a flat deck collides with its four peaks over Y237 and a deck that
+# follows the surface is a staircase. What works is to hold the deck level and move the ROUTE: a
+# sweep found a corridor at z80405-80422 where the surface sits near 220 for ninety blocks, with
+# 28-61 valid choices of z per column of x. `canopywalk.route` is a least-cost line through that
+# field. Nothing here is a hard-coded waypoint, because `PF Mine Ridge` is 36% built and the rock
+# under this walk is going to keep arriving.
+name: PF Canopy Walk
+gen: canopywalk
+params:
+  anchor: [97500, 203, 80300]      # V0 -> world X, U0 -> world Z, Y203 = the course above the lawn
+  lot: [160, 140]
+  at: [0, 0]
+  sy: 64
+  # THE WORLD AS BUILT, not the design - the rock is what carries it. It is the LAND'S cut
+  # rather than the whole park: `Ctx` builds a string array over every cell it is handed, and
+  # the 600-long merge is 45M of them against this crop's 2.68M. Same rock, same answers.
+  under: out/plateau_world.litematic
+  # x97555..x97645 at z80401..z80419. The deck clears the corridor's median surface by about nine.
+  # **SIXTY-FIVE, NOT FIFTY-FIVE, AND THE WEST STAIR IS WHY.** A stairhead walks one cell
+  # west per course down until the rock stops it, and from v55 the rock does not stop it for
+  # twenty-three courses - it descends past the coaster's western structure all the way to
+  # the park's own floor, which is a ramp beside a rollercoaster rather than a way off a
+  # canopy walk. Swept over every v0 from 45 to 100, the westmost head whose whole descent
+  # is clear of the ride is 65: seven courses down to rock at y221, on the ridge, where a
+  # walk through treetops should put you.
+  v0: 65
+  v1: 145
+  u_mid: 110
+  # TEN, NOT NINE, AND THE RIDE IS WHY. With the coaster refused (below) the corridor
+  # closes at v118 - the ONE column where the ride blocks u103-119 and the saddle blocks
+  # the rest, leaving only u101-102 against a v117 whose lowest legal choice is u104, and
+  # a walkway may only step one cell of u per cell of v. One cell wider re-opens it; swept
+  # at 10, 11, 12, 13 and 14 the route that comes out is IDENTICAL (u100-117, an 18-column
+  # worst span), so ten is the width the terrain and the ride actually ask for.
+  u_slack: 10
+  deck_y: 228
+  clear_min: 3                     # never inside the rock
+  clear_max: 16                    # and never so high that a pier becomes a tower
+  turn_cost: 2.2                   # a least-cost path slaloms for a block of clearance without it
+  width: 3
+  # **THE SADDLE IS A SPAN, AND IT IS THE TERRAIN'S OWN ANSWER.** x97618-97635 has no ground a
+  # pier could stand on within reach of the deck at ANY corridor width - swept at u_slack 9, 12,
+  # 15 and 18, the route is forced across the same eighteen columns every time. So it is built as
+  # a bridge: `max_span` is raised deliberately rather than by accident, and `_truss` puts a pylon
+  # at each end with a fence catenary between them, so the span reads as carried.
+  max_span: 20
+  pylon: 5
+  # **THE COASTER IS NOT IN THE WORLD ABOVE, AND IT IS 62% BUILT.** `under` is a capture, a capture
+  # holds only what STANDS, and every one of the 81 cells this walk took off the ride was in its
+  # unbuilt 38% - so `finish.verify_against` reported overlap 0 honestly while two piers ran down
+  # through the ride's own trestle at x97615 and x97621 and five cells of timber stood in the two
+  # courses over live track at x97532. Nothing else saw it either: a design outside
+  # `park_place.EXTRAS_READY` is never put through the cross-design clash check.
+  #
+  # Read in the SAME LOT FRAME `gen/mineridge.py` uses, which is what makes `ride_at` derivable
+  # rather than typed: the coaster's lot is (v24, u99) off the park anchor, this lot's anchor is
+  # the park anchor, so the ride sits at [24, 99] here and `ride_plane` is park_place's own.
+  # A coaster-free route EXISTS - at the tightest column (x97619/97621) eleven of the corridor's
+  # nineteen choices of z are still clear of it.
+  ride: out/PF Mine Coaster.litematic
+  ride_at: [24, 99]
+  ride_plane: 13
+  ride_clear: 2
+  pier_every: 6
+  lamp_every: 9
+  seed: 73
+roles: [construction]
+design:
+  purpose: path
+  hierarchy: landmark
+  style: frontier
+  narrative: >
+    A timber walkway carried through the Lost Plateau's canopy on jungle posts, from the ridge's
+    west shoulder to its east, with a flight down to the rock at either end - the one route in the
+    park that is above the ground rather than on it.
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+  verify_against: out/plateau_world.litematic
+origin_lock: false

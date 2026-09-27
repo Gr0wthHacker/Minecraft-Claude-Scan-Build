@@ -69,6 +69,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from .. import blocks
 from .canvas import Canvas, hash01
 from . import fossils
 from .frontier_builds import _Lot
@@ -159,6 +160,22 @@ BONEBED = {
     #: Gate's 45x39 of towers, court, stockade, office and store: "a single arch/portal, small -
     #: no court, no towers, no stockade. The land's identity comes from the terrain behind it."
     "arch": None,                 # see `_arch`
+
+    #: **THE EDGES THAT ARE NOT HELD DOWN.** `margin` lays a dead-level apron round the whole lot
+    #: so a bank never walls the ground beyond it. That is right where the lot's neighbour is more
+    #: park, and it is exactly wrong where the neighbour is NOTHING: the Lost Plateau's north lot
+    #: ends at U0, which is the park's own rim with open void past it, and an apron there ramps the
+    #: mass down to the plane and hands a guest a lawn that stops. Naming an edge here drops its
+    #: apron, so the mass runs to the boundary at full height and BREAKS. Values: "u0", "u1",
+    #: "v0", "v1". Empty is the old behaviour, which is what the Vale and the Bone Bed both want.
+    "brink": [],
+    #: FOSSIL BEDS EXPOSED IN THE WALLS: [[y, thickness], ...] in courses above the floor. A dig
+    #: whose finds are all lying on the floor is a dig that has been finished; a bed running
+    #: horizontally round a scarp is one that is being worked into. Pit cells only - a seam that
+    #: reached the turf outside would be a bone lawn.
+    "seams": [],
+    "bridge": None,               # see `_bridge` - the span over a gorge
+    "belvedere": None,            # see `_belvedere` - the cantilever at a brink
     "boards": [],                 # [{v, u, facing, lines}] - the interpretation signs
     "seed": 0,
     "title": "THE BONE BED",
@@ -213,11 +230,20 @@ def _level_mask(p: dict, dv: int, du: int) -> np.ndarray:
     """
     m = np.zeros((dv, du), bool)
     margin = max(0, int(p.get("margin", 2)))
+    #: ...AND AN EDGE NAMED IN `brink` GETS NO APRON. See `BONEBED["brink"]`: the mass is meant to
+    #: run to that boundary at full height and end in a cliff, which is the one thing an apron
+    #: cannot express. Everything else about the edge is unchanged - it is still the hard limit
+    #: `_Lot.put` refuses past, so a brink cannot leak a block off the lot.
+    brink = {str(x) for x in (p.get("brink") or [])}
     if margin:
-        m[:margin, :] = True
-        m[dv - margin:, :] = True
-        m[:, :margin] = True
-        m[:, du - margin:] = True
+        if "v0" not in brink:
+            m[:margin, :] = True
+        if "v1" not in brink:
+            m[dv - margin:, :] = True
+        if "u0" not in brink:
+            m[:, :margin] = True
+        if "u1" not in brink:
+            m[:, du - margin:] = True
     for band in (p.get("level_v") or []):
         a, b = int(band[0]), int(band[1])
         m[max(0, a):min(dv, b + 1), :] = True
@@ -496,6 +522,15 @@ def _gallery(lot: _Lot, h: np.ndarray, spec: dict, seed: int) -> dict:
     u = int(spec["u"])
     w = int(spec.get("w", 4))
     du = lot.du
+    #: **WHICH SIDE THE RAIL IS ON IS THE WHOLE POINT OF AN OVERLOOK**, and the deck can be on
+    #: either side of what it overlooks. Unflipped the drop is at rising u, which is where the
+    #: bone bed's excavation lies; flipped it is at falling u, which is where the gorge lies. The
+    #: FLIGHT has to turn with it - a deck reached from the wrong end is a deck with a fence
+    #: across its own stair - so `flip` moves the rail and reverses the approach together, and
+    #: `test_bonebed.py` asserts the pair rather than either half.
+    flip = bool(spec.get("flip"))
+    rail_u = u if flip else u + w - 1
+    sign = -1 if flip else 1
     band = h[v0:v1 + 1, max(0, u):min(du, u + w)]
     y = int(np.median(band)) + 1 if band.size else 1
     out = {"deck": 0, "rail": 0, "post": 0, "step": 0, "lamp": 0, "y": y}
@@ -515,17 +550,19 @@ def _gallery(lot: _Lot, h: np.ndarray, spec: dict, seed: int) -> dict:
                     out["post"] += int(lot.log(v, yy, uu, CAMP["post"], axis="y"))
         # THE RAIL IS ON THE PIT SIDE ONLY. A rail on the street side would fence the deck off the
         # avenue it is entered from, which is the one thing an overlook must not do.
-        out["rail"] += int(lot.fence(v, y + 1, u + w - 1, "v", key=CAMP["fence"]))
+        out["rail"] += int(lot.fence(v, y + 1, rail_u, "v", key=CAMP["fence"]))
         if v % 8 == 0:
-            out["post"] += int(lot.log(v, y + 1, u + w - 1, CAMP["post"], axis="y"))
-            out["lamp"] += int(lot.put(v, y + 2, u + w - 1, CAMP["lamp"], hanging="false",
+            out["post"] += int(lot.log(v, y + 1, rail_u, CAMP["post"], axis="y"))
+            out["lamp"] += int(lot.put(v, y + 2, rail_u, CAMP["lamp"], hanging="false",
                                        waterlogged="false"))
+    foot = u + w - 1 if flip else u
     for fv in (spec.get("steps") or []):
-        out["step"] += _steps(lot, h, int(fv), u, y, seed)
+        out["step"] += _steps(lot, h, int(fv), foot, y, seed, sign)
     return out
 
 
-def _steps(lot: _Lot, h: np.ndarray, v: int, u: int, top: int, seed: int) -> int:
+def _steps(lot: _Lot, h: np.ndarray, v: int, u: int, top: int, seed: int,
+           sign: int = 1) -> int:
     """A flight from the street course up onto the deck, TWO WIDE, ascending toward the deck.
 
     A FLIGHT THAT ASCENDS TOWARD D HAS EVERY TREAD `facing=D, half=bottom` - the convention this
@@ -535,9 +572,13 @@ def _steps(lot: _Lot, h: np.ndarray, v: int, u: int, top: int, seed: int) -> int
     """
     n = 0
     du = lot.du
+    #: `sign` is which way the flight CLIMBS: +1 arrives at the deck walking south, -1 walking
+    #: north. The tread's facing follows it, because a flight that ascends toward D has every
+    #: tread `facing=D` and our renderer draws a backwards flight identically to a correct one.
+    face = "south" if sign > 0 else "north"
     for k in range(top + 1):
-        uu = u - (top - k)
-        if uu < 0:
+        uu = u - sign * (top - k)
+        if not (0 <= uu < du):
             continue
         for dvv in range(2):
             for yy in range(0, k):
@@ -547,7 +588,7 @@ def _steps(lot: _Lot, h: np.ndarray, v: int, u: int, top: int, seed: int) -> int
             if k == top:
                 n += int(lot.put(v + dvv, k, uu, CAMP["plank"]))
             else:
-                n += int(lot.stair(v + dvv, k, uu, CAMP["stair"], facing="south"))
+                n += int(lot.stair(v + dvv, k, uu, CAMP["stair"], facing=face))
     return n
 
 
@@ -678,17 +719,24 @@ def _arch(lot: _Lot, h: np.ndarray, spec: dict, seed: int) -> dict:
     hgt = int(spec.get("h", 6))
     depth = int(spec.get("d", 3))
     out = {"pier": 0, "lintel": 0, "lamp": 0, "sign": 0, "brace": 0}
+    #: **EVERY PIER IS BUILT UP TO THE LINTEL, NOT TO ITS OWN HEIGHT.** The lintel is one course
+    #: across the whole span, so two piers on ground of different heights cannot both be `hgt`
+    #: tall and still reach it: built that way the low one stopped two courses short and the far
+    #: half of the gate shipped as a twenty-one cell free-floating stray. It never showed while
+    #: the only caller stood both feet on the flat.
+    bases = {cu: int(h[max(0, min(lot.dv - 1, v)), max(0, min(lot.du - 1, cu))])
+             for cu in (u0, u1)}
+    top = max(bases.values()) + hgt
     for cu in (u0, u1):
-        base = int(h[max(0, min(lot.dv - 1, v)), max(0, min(lot.du - 1, cu))])
+        base = bases[cu]
         for k in range(depth):
             vv = v + k
             #: the footing is masonry and the shaft is timber - two courses of the mountain's own
             #: stone under the post, which is what stops a log standing in the turf.
             for y in range(base, base + 2):
                 out["pier"] += int(lot.put(vv, y, cu, ROCK[_pick(_MID, vv, cu, y, seed)]))
-            for y in range(base + 2, base + hgt):
+            for y in range(base + 2, top):
                 out["pier"] += int(lot.log(vv, y, cu, CAMP["post"], axis="y"))
-    top = int(h[max(0, min(lot.dv - 1, v)), max(0, min(lot.du - 1, u0))]) + hgt
     for k in range(depth):
         for u in range(u0, u1 + 1):
             out["lintel"] += int(lot.log(v + k, top, u, CAMP["beam"], axis="z"))
@@ -718,6 +766,191 @@ def _arch(lot: _Lot, h: np.ndarray, spec: dict, seed: int) -> dict:
 
 
 # --------------------------------------------------------------------------- the bones
+
+
+# ------------------------------------------------------------------- the gorge, and its furniture
+
+
+def _exposed(h: np.ndarray, v: int, u: int, y: int) -> bool:
+    """True where course `y` of this column can be SEEN - it is the top, or a neighbour is lower.
+
+    A seam painted through the interior of a mass is a seam nobody will ever look at, and it is
+    the same waste as the frog's coat drifts painted on cells with no face to the air.
+    """
+    dv, du = h.shape
+    if y >= int(h[v, u]):
+        return y == int(h[v, u])
+    for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        vv, uu = v + a, u + b
+        if not (0 <= vv < dv and 0 <= uu < du):
+            return True                       # the lot's own edge is a face too - see `brink`
+        if int(h[vv, uu]) < y:
+            return True
+    return False
+
+
+def _seams(lot: _Lot, h: np.ndarray, pit: np.ndarray, p: dict, seed: int) -> int:
+    """Fossil beds exposed in the pit walls, as horizontal bands round the scarp.
+
+    **THE DIG MOVES INTO THE WALL.** A bone bed whose finds all lie on the floor has been
+    finished; a bed running horizontally round a scarp is one being worked into, and it is the
+    only thing that makes a benched wall read as STRATIGRAPHY rather than as terracing. It is also
+    what fixes the measured complaint the flat excavation could not: 2.7% of that lot stood twelve
+    courses, so there was no wall to put anything in.
+
+    Pit cells only. A seam that reached the turf outside would be a bone lawn.
+    """
+    dv, du = h.shape
+    n = 0
+    for y0, thick in (p.get("seams") or []):
+        y0, thick = int(y0), max(1, int(thick))
+        for v in range(dv):
+            for u in range(du):
+                if not pit[v, u]:
+                    continue
+                top = int(h[v, u])
+                for y in range(y0, y0 + thick):
+                    if y > top or not _exposed(h, v, u, y):
+                        continue
+                    r = hash01(v * 5 + 1, u * 11 + 7, y * 17 + 3, seed)
+                    key = "bone_block" if r < 0.58 else (ROCK["deep"] if r < 0.80
+                                                         else ROCK["rock_c"])
+                    n += int(lot.put(v, y, u, key))
+    return n
+
+
+def _bridge(lot: _Lot, h: np.ndarray, spec: dict, seed: int) -> dict:
+    """The span over the gorge: two abutments, a LEVEL deck, and two cables sagging over it.
+
+    **THE DECK IS LEVEL AND THE CABLES SAG.** That is not a stylistic call - it is the only
+    arrangement a guest can walk. A deck hung on a catenary steps a course every few cells, which
+    is a staircase pretending to be a bridge; the real thing carries a level deck on hangers off a
+    sagging cable, and it reads as a suspension bridge precisely because the two lines differ.
+
+    It crosses at the crest, so from the gorge floor it is a line against the sky thirty courses
+    up, and from the deck you look straight down the scarp and out over the rim.
+    """
+    v0, v1 = int(spec["v0"]), int(spec["v1"])
+    u, w = int(spec["u"]), int(spec.get("w", 3))
+    rise = int(spec.get("rise", 6))
+    sag = int(spec.get("sag", 4))
+    dv, du = h.shape
+    ends = [int(h[max(0, min(dv - 1, x)), max(0, min(du - 1, u))]) for x in (v0, v1)]
+    y = max(ends) + 1
+    out = {"deck": 0, "abut": 0, "cable": 0, "hanger": 0, "rail": 0, "lamp": 0, "y": y}
+
+    # THE ABUTMENTS. A deck that simply begins in mid-air over a lip is a plank on a hillside; the
+    # pier is what makes the span land on something, and it is also what carries the cable's pull.
+    for v in (v0, v1):
+        for k in range(-1, w + 1):
+            uu = u + k
+            base = int(h[max(0, min(dv - 1, v)), max(0, min(du - 1, uu))])
+            for yy in range(base, y):
+                out["abut"] += int(lot.put(v, yy, uu, ROCK[_pick(_MID, v, uu, yy, seed)]))
+            out["abut"] += int(lot.put(v, y, uu, CAMP["walk"]))
+
+    for v in range(v0, v1 + 1):
+        t = (v - v0) / max(1, v1 - v0)
+        for k in range(w):
+            for yy in range(y + 1, y + 4):
+                lot.put(v, yy, u + k, "air")
+            if v0 < v < v1:
+                out["deck"] += int(lot.put(v, y, u + k, CAMP["plank"]))
+        cy = y + rise - int(round(sag * 4.0 * t * (1.0 - t)))
+        for k in (0, w - 1):
+            out["cable"] += int(lot.put(v, cy, u + k, CAMP["rope"], axis="x",
+                                        waterlogged="false"))
+            # A CHAIN THAT STEPS A COURSE IS TWO CHAINS THAT DO NOT TOUCH. The cable is a curve on
+            # a whole-block grid, so wherever it drops it has to be closed vertically or the span
+            # ships as one component per straight run - the ear-tip rule, in ironwork.
+            if v > v0:
+                pt = (v - 1 - v0) / max(1, v1 - v0)
+                py = y + rise - int(round(sag * 4.0 * pt * (1.0 - pt)))
+                for yy in range(min(cy, py), max(cy, py) + 1):
+                    out["cable"] += int(lot.put(v, yy, u + k, CAMP["rope"], axis="y",
+                                                waterlogged="false"))
+            if v % 4 == 0 and v0 < v < v1:
+                for yy in range(y + 2, cy):
+                    out["hanger"] += int(lot.put(v, yy, u + k, CAMP["rope"], axis="y",
+                                                 waterlogged="false"))
+            out["rail"] += int(lot.fence(v, y + 1, u + k, "v", key=CAMP["fence"]))
+        if v in (v0, v1):
+            for k in (0, w - 1):
+                for yy in range(y + 1, y + rise):
+                    out["abut"] += int(lot.log(v, yy, u + k, CAMP["post"], axis="y"))
+            #: THE HEAD BEAM TIES THE TWO POSTS, and it is also what the lamp stands on. Set on
+            #: the mid-post cell alone the lantern had nothing under it - two of them shipped
+            #: standing on air, which is the one thing a tower's own light must not do.
+            for k in range(w):
+                out["abut"] += int(lot.log(v, y + rise - 1, u + k, CAMP["beam"], axis="z"))
+            out["lamp"] += int(lot.put(v, y + rise, u + w // 2, CAMP["lamp"], hanging="false",
+                                       waterlogged="false"))
+    return out
+
+
+def _belvedere(lot: _Lot, h: np.ndarray, spec: dict, seed: int) -> dict:
+    """The cantilever at the brink - and it is what a 56-course solid tower is replaced BY.
+
+    Jack, on `PF Vantage Frontier Lookout`: *"i think the tower is a cop out and feels lazy."* It
+    measured as exactly that: 17 x 17, 56 courses, and **100% of its own footprint standing at
+    full height** - a shaft, which is the maximum height a lot can be given for the minimum idea,
+    and one interactive block in the whole of it.
+
+    **HEIGHT HAS TO BE EARNED BY WHAT IS UNDER IT.** This keeps the skyline the tower was holding
+    and pays for it: a timber deck that leaves the lip and reaches out over the gorge mouth, so
+    the drop is beneath your feet rather than something you climbed above. The mast is the part
+    the park sees from a distance; the raking struts are the part that says the deck is hanging.
+
+    **THE STRUTS FIND THEIR OWN FOOTING.** Computed to a course, a raking strut over a benched
+    scarp lands in mid-air at every bench the wobble moved - so each one steps back and down until
+    `lot.has` says it has met rock, which is the same rule the causeway sculptures' fills follow.
+    """
+    v, u = int(spec["v"]), int(spec["u"])
+    out_n, d = int(spec.get("out", 9)), int(spec.get("d", 5))
+    mast = int(spec.get("mast", 16))
+    dv, du = h.shape
+    y = int(h[max(0, min(dv - 1, v)), max(0, min(du - 1, u))]) + 1
+    res = {"deck": 0, "strut": 0, "rail": 0, "mast": 0, "lamp": 0, "y": y}
+
+    for k in range(out_n):
+        for j in range(d):
+            uu = u + j
+            for yy in range(y + 1, y + 4):
+                lot.put(v + k, yy, uu, "air")
+            res["deck"] += int(lot.put(v + k, y, uu, CAMP["plank"]))
+        # the free edges: a rail everywhere except where the deck meets the lip it leaves from
+        for j in (0, d - 1):
+            res["rail"] += int(lot.fence(v + k, y + 1, u + j, "v", key=CAMP["fence"]))
+    for j in range(d):
+        res["rail"] += int(lot.fence(v + out_n - 1, y + 1, u + j, "u", key=CAMP["fence"]))
+
+    # THE RAKING STRUTS, one under each outer edge, stepping back and down to whatever is there.
+    #
+    #: **A STRUT STEPPED BY HAND IS A ROW OF DIAGONAL NEIGHBOURS.** Written as one cell per
+    #: station it came off as six single-cell strays - the ear-tip rule, which has cost this repo
+    #: a pair of ossicones, three pterosaur spans and a tail already. Each step lays the DROP at
+    #: the same v before moving back one, so consecutive cells share a face by construction.
+    for j in (0, d - 1):
+        vv, yy = v + out_n - 1, y - 1
+        while vv > v and yy > 0:
+            if not lot.log(vv, yy, u + j, CAMP["post"], axis="y"):
+                break
+            res["strut"] += 1
+            if lot.has(vv - 1, yy, u + j):
+                break                              # met the face: the strut has landed
+            yy -= 1
+            if not lot.log(vv, yy, u + j, CAMP["post"], axis="y"):
+                break
+            res["strut"] += 1
+            vv -= 1
+
+    for k in range(mast):
+        res["mast"] += int(lot.log(v + out_n // 2, y + 1 + k, u + d // 2, CAMP["post"], axis="y"))
+    top = y + mast
+    for j in (-1, 1):
+        res["mast"] += int(lot.put(v + out_n // 2, top, u + d // 2 + j, CAMP["canvas_b"]))
+    res["lamp"] += int(lot.put(v + out_n // 2, top + 1, u + d // 2, CAMP["glow"]))
+    return res
 
 
 def _skeletons(lot: _Lot, p: dict, seed: int) -> list:
@@ -833,6 +1066,18 @@ def _plant(lot: _Lot, h: np.ndarray, pit: np.ndarray, p: dict, seed: int) -> dic
                 #: face with open air behind it - and a vine hanging in air renders identically
                 #: to one on a wall in every sheet this repo has.
                 for y in range(top, max(0, top - drop), -1):
+                    #: **AND IT HANGS ON A BLOCK, NOT ON THE HEIGHT FIELD.** The wall this clings
+                    #: to is column (v, u) - the same cell for all four sides - and the field says
+                    #: how tall the MASS was, not what is standing there now: the belvedere, the
+                    #: bridge and the gallery all clear courses above their own decks, so a face
+                    #: the field calls solid can be air by the time the planting runs. Six vines
+                    #: shipped hanging on nothing, which renders identically to six on a wall.
+                    #: ...AND THE FACE HAS TO BE A FULL CUBE. `lot.has` is the canvas's own
+                    #: "is anything here", which a FENCE satisfies - so the two vines that
+                    #: survived the first fix were clinging to the belvedere's rail and the
+                    #: bridge's. Rule 11: the registry knows which blocks have a face.
+                    if not blocks.is_full_cube(lot.name_at(v, y, u) or "air"):
+                        break
                     props = {"north": "false", "south": "false", "east": "false",
                              "west": "false", "up": "false"}
                     props[side] = "true"
@@ -947,6 +1192,10 @@ def build(cfg: dict, donors=None) -> Canvas:
     pit, _ = _pit_mask(p, dv, du)
     keep = _reserved(p, dv, du)
     parts = {"mass": _fill(lot, h, pit, seed)}
+    #: THE SEAM IS PAINTED ON THE MASS AND BEFORE ANYTHING STANDS ON IT. It overwrites wall cells
+    #: the fill has already laid, so it cannot run first; and a strut, a ramp or a stair seated on
+    #: the wall afterwards must win the cell over the bed rather than under it.
+    parts["seams"] = _seams(lot, h, pit, p, seed)
     parts["floor"] = _floor(lot, p, seed)
     parts["ramps"] = [_ramp(lot, h, s, p, seed) for s in (p.get("ramps") or [])]
     parts["grid"] = _grid(lot, h, pit, p, seed)
@@ -961,6 +1210,10 @@ def build(cfg: dict, donors=None) -> Canvas:
         parts["shelter"] = _shelter(lot, h, p["shelter"], seed)
     if p.get("gallery"):
         parts["gallery"] = _gallery(lot, h, p["gallery"], seed)
+    if p.get("bridge"):
+        parts["bridge"] = _bridge(lot, h, p["bridge"], seed)
+    if p.get("belvedere"):
+        parts["belvedere"] = _belvedere(lot, h, p["belvedere"], seed)
     if p.get("arch"):
         parts["arch"] = _arch(lot, h, p["arch"], seed)
     parts["crates"] = sum(int(lot.put(int(a), 1, int(b), CAMP["crate"], facing="up", open="false"))

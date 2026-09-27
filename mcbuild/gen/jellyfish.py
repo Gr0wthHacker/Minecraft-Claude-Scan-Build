@@ -17,8 +17,14 @@ IT LIGHTS ITSELF, because the void is pitch dark at every hour and a dark jelly 
 bell margin is a ring of `ochre_froglight` (the one full-block light WITNESSED in a world capture -
 the same rule the squid records: the tier table and `out/` are both circular), the bell carries
 amethyst spots for violet, and the tentacle tips are berried `cave_vines` (light 14) - the thicket
-already lights hanging gardens with them. The bell body is pale cool wool so a warm rim reads
-against it, which is what a deep-sea jelly's photophores actually look like.
+already lights hanging gardens with them.
+
+The BELL IS A WOOL LANTERN WITH GLASS PANELS - not a solid glass dome. Glass is smelted sand and a
+full glass shell ran 6000 blocks, so the dome is opaque wool cut into `bell_windows` vertical PANELS
+of `light_blue_stained_glass`, wool struts between them. The inner glow (crown cap, manubrium core)
+shines THROUGH the panels, so the jelly reads as lit-from-within against the pitch void - the point
+of glass - while the wool struts carry the body and hold the glass budget under ~700. `window_frac`
+is the glass share of each sector; the skirt, stomach, oral arms and tentacle curtain are all wool.
 
 TRAPS, each shipped clean once in this repo:
 
@@ -55,6 +61,8 @@ JELLY = {
     "bell_r": 15.0,
     "bell_h": 12.0,
     "bell_t": 2,
+    "bell_windows": 10,              # the dome is a WOOL lantern with this many glass panels round it
+    "window_frac": 0.34,             # fraction of each sector that is glass (the rest is wool strut)
     "margin_flare": 3.0,              # how far the rim curls outward past the dome
     "margin_drop": 4.0,              # ...and down: the bell skirt
 
@@ -71,9 +79,10 @@ JELLY = {
     "bead_every": 6,                  # a froglight bead this often down a tentacle
 
     # ---- palette, witnessed and cheap, coherent with the squid and the drift
-    "bell": "light_blue_wool",        # cool pale bell, so the warm rim reads
-    "bell_rib": "white_wool",
-    "under": "cyan_wool",             # the shaded underside of the bell
+    "bell": "light_blue_wool",            # the wool lantern body of the dome (opaque struts)
+    "bell_glass": "light_blue_stained_glass",  # the glass panels the inner glow shines through
+    "bell_rib": "white_wool",             # opaque radial canals framing the glass panels
+    "under": "cyan_wool",                 # the shaded underside/skirt and stomach
     "oral": "pink_wool",              # the mouth-arms, the squid's own pink
     "tent": "light_blue_wool",        # the streamers' core
     "rim": "ochre_froglight",         # the margin's ring of light
@@ -158,23 +167,34 @@ def build(cfg: dict, donors=None) -> Canvas:
     ko = tuple(float(v) for v in p["keep_out"]) if p.get("keep_out") else None
     b = _Body(c, at, ko)
 
-    S = {k: c.state(p[k]) for k in ("bell", "bell_rib", "under", "oral", "tent", "rim")}
-    counts = {"bell": 0, "rim": 0, "spots": 0, "oral": 0, "tentacles": 0, "beads": 0}
+    S = {k: c.state(p[k]) for k in ("bell", "bell_glass", "bell_rib", "under", "oral", "tent", "rim")}
+    counts = {"bell": 0, "glass": 0, "rim": 0, "spots": 0, "oral": 0, "tentacles": 0, "beads": 0}
+    nwin = max(1, int(p["bell_windows"]))
+    wfrac = float(p["window_frac"])
 
     # ---- THE BELL: the top half of a squashed ellipsoid, built as a SHELL (a real bell is a cup,
     # and a hollow shell reads better and costs a third). The ellipsoid is centred on the margin
-    # ring: crown at margin_y + H, equator at margin_y. A rib hash puts a few darker meridian seams
-    # on it so it is not one smooth cap.
+    # ring: crown at margin_y + H, equator at margin_y. The shell is a WOOL lantern cut into nwin
+    # vertical GLASS PANELS - a central glass wedge of angular width wfrac in each sector, a white
+    # wool rib on the seam between panels, plain wool everywhere else. The crown cap (dyn near 1)
+    # stays solid wool for the froglight disc to sit on.
+    twin = 2 * math.pi / nwin
     for y in range(margin_y, crown_y + 1):
         dyn = (y - margin_y) / H                       # 0 at margin, 1 at crown
         for z in range(SZ):
             for x in range(SX):
                 q = ((x + 0.5 - XC) / R) ** 2 + dyn ** 2 + ((z + 0.5 - ZC) / R) ** 2
                 if abs(math.sqrt(max(q, 1e-9)) - 1.0) * min(R, H) <= t:
-                    # clean meridian ribs, and none on the crown cap (dyn near 1) where they read
-                    # as noise rather than as ribs
-                    rib = dyn < 0.8 and hash01(int(round(math.atan2(z + .5 - ZC, x + .5 - XC) * 5)), seed) < 0.16
-                    if b.put(x, y, z, S["bell_rib"] if rib else S["bell"]):
+                    seg = (math.atan2(z + .5 - ZC, x + .5 - XC) / twin) % 1.0
+                    off = abs(seg - 0.5) * 2                # 0 at panel centre, 1 at the seam
+                    if dyn < 0.82 and off < wfrac:
+                        blk = S["bell_glass"]
+                        counts["glass"] += 1
+                    elif dyn < 0.82 and off > 0.94:
+                        blk = S["bell_rib"]                 # white strut on the seam
+                    else:
+                        blk = S["bell"]
+                    if b.put(x, y, z, blk):
                         counts["bell"] += 1
     # A FROGLIGHT CROWN CAP, so the dome itself carries light in the pitch dark rather than reading
     # as a bare ring of rim lights around a black cap. A small lit disc at the apex.

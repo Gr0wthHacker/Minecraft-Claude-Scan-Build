@@ -26,13 +26,21 @@ params:
     # ---------------------------------------------------------------- marquees, on the spurs
     # THE PARK'S WESTERN THRESHOLD, so it is the land's grand one: a triple-bay gantry, seventeen
     # cells of frontage. It is the first thing anyone arriving down the spine reads.
+    # **RETITLED 2026-09-12 WITH THE GROUND BEHIND IT.** It read THE LOST VALE over `PF Plateau
+    # Vale`, which `PF Broken Plateau` replaced on the same lot - and a marquee naming a module
+    # nobody places is a reference to somewhere a guest cannot go, which is the leftover class the
+    # 2026-09-03 signage audit was written about. It names what is actually there now, and it
+    # names the GROUND rather than whatever stands on it, which is the durable form: the last
+    # retitle of this land's other marquee went stale inside an hour for naming a building.
     - kind: marquee
-      name: Plateau Vale
-      at: [20, 19]
-      span: 5
-      wing: 1
-      title: THE LOST VALE
-      lines: ["trial trenches", "walk to the dig"]
+      name: Broken Plateau
+      # The former plot spur faces terrain. Frame the U43 avenue instead.
+      at: [24, 43]
+      span: 7
+      depth: 1
+      wing: 0
+      title: THE BROKEN EDGE
+      lines: ["a gorge, a span", "and the drop"]
     # **RETITLED TWICE NOW, BECAUSE THE PLACE IT NAMES KEEPS BEING REPLACED.** It read BOOMTOWN
     # over `Boomtown Spine` (seven false fronts, 0 verbs), then THE DIGGINGS over `PF Frontier
     # Diggings` - a 30x16 trench with a 25-block spine in a 53x46 lot, which is the "crappy dig
@@ -41,10 +49,12 @@ params:
     # a guest cannot go.
     - kind: marquee
       name: Plateau Bone Bed
-      at: [20, 70]
-      span: 7
+      # At the U96 avenue mouth, outside the round plaza paving.
+      at: [23, 96]
+      span: 11
+      depth: 1
       title: THE BONE BED
-      lines: ["one animal, 44", "blocks long"]
+      lines: ["bone bed left", "coaster ahead"]
     # **TWO MARQUEES ARE GONE WITH THE TWO BUILDINGS THEY NAMED**, and it is not only that they
     # named nothing: THE SCREENS stood at V70 U20 and BASE CAMP at V80 U66, which are both deep
     # INSIDE the lots the two terrain designs now hold. A board on posts in the middle of a

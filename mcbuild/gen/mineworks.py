@@ -1,4 +1,24 @@
-"""THE MINE WORKS: an ore line, a stamp mill that RUNS, and the dock the ore leaves by.
+"""THE PREP WORKS: a crusher that RUNS, and the dock the jacketed finds leave by.
+
+**RE-THEMED 2026-09-12, AND THE MODULE KEEPS ITS FILENAME.** Jack, on the two buildings left at
+the land's north end: *"not sure theres a use for all them"* - and then, given the measurement,
+*"retheme it"*. It was built as the Mine Works when this land was a gold-rush mining camp; the
+land is the LOST PLATEAU now, a palaeontology dig, and an ore works in a dinosaur excavation is
+the last leftover of a theme that left. What it BUILDS is generic - a stepped works with a
+machine in it and a loading dock - so the design is renamed and the prose with it, and the file
+is not, because a module filename is an implementation detail and renaming it would touch the
+registry, the tests and every import for nothing a guest can see.
+
+**AND THE MACHINE IS THE REASON IT WAS NOT RETIRED.** Measured against the 2026-09-11 plot
+capture it is 37% BUILT - 2,806 blocks Jack has already placed - and it carries the land's only
+moving mechanism. A crusher is exactly what a fossil lab uses to free bone from matrix, so the
+structure, the redstone and the contract all keep working under a name that fits.
+
+**ITS BUTTON IS REACHABLE, and that was measured rather than assumed.** Flooding the shipped park
+from the land's own walks - two clear cells over a solid one, one course of step either way, no
+jumps - the nearest standing spot within a player's reach of the button is Y206 U50 V159, two
+blocks away, and it is on the guest network. A machine nobody can get to is a prop, and the first
+test of it here was wrong: it checked the button's OWN column, which is inside the machine bay.
 
 Jack: *"figure out what we can build that supports the coaster, and is interesting + visual."*
 
@@ -7,14 +27,14 @@ rails, 2 buttons, 2 bells and 2 detector rails - every verb in the land belongs 
 Six modules stand around it and not one of them is a thing a guest DOES. This is the second half
 of the answer to that: a working operation whose parts tie the ride to the town.
 
-    THE ORE LINE   an elevated ore railway on timber trestles, from the ridge's east foot to
-                   the dock, crossing the guest walk and the service lane OVER them rather
-                   than across them, so a guest walks under it
-    THE STAMP MILL a five-head stamp battery a guest FIRES: a button, a pulse, five pistons, a
-                   bell and a running lamp. Its contract is asserted by SIMULATION in
+    THE LINE       an elevated line on timber trestles from the ridge's east foot to the dock.
+                   OFF in the shipped config - a third elevated railway in a land that already
+                   has two was a railway through a building. The machinery stands.
+    THE CRUSHER    a five-head battery a guest FIRES: a button, a pulse, five pistons, a bell
+                   and a running lamp. Its contract is asserted by SIMULATION in
                    `tests/test_mineworks.py`, which is the only reason it is allowed to exist
-    THE DOCK       a tipple over a stone loading bank beside the park railway, so the story has
-                   an end: ore comes out of the mountain, is stamped, and leaves by rail
+    THE LOADING    a hoist over a stone bank beside the park railway, so the story has an end:
+                   matrix comes out of the cutting, is crushed, and the bone goes out jacketed
 
 **THE SITE WAS MEASURED, NOT CHOSEN.** V157-169 is the one long empty corridor in the Frontier -
 column-exact off `Park Ways` and `Park Complete`, U0-125 holds 114 blocks in 13 x 126 of lawn,
@@ -410,10 +430,10 @@ def _mill(lot: _Lot, p: dict) -> dict:
     # returned and asserted.
     signs = 0
     if lot.sign(v0 - 1, 6, u0 + 3, "west", ["THE CRUSHER", "five heads",
-                                            "press to run", "matrix from"]):
+                                            "press to run", "one stroke"]):
         signs += 1
     if lot.sign(v0 - 1, 6, u1 - 3, "west", ["MATRIX FROM", "THE CUTTING", "crushed here",
-                                            "shipped by rail"]):
+                                            "bone comes out"]):
         signs += 1
     for u in range(u0 + 3, u1, 6):
         lot.hang(v0 - 1, 4, u)
@@ -618,7 +638,7 @@ def _dock(lot: _Lot, p: dict) -> dict:
     # ...and the dock's goes on the tipple's own leg, which is the only vertical face it has:
     # its bank is three courses of platform and a sign wants a wall.
     signs = 1 if lot.sign(tv - 3, 4, tu - 2, "west",
-                          ["THE LOADING", "loads for the", "plateau line"]) else 0
+                          ["THE LOADING", "jacketed finds", "go out here"]) else 0
     # THE LAMPS ARE SET FLUSH IN THE BANK'S OWN TOP COURSE, which is Jack's idiom on this island
     # and the one light nobody can knock off a loading platform. Flush means it IS the floor: the
     # cell it replaces is solid, so it can never be the stray a lamp standing on air becomes.

@@ -62,10 +62,27 @@ params:
     # ...and the Sky Lift Sloth's, for the same reason.
     - [92, 145, 344, 376]
   path_clear: 2
-  open_min: 3
-  open_full: 7
-  density: 0.75
-  step: 3
+  # MEASURED AGAINST THE WORLD, not against the design. The three scans of 2026-09-13 merge into
+  # `out/park_world.litematic` and say the park is 73% built with only 17.3% of its ground columns
+  # carrying anything 3 courses above the lawn, against 65% on `reference/amazingsteal`. This pass
+  # covered 3,575 columns of the ~20,769 that are bare lawn and 2 clear of anything standing, at
+  # 1.2 cells each - which is ground COVER, not the mass the park is short of.
+  #
+  # The dial was never the problem. `open_min` refused to plant within THREE of any building, and
+  # a column under `(open_min + open_full)//2` = 5 could only draw a FLAT kind - and this park's
+  # lawn is a mesh of verges, so almost all of it was one or the other. Swept:
+  #
+  #     o_min o_full dens step    cells   cols  3+tall
+  #         3      7 0.75    3     4246   3575     184     <- as shipped
+  #         2      5 0.90    3     7449   5221     682
+  #         2      4 0.95    2    18152   8849    2895     <- here
+  #
+  # A verge one cell off a wall is still a verge and still gets nothing; what changed is that a
+  # verge THREE cells off one is now planting rather than bare.
+  open_min: 2
+  open_full: 4
+  density: 0.95
+  step: 2
   kinds: [meadow, meadow, bed, shrub, hedge, tree, rock]
   seed: 41
 roles: [construction]

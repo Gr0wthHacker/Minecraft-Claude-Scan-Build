@@ -178,7 +178,7 @@ BASE_Y = 202               # the park's own floor course; flush ends must land e
 # birds", and the ladybird had to go for its own reasons (see `_delight`). What replaces them is
 # chosen on CLAUDE.md's own measured line, PLANAR/COLUMNAR against VOLUMETRIC, not on taste:
 #
-#   stegosaur ONE convex arched mass carrying a row of PLANAR PLATES, on columnar tapers
+#   ankylosaur ONE low convex mass carrying a PATTERN - knobs, a spike fringe, a club
 #   sloth   a body slung UNDER a line - four columnar limbs hooked over a branch
 #   balloon ONE convex dome carrying a pattern, on a column of rigging over a box
 #   wyrm    a free S-curve topped by a flared PLATE, off a coil at the ground
@@ -228,8 +228,25 @@ GAPS = [
          # WAS. It reaches 22 rows back and 19 forward, against a heron's 7, so at 0.14 its tail
          # would have been clamped - and a clamped stop is a stop whose far end lands where
          # `cols` has no column at all. Moved rather than shortened: it clears z_lo by five.
-         {"kind": "stegosaur", "t": 0.24, "side": 1, "facing": "north",
-          "title": "STEGOSAUR", "lines": ["plated, and", "bound for the", "lost plateau"]},
+         # **AND THE STEGOSAUR THAT STOOD HERE IS RETIRED, on the rule rather than on taste.**
+         # Four rounds got its surface to the giraffe's own roughness numbers and it still did not
+         # read, because a stegosaur on four legs is a REALISTICALLY-PROPORTIONED QUADRUPED - the
+         # one thing the download corpus contains none of in 31 outside builds, and the shape
+         # eight mammals were retired here for. Recommending it as "a convex mass with plates" was
+         # reading the plates and ignoring what carries them.
+         #
+         # ...AND THE ANKYLOSAUR THAT REPLACED IT IS RETIRED IN ITS TURN, for the same reason at
+         # one remove. Six rounds - symmetry to zero, a plan spindle, a face, a scaled pattern, a
+         # size decision, a whole stance rebuild - each measured better than the last, and Jack
+         # read the finished thing as "a sea monster or something, alligator". Hiding the legs
+         # made a crocodile; showing them made a STANDING QUADRUPED, which is the one shape the
+         # corpus contains none of. Recommending it as "a convex mass with plates" was reading the
+         # plates and ignoring what carries them, and that was the same mistake twice.
+         #
+         # WHAT IS HERE INSTEAD IS NOT AN ANIMAL AND NOT AN OBJECT BESIDE THE WALK. `PF Rib Walk`
+         # is a colossal ribcage the causeway is cut THROUGH - its own design, refusing this one's
+         # cells, sited over z 80452..80540 of this reach. See `configs/pf_rib_walk.yaml`.
+         # Both animals are kept, still build and keep every test; they are simply not sited.
          # brown fur and moss against spruce and cobble, hung in the air so its own outline is
          # read against the sky rather than against the ground it never touches.
          {"kind": "sloth", "t": 0.82, "side": -1, "clear": 5,
@@ -690,6 +707,15 @@ def creature_canvas(spec: dict, place=None) -> Canvas:
     if kind == "balloon":
         from . import balloon as m
         return m.build_balloon({"seed": seed, "stand": list(place or [0, 0, 0])})
+    if kind == "ankylosaur":
+        from . import ankylosaur as m
+        # THE FLANK FACES THE WALKWAY. The walk runs along Z and every creature stop is offset in
+        # X, so a viewer stands to one SIDE - and this animal's own two best views are the PROFILE
+        # and the PLAN, which is what the walk and the skyway above it give. Its long axis runs
+        # along the walk; north points the head at the land it introduces.
+        return m.build_ankylosaur({"seed": seed, "length": float(spec.get("length", 40)),
+                                   "facing": str(spec.get("facing", "north")),
+                                   "stand": list(place or [0, 0, 0])})
     if kind == "stegosaur":
         from . import stegosaur as m
         # THE FLANK FACES THE WALKWAY, AND ON THIS CAUSEWAY THAT IS NOT A STYLE CHOICE. The walk
@@ -868,7 +894,8 @@ def _site_standing(w, cols, top, cx, cz, spec, pal, side, record):
     return _paste(w, creature_canvas(spec, [cx, top + 1, cz]), keep_largest=True, record=record)
 
 
-_SITERS = {"heron": _site_footed, "stegosaur": _site_footed, "gecko": _site_gecko,
+_SITERS = {"heron": _site_footed, "stegosaur": _site_footed,
+           "ankylosaur": _site_footed, "gecko": _site_gecko,
            "bat": _site_bat, "sloth": _site_sloth,
            "balloon": _site_standing, "wyrm": _site_standing}
 
@@ -946,11 +973,11 @@ def _site_archway(w, at, facing, land, entering):
 # five-block plinth the bat and the sloth each stood over a two-course disc of the
 # land's own trim with nothing on it - an empty plinth reads as a statue somebody has
 # taken away. Three is enough to carry the name plaque and no more.
-_PLINTH_HALF = {"heron": 5, "stegosaur": 8, "gecko": 5, "bat": 3, "sloth": 3,
+_PLINTH_HALF = {"heron": 5, "stegosaur": 8, "ankylosaur": 13, "gecko": 5, "bat": 3, "sloth": 3,
                 "balloon": 4, "wyrm": 5}
-_CREATURE_ROOM = {"heron": 13, "stegosaur": 15, "gecko": 15, "bat": 18, "sloth": 16,
+_CREATURE_ROOM = {"heron": 13, "stegosaur": 15, "ankylosaur": 21, "gecko": 15, "bat": 18, "sloth": 16,
                   "balloon": 11, "wyrm": 13}
-_FLATTEN = {"heron": 8, "stegosaur": 11, "gecko": 18, "bat": 21, "sloth": 16,
+_FLATTEN = {"heron": 8, "stegosaur": 11, "ankylosaur": 16, "gecko": 18, "bat": 21, "sloth": 16,
             "balloon": 11, "wyrm": 11}
 # HOW FAR A STOP'S OWN STRUCTURE REACHES ALONG THE WALK, either side of its own centre.
 #
@@ -969,7 +996,7 @@ _FLATTEN = {"heron": 8, "stegosaur": 11, "gecko": 18, "bat": 21, "sloth": 16,
 # gantry and no stele, so nothing this file lays reaches past its plinth - and it is still forty
 # rows long, so its own tail is what would land where `cols` has no column. Measured off the
 # built model: 19 rows forward of the plinth's centre and 22 back.
-_CREATURE_ZHALF = {"heron": 7, "stegosaur": 22, "gecko": 18, "bat": 22, "sloth": 16,
+_CREATURE_ZHALF = {"heron": 7, "stegosaur": 22, "ankylosaur": 38, "gecko": 18, "bat": 22, "sloth": 16,
                    "balloon": 9, "wyrm": 7}
 
 
@@ -1299,6 +1326,14 @@ def _build_gap(w: World, p: dict, gap: dict, meta: dict) -> None:
         offset = (every // 2) if row_i % 2 else 0
         for dx in range(-half + offset, half + 1, every):
             tx = xs + dx
+            # **A TARGET INSIDE A STOP IS SKIPPED, NOT SLID.** The docstring above already says a
+            # stop lights itself; the loop then tried to slide the lamp OUT of the stop and, when
+            # it could not, counted a miss. That never fired while every stop was narrower than the
+            # slide radius - and the moment one got bigger than `every`, three lamps that were
+            # never wanted reported as lamps that could not be placed. Sliding is for a bench or a
+            # fence in the way, which is a few cells; a footprint is not an obstruction to escape.
+            if (tx, z0) in light_exclude:
+                continue
             found = False
             for r in range(0, every + 1):
                 ring = [(0, 0)] if r == 0 else [(r, 0), (-r, 0), (0, r), (0, -r)]

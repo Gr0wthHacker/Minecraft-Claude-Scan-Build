@@ -1,0 +1,532 @@
+{
+  "origin": {
+    "x": 97543,
+    "y": 108,
+    "z": 80468
+  },
+  "size": {
+    "x": 60,
+    "y": 41,
+    "z": 38
+  },
+  "generated_by": "abyss_sounding",
+  "kind": "abyss_sounding",
+  "viewpoint": [
+    97600,
+    109,
+    80505
+  ],
+  "target": [
+    97558,
+    137,
+    80454
+  ],
+  "dig": [
+    [
+      97597,
+      109,
+      80504
+    ],
+    [
+      97598,
+      109,
+      80502
+    ],
+    [
+      97598,
+      109,
+      80504
+    ],
+    [
+      97598,
+      109,
+      80505
+    ],
+    [
+      97598,
+      110,
+      80505
+    ],
+    [
+      97599,
+      109,
+      80502
+    ],
+    [
+      97599,
+      109,
+      80504
+    ],
+    [
+      97599,
+      109,
+      80505
+    ],
+    [
+      97599,
+      110,
+      80503
+    ],
+    [
+      97599,
+      110,
+      80504
+    ],
+    [
+      97599,
+      110,
+      80505
+    ],
+    [
+      97600,
+      109,
+      80502
+    ],
+    [
+      97600,
+      109,
+      80504
+    ],
+    [
+      97600,
+      109,
+      80505
+    ],
+    [
+      97600,
+      110,
+      80502
+    ],
+    [
+      97600,
+      110,
+      80503
+    ],
+    [
+      97600,
+      110,
+      80504
+    ],
+    [
+      97600,
+      110,
+      80505
+    ],
+    [
+      97601,
+      109,
+      80502
+    ],
+    [
+      97601,
+      109,
+      80504
+    ],
+    [
+      97601,
+      109,
+      80505
+    ],
+    [
+      97601,
+      110,
+      80503
+    ],
+    [
+      97601,
+      110,
+      80504
+    ],
+    [
+      97601,
+      110,
+      80505
+    ],
+    [
+      97602,
+      109,
+      80502
+    ],
+    [
+      97602,
+      109,
+      80505
+    ],
+    [
+      97602,
+      110,
+      80505
+    ]
+  ],
+  "exclude_boxes": [
+    [
+      97597,
+      109,
+      80504,
+      97597,
+      109,
+      80504
+    ],
+    [
+      97598,
+      109,
+      80502,
+      97598,
+      109,
+      80502
+    ],
+    [
+      97598,
+      109,
+      80504,
+      97598,
+      109,
+      80504
+    ],
+    [
+      97598,
+      109,
+      80505,
+      97598,
+      109,
+      80505
+    ],
+    [
+      97598,
+      110,
+      80505,
+      97598,
+      110,
+      80505
+    ],
+    [
+      97599,
+      109,
+      80502,
+      97599,
+      109,
+      80502
+    ],
+    [
+      97599,
+      109,
+      80504,
+      97599,
+      109,
+      80504
+    ],
+    [
+      97599,
+      109,
+      80505,
+      97599,
+      109,
+      80505
+    ],
+    [
+      97599,
+      110,
+      80503,
+      97599,
+      110,
+      80503
+    ],
+    [
+      97599,
+      110,
+      80504,
+      97599,
+      110,
+      80504
+    ],
+    [
+      97599,
+      110,
+      80505,
+      97599,
+      110,
+      80505
+    ],
+    [
+      97600,
+      109,
+      80502,
+      97600,
+      109,
+      80502
+    ],
+    [
+      97600,
+      109,
+      80504,
+      97600,
+      109,
+      80504
+    ],
+    [
+      97600,
+      109,
+      80505,
+      97600,
+      109,
+      80505
+    ],
+    [
+      97600,
+      110,
+      80502,
+      97600,
+      110,
+      80502
+    ],
+    [
+      97600,
+      110,
+      80503,
+      97600,
+      110,
+      80503
+    ],
+    [
+      97600,
+      110,
+      80504,
+      97600,
+      110,
+      80504
+    ],
+    [
+      97600,
+      110,
+      80505,
+      97600,
+      110,
+      80505
+    ],
+    [
+      97601,
+      109,
+      80502,
+      97601,
+      109,
+      80502
+    ],
+    [
+      97601,
+      109,
+      80504,
+      97601,
+      109,
+      80504
+    ],
+    [
+      97601,
+      109,
+      80505,
+      97601,
+      109,
+      80505
+    ],
+    [
+      97601,
+      110,
+      80503,
+      97601,
+      110,
+      80503
+    ],
+    [
+      97601,
+      110,
+      80504,
+      97601,
+      110,
+      80504
+    ],
+    [
+      97601,
+      110,
+      80505,
+      97601,
+      110,
+      80505
+    ],
+    [
+      97602,
+      109,
+      80502,
+      97602,
+      109,
+      80502
+    ],
+    [
+      97602,
+      109,
+      80505,
+      97602,
+      109,
+      80505
+    ],
+    [
+      97602,
+      110,
+      80505,
+      97602,
+      110,
+      80505
+    ]
+  ],
+  "aperture": {
+    "plane_z": 80502,
+    "width": 5,
+    "height": 4,
+    "dig_budget": 60
+  },
+  "features_built": {
+    "tail_glazing": 20,
+    "sound_frames": [
+      35,
+      43,
+      61
+    ],
+    "survey_lights": 2
+  },
+  "public_access": "Abyss Market tail gallery only",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {
+      "purpose": "landmark",
+      "hierarchy": "supporting",
+      "style": "prismworks"
+    },
+    "metrics": {
+      "blocks": 164,
+      "materials": 1,
+      "dominant_material_share": 1.0,
+      "light_blocks": 0,
+      "massing": {
+        "width": 60,
+        "height": 41,
+        "depth": 38,
+        "fill_ratio": 0.0018
+      },
+      "silhouette": {
+        "top": {
+          "area": 85,
+          "fill_ratio": 0.0373
+        },
+        "front": {
+          "area": 164,
+          "fill_ratio": 0.0667
+        },
+        "side": {
+          "area": 47,
+          "fill_ratio": 0.0302
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.1524,
+          0.1402,
+          0.7073
+        ],
+        "top_silhouette_perimeter": 333,
+        "surface_faces_per_block": 4.1829
+      },
+      "material_counts": {
+        "light_gray_wool": 164
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "1e16d5f2007cb8f6f7edfc1897ef59c40ecefe00cb4c81205147158674c32b3d",
+    "generator_source_digest": "ef181e549110813f8e7c06543acfc84f9ecce08f0ae1822b233550d3f2c8bf81",
+    "anchors": [],
+    "genome": {
+      "name": "prismworks",
+      "facades": [
+        "stepped",
+        "bracketed"
+      ],
+      "height_ratio": [
+        0.8,
+        2.4
+      ],
+      "materials": [
+        "structural_stone",
+        "black_recess",
+        "signal_wool"
+      ],
+      "light_density": "signal-nodes"
+    },
+    "variation": {
+      "facade": "stepped"
+    },
+    "capabilities": {
+      "purpose": true,
+      "style": true,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 154.174316,
+    "blocks": 164,
+    "blocks_per_second": 1.06
+  },
+  "generator_contract": {
+    "ok": true,
+    "failures": [],
+    "anchors": 0,
+    "roles": [
+      "construction"
+    ],
+    "blocks": 164,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "Abyss Sounding Greybox.litematic",
+  "name": "Abyss Sounding Greybox"
+}

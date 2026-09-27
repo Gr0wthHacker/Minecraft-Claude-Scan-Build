@@ -1,0 +1,151 @@
+{
+  "origin": {
+    "x": 97617,
+    "y": 117,
+    "z": 80817
+  },
+  "size": {
+    "x": 73,
+    "y": 68,
+    "z": 73
+  },
+  "generated_by": "jelly",
+  "kind": "jelly",
+  "scale": 1.0,
+  "facing": [
+    0,
+    1
+  ],
+  "keep_out": null,
+  "closest_to_keep_out": null,
+  "features_built": {
+    "bell": 2944,
+    "glass": 764,
+    "rim": 120,
+    "spots": 15,
+    "oral": 4,
+    "tentacles": 18,
+    "beads": 126
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 4283,
+      "materials": 9,
+      "dominant_material_share": 0.5431,
+      "light_blocks": 0,
+      "massing": {
+        "width": 48,
+        "height": 60,
+        "depth": 49,
+        "fill_ratio": 0.0304
+      },
+      "silhouette": {
+        "top": {
+          "area": 1123,
+          "fill_ratio": 0.2107
+        },
+        "front": {
+          "area": 1143,
+          "fill_ratio": 0.2303
+        },
+        "side": {
+          "area": 1115,
+          "fill_ratio": 0.2246
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.088,
+          0.1511,
+          0.7609
+        ],
+        "top_silhouette_perimeter": 1152,
+        "surface_faces_per_block": 2.1326
+      },
+      "material_counts": {
+        "light_blue_wool": 2326,
+        "light_blue_stained_glass": 725,
+        "cyan_wool": 679,
+        "ochre_froglight": 277,
+        "pink_wool": 176,
+        "white_wool": 81,
+        "amethyst_cluster": 15,
+        "cave_vines": 2,
+        "cave_vines_plant": 2
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "2f48e1c66bb6d48ac0a367ce58709ac214e81a9cc674a8411e74ac27ab4d3193",
+    "generator_source_digest": "4639214fba9d35f6f6ab8f9297bced6c8bb7e19df5da19d5480500fe66a2edb4",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 46.766173,
+    "blocks": 4283,
+    "blocks_per_second": 91.58
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 4283,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "Abyss Jelly.litematic",
+  "name": "Abyss Jelly"
+}

@@ -114,6 +114,9 @@ MARKET = {
     # Prismworks plaza above (smooth_stone / stone_bricks, Y202-203, nothing over Y204),
     # r150 from the Prism Well, two cells of shell, and a roomy landing.
     "shaft": [97600, 80665],
+    # `mouth` is the production route.  `shaft` remains available only so old
+    # artifacts can be audited and compared; it is not a public interface.
+    "entrance": "shaft",
     "surface": 204,               # the course a visitor stands on at the wellhead
     "park_floor": [202, 203],     # the two Prismworks courses the mouth cuts
 
@@ -1520,33 +1523,38 @@ def build(cfg: dict, donors=None) -> Canvas:
     ox, oy, oz = cave.origin
     ny, nz, nx = cave.shape
     surface = int(p["surface"])
-    SY = surface + 8 - oy                      # room for the wellhead's own crown over the plaza
+    entrance = str(p.get("entrance", "shaft"))
+    if entrance not in ("shaft", "mouth"):
+        raise ValueError(f"unknown Abyss Market entrance {entrance!r}")
+    SY = (surface + 8 - oy) if entrance == "shaft" else ny
     c = Canvas(nx, SY, nz, donors)
     c.world_origin = (ox, oy, oz)
     s = _states(c)
 
     sx, sz = int(p["shaft"][0]), int(p["shaft"][1])
 
-    # ---- the mouth. TWO courses of Prismworks paving and TWO of the animal's skin, 3x3.
+    # ---- the retired shaft mouth.  The production market is reached from the
+    # squid's anatomical mouth and therefore cuts none of the park or dorsal skin.
     # Nothing else in the animal is ever broken, and the shell thickness is MEASURED rather
     # than assumed to be the hollow's `shell: 2` - a fit-out that trusts a parameter is a
     # fit-out for a different animal the day somebody re-tunes one.
+    dig = set()
     band = cave.band(sz, half=1)
     if band is None:
-        raise ValueError("the shaft column stands over no cavity at all")
+        raise ValueError("the legacy shaft reference stands over no cavity at all")
     cavetop = band[1]
     skin = cavetop + 1
     while cave.rock(sx, skin, sz):
         skin += 1
-    skin -= 1                                   # the last cell of shell
-    dig = set()
-    floors = [int(v) for v in p["park_floor"]]
-    for dx in range(-1, 2):
-        for dz in range(-1, 2):
-            for y in floors:
-                dig.add((sx + dx, y, sz + dz))
-            for y in range(cavetop + 1, skin + 1):
-                dig.add((sx + dx, y, sz + dz))
+    skin -= 1
+    if entrance == "shaft":
+        floors = [int(v) for v in p["park_floor"]]
+        for dx in range(-1, 2):
+            for dz in range(-1, 2):
+                for y in floors:
+                    dig.add((sx + dx, y, sz + dz))
+                for y in range(cavetop + 1, skin + 1):
+                    dig.add((sx + dx, y, sz + dz))
 
     # A DUG CELL THAT IS ALSO BUILT IS NOT A CLASH, and this design has two kinds: the shaft's
     # mouth, where a ladder must have a rung in every course it passes through, and the prow's
@@ -1573,12 +1581,16 @@ def build(cfg: dict, donors=None) -> Canvas:
     laid, lamps, _ext = _walkway(w, cave, s, walk, half, s["deck"], every=int(p["lamp_every"]))
     bays = _marks(w, cave, s, deck, int(p["mark_every"]), sx, sz)
 
-    n_shaft = _shaft(w, cave, s, sx, sz, surface, skin + 1, cavetop)
-    n_rig = _rig(w, cave, s, sx, sz, cavetop, deck.get(sz, cavetop - 18))
     foot = deck.get(sz, cavetop - 18)
-    rungs, gaps = _climb(w, s, sx, sz, foot + 1, surface - 1)
-    if gaps:
-        raise ValueError(f"the climb has {len(gaps)} course(s) with no rung: {gaps[:8]}")
+    if entrance == "shaft":
+        n_shaft = _shaft(w, cave, s, sx, sz, surface, skin + 1, cavetop)
+        n_rig = _rig(w, cave, s, sx, sz, cavetop, foot)
+        rungs, gaps = _climb(w, s, sx, sz, foot + 1, surface - 1)
+        if gaps:
+            raise ValueError(f"the climb has {len(gaps)} course(s) with no rung: {gaps[:8]}")
+    else:
+        n_shaft = {"case": 0, "rung": 0, "land": 0, "sign": 0}
+        n_rig = rungs = 0
     n_collar = _collar(w, cave, s, sx, sz, deck)
     n_gullet = _gullet(w, cave, s, deck)
     n_baz, stalls, signed = _bazaar(w, cave, s, deck)
@@ -1612,7 +1624,11 @@ def build(cfg: dict, donors=None) -> Canvas:
         "deck_cells": laid, "deck_lamps": lamps, "lay_bys": bays, "treads": treads,
         "floor_cells": len(floors), "relit": lit, "relight_rounds": rounds,
         "dark_left": dark_left, "light_min": int(p["light_min"]),
-        "shaft": {"x": sx, "z": sz, "surface": surface, "skin": skin, "cavity_top": cavetop,
+        "entrance": entrance,
+        "mouth": {"threshold": [97600, 148, 80713], "entry_floor": [97596, 142, 80713],
+                  "exit_floor": [97604, 142, 80713]},
+        "shaft": {"enabled": entrance == "shaft", "x": sx, "z": sz,
+                  "surface": surface, "skin": skin, "cavity_top": cavetop,
                   "drop": surface - cavetop, **n_shaft, "rig": n_rig,
                   "rungs": rungs, "foot_y": foot},
         "collar": n_collar, "gullet": n_gullet,

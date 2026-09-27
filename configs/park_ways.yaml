@@ -40,9 +40,14 @@
 # under its 71. The bands above are the LOT bands; what lies between them is street reserve, and
 # the column widths named per land below are usable width AFTER verge.
 #
-# THE SET PIECES are the Signal Heron on the Claim Line reach and the Aeronaut balloon on the
-# island of the Midway Circus - the two shapes this repo has measured as reading best (a columnar
-# bird and one convex mass carrying a pattern).
+# THE SET PIECE is the Aeronaut balloon on the island of the Midway Circus - one convex mass
+# carrying a pattern, which is the category this medium renders best.
+#
+# THE SIGNAL HERON IS RETIRED (2026-09-07), Jack's call: "we need to remove the heron". It stood
+# on the Claim Line reach at offset [26, 1, 176] - 1,790 cells of wool, the bird this file used to
+# call the park's other set piece. Removed HERE rather than anywhere else because this is where it
+# was built: it has no lot of its own (`park_lots.RETIRED` records it as superseded), so the one
+# source below was the whole of its existence in the park.
 name: Park Ways
 gen: compose
 params:
@@ -98,8 +103,6 @@ params:
         # PARK_ATTRACTIONS_PLAN.md's measured table. Works Yard and the Service Gallery are
         # already adjacent to the service lane and need none.
         spurs:
-          - {v: 24, u: 19}      # Trailhead Gate
-          - {v: 24, u: 70}      # Boomtown Spine
           # THE COASTER'S SPUR RUNS TO ITS DOOR, WHICH IS U107 AND WAS NEVER U134. The
           # entrance was sited off `out/Mine Coaster.scan.json`'s declared anchors, and
           # that sidecar belongs to a 69 x 97 build the park does not place - the merge
@@ -127,7 +130,8 @@ params:
           # station's east opening is V26/U119-120, so this is a real way out and it now
           # has a real walk. Enter west at U107, leave east at U120.
           - {v: 24, u: 119}     # Mine Coaster - the way out, through the depot's east bay
-          - {v: 24, u: 235}     # Arrival Court
+          - {v: 24, u: 227}     # Carousel entrance, north of its front fence
+          - {v: 24, u: 243}     # Carousel exit, separate south approach
           # THE WELCOME COURT'S OWN THRESHOLD, and it is THIRTEEN WIDE because the door is.
           # Jack, on the finished court: "it needs to have paths or ways to connect to the other
           # pathways surrounding it otherwise its disconnected and not an actual welcome." He is
@@ -137,9 +141,6 @@ params:
           - {v: 24, u: 300, half: 6}   # Welcome Court - the park's own front door
           - {v: 24, u: 362}     # Skill Arcade
           - {v: 24, u: 407}     # Wyrm's Crossing
-          - {v: 24, u: 448}     # Foundry Gate
-          - {v: 24, u: 496}     # Prism Array
-          - {v: 24, u: 563}     # Prism Ascent
           - {v: 77, u: 235}     # Snack Window, onto midway walk 1
           - {v: 80, u: 362}     # Prize Point, onto midway walk 2
           - {v: 82, u: 491}     # Resonance Vault, onto the prism walk
@@ -262,11 +263,15 @@ params:
         # A SET PIECE GETS ITS OWN LOT. Both sculptures were once placed by a hand-typed offset
         # and both landed in the middle of a walkway. These rectangles are kept clear of every
         # path, plaza, lamp and bench; the Circus island is reserved by the same rule.
-        # THE HERON GARDEN WAS 55 x 51 FOR A BIRD MEASURING 14 x 32 - and it sat squarely on the
-        # Mine Coaster's column, which is the largest lot in the park. It is on the Claim Line
-        # reach now, which is where PARK_FINAL_ARCHITECTED_PLAN.md says the Signal Heron stands.
+        #
+        # THE LOT IS KEPT THOUGH THE HERON IS GONE, and its job has changed rather than lapsed:
+        # V34-60 x U174-210 lies wholly INSIDE `PF Water Claim Lake` (V24-112 x U173-211), and
+        # `park_water.put` treats a paved cell, a lamp mast or a bench inside the lake as an ERROR
+        # naming the cell rather than a silent skip. Delete it and the ground layer is free to
+        # furnish the middle of a lake. Renamed for what it now protects: a lot named for a
+        # retired module is the leftover class CLAUDE.md's own signage audit was written about.
         feature_lots:
-          - {name: heron garden, v0: 34, u0: 174, v1: 60, u1: 210}
+          - {name: lake garden, v0: 34, u0: 174, v1: 60, u1: 210}
 
         # THE ARRIVAL VISTA KEEPS ITS PAVING AND LOSES ITS FURNITURE - which is why this is not
         # a feature lot: the walk-up from the void edge to the Welcome Court's threshold runs on
@@ -282,6 +287,9 @@ params:
         # The band is U294-306: the eleven-wide walk plus a cell of tolerance each side, so a
         # mast NUDGED along its own line cannot arrive back in the vista from the end.
         keep_clear:
+          # The retired Foundry spur faced the Downs. Keep both verges open at
+          # its former station rather than leaving a lone lamp opposite terrain.
+          - {name: former foundry verge, v0: 0, u0: 444, v1: 23, u1: 450}
           - {name: arrival vista, v0: 0, u0: 294, v1: 23, u1: 306}
           # AND THE REST OF THE SAME SIGHTLINE (2026-09-03). Closing the Midway's promenade gap put
           # a lamp mast at V121/U300 and another at V129/U300 - dead on the axis, in the middle of
@@ -291,11 +299,44 @@ params:
           # end at V23 - it runs from the gate's doors to the Sky Lift's hub. Same band as above,
           # so a mast NUDGED along its own line cannot arrive back in it from the end.
           - {name: midway axis, v0: 80, u0: 294, v1: 129, u1: 306}
-    # the bird stands on the Claim Line reach, seen down the spine from both lands
-    - gen: heron
-      offset: [26, 1, 176]
-      params: {variant: heron, at: [0, 0, 0], scale: 1.0, seed: 0}
-    # ...and the balloon is moored on the island of the Midway Circus, on the back promenade
+          # AND THE PRISM WELL'S MOUTH, WHICH IS A HOLE AND NOT A LAWN (2026-09-10). Jack: "the
+          # prism parkour area has floating full lamp posts in its area." Measured off the
+          # shipped composite: FOURTEEN signal masts stood inside the r50 mouth and NINE of them
+          # had not one solid cell within a 5x5 box at their own course - a pad, four wall cells,
+          # a caged soul lantern and an end rod hanging over two hundred courses of void, in the
+          # one place in the park a player is looking sideways at the air.
+          #
+          # THE WELL'S CUT COULD NOT SEE THEM, AND THAT IS STRUCTURAL RATHER THAN STALE.
+          # `prismwell` digs everything the park dressed this circle with, off a blacklist
+          # written after an earlier whitelist "shipped sixty-one cells hanging over the hole".
+          # It reads `park_future`, and `prismchain.build_park_future` EMPTIES the well's whole
+          # cylinder except the deck course - deliberately, so the well is not measured against
+          # its own previous self. So the cut sees one block per mast column, digs the pad, and
+          # the eight courses above it survive in `Park Complete` for ever, however many times
+          # the chain is rebuilt. The context that is honest about the well's GEOMETRY is blind
+          # about the well's own DIG LIST.
+          #
+          # So the ground layer does not put a mast in the hole in the first place, which is the
+          # same instrument and the same reason as the two vistas above: THE PAVING STAYS - the
+          # well digs the deck and a context that has already lost it cannot tell you whether
+          # that dig is right - and only the furniture goes. Round, because the mouth is; see
+          # `parkways.keep_clear`. Derived from `configs/pf_prism_well.yaml` and asserted against
+          # it by `tests/test_parkways.py`, or this is a declaration that goes stale in silence
+          # the first time the well moves.
+          - {name: prism well mouth, v: 90, u: 515, r: 50}
+          # AND THE FRONTIER AVENUE'S WEST VERGE, WHICH IS UNDER A MOUNTAIN (2026-09-10).
+          # `PF Plateau Vale`'s talus stands on SEVENTY-THREE of that verge's 131 columns
+          # (V28..V120 at U40) while the avenue's own paving at U43 carries nothing at all and
+          # its east verge carries three cells. Measured on the shipped composite, the mast at
+          # V83/U40 had its collar and its lower rod REPLACED by cobbled deepslate and moss: a
+          # lightning rod and a lantern sticking out of a scree mound, which is not a lamp post.
+          # Every one of the 23 columns its nudge window can reach is buried, so there is nowhere
+          # on that verge to step to - the station takes the avenue's clear EAST verge instead.
+          # The talus on the park's verge is the Vale's to answer for; this is the ground layer
+          # declining to put furniture under it.
+          - {name: plateau vale talus, v0: 72, u0: 38, v1: 94, u1: 42}
+    # THE HERON WAS HERE - `gen: heron` at offset [26, 1, 176] - and is retired; see the header.
+    # The balloon is moored on the island of the Midway Circus, on the back promenade.
     - gen: balloon
       offset: [115, 1, 225]
       params: {}

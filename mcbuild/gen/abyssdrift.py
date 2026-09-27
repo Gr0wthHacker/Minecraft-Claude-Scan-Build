@@ -118,15 +118,25 @@ DRIFT = {
                                       # streamers and a froglight core; below it is a mote/cobble
     "max_boulders": 14,               # a hard cap: a few big silhouettes, not a boulder field. A
                                       # boulder past the cap is demoted to a medium rock, not skipped
+
+    # THE PRINTING SCAFFOLD. Off by default (the art hangs free). On, an MST of connectors is laid
+    # between every floating island so the whole field is one connected mass the printer can chain
+    # through. The connector block is distinct from the rock palette on purpose: print the design,
+    # then `delete all <scaffold_block>` in game to strip every connector and leave the rocks.
+    "scaffold": False,
+    "scaffold_block": "moss_block",
 }
 
 # THE VALUE LADDER, MEASURED ACROSS FAMILIES - never inside one, which is the mistake this repo
 # has made four times (stone brick, blackstone, the Mine Ridge, the claim row: a family is one
 # material shown four ways and cannot draw a value line). side-face luminance:
-#   cobbled_deepslate 77 . blackstone 79 . tuff 108 . cobblestone 127 . stone 126 . andesite 136
+#   cobbled_deepslate 77 . blackstone 79 . deepslate 80 . cobblestone 127 . stone 126
 # A rock is BEDDED in a few of these by a coarse hash so it reads as rock rather than as one grey.
-_ROCK = ["cobbled_deepslate", "blackstone", "tuff", "cobblestone", "andesite", "deepslate"]
-_ROCK_W = [0.30, 0.16, 0.20, 0.14, 0.10, 0.10]
+# NO TUFF and NO ANDESITE (Jack: both expensive in bulk on skyblock; this field is the whole void,
+# so hundreds of any one block is real cost) - their weight went mostly to cobblestone, the one
+# truly `cheap` grey. The spread is now three darks plus cobblestone as the light anchor.
+_ROCK = ["cobbled_deepslate", "blackstone", "cobblestone", "deepslate"]
+_ROCK_W = [0.32, 0.16, 0.36, 0.16]
 
 _AXES = {"east": (1, 0, 0), "west": (-1, 0, 0), "up": (0, 1, 0), "down": (0, -1, 0),
          "south": (0, 0, 1), "north": (0, 0, -1)}
@@ -214,6 +224,16 @@ class _Field:
     def solid(self, x, y, z) -> bool:
         return self.c.solid(int(round(x)), int(round(y)), int(round(z)))
 
+    def scaffold(self, x, y, z, blk) -> bool:
+        """Place a temporary connector cell: air only, inside the band, never in an excluded
+        column (the squid, the park, a rail, the well column). It never overwrites a rock, so a
+        line drawn straight through a lump simply fuses to it instead of eating it."""
+        x, y, z = int(round(x)), int(round(y)), int(round(z))
+        if not self.c.inb(x, y, z) or self.blk[z, x] or self.c.ids[y, z, x] != 0:
+            return False
+        self.c.ids[y, z, x] = blk
+        return True
+
 
 def _rock(f, cx, cy, cz, r, mats, bright, seed):
     """One floating rock: an irregular lump, bedded, with light appropriate to how far out it is.
@@ -258,7 +278,10 @@ def _rock(f, cx, cy, cz, r, mats, bright, seed):
                         if f.put(x, y, z, c.state(name)):
                             placed.append((x, y, z))
     if not placed:
-        return 0
+        return None
+    # a real, solid representative cell for the scaffold to anchor to - the placed cell nearest the
+    # centre, so a mote whose exact centre came out air still gives the connector a cell to reach.
+    rep = min(placed, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2 + (q[2] - cz) ** 2)
 
     # WHERE THE LIGHT GOES: toward the well, so a near rock's glow is seen from the sightline.
     dirx = f.well[0] - (f.at[0] + cx)
@@ -296,6 +319,7 @@ def _rock(f, cx, cy, cz, r, mats, bright, seed):
         face = _facing(ox - ax, oy - ay, oz - az)
         if face:
             f.put(ox, oy, oz, c.state("amethyst_cluster", facing=face, waterlogged="false"))
+    return rep
 
 
 def _facing(dx, dy, dz):
@@ -350,13 +374,123 @@ def _spark(f, cx, cy, cz, seed):
     so a crystal spark is a core block plus one bud."""
     c = f.c
     if hash01(seed, cx, cz, 3) < 0.5:
-        return 1 if f.put(cx, cy, cz, c.state("ochre_froglight")) else 0
+        return (cx, cy, cz) if f.put(cx, cy, cz, c.state("ochre_froglight")) else None
     # a crystal nugget: a deepslate core (witnessed, not `budding_amethyst`, which is not
     # obtainable in survival) with an amethyst cluster budding off the top.
     if f.put(cx, cy, cz, c.state("deepslate")):
         f.put(cx, cy + 1, cz, c.state("amethyst_cluster", facing="up", waterlogged="false"))
-        return 1
-    return 0
+        return (cx, cy, cz)
+    return None
+
+
+def _path(a, b):
+    """The 6-connected cells from a to b, excluding the start: one axis step per move (largest
+    remaining delta first), so the run is a near-straight staircase that is legal to place and
+    walk. Shared by the freeness test and the draw, so what is tested is exactly what is laid."""
+    x, y, z = a
+    tx, ty, tz = b
+    guard = 0
+    while (x, y, z) != (tx, ty, tz) and guard < 8192:
+        guard += 1
+        dx, dy, dz = tx - x, ty - y, tz - z
+        if abs(dx) >= abs(dy) and abs(dx) >= abs(dz):
+            x += 1 if dx > 0 else -1
+        elif abs(dy) >= abs(dz):
+            y += 1 if dy > 0 else -1
+        else:
+            z += 1 if dz > 0 else -1
+        yield x, y, z
+
+
+def _free(f, a, b) -> bool:
+    """True if a connector from a to b would be unobstructed: every path cell is in the band and in
+    no excluded column. It may pass THROUGH a rock (that only fuses it); it may not pass through the
+    squid, the park, a rail or the well column - so a broken edge is rejected outright rather than
+    laid as a dead stub that orphans a cluster."""
+    for x, y, z in _path(a, b):
+        if not f.c.inb(x, y, z) or f.blk[z, x]:
+            return False
+    return True
+
+
+def _line(f, a, b, blk) -> int:
+    """Lay a 6-connected run of scaffold from a to b, air cells only, and return the count. Called
+    only on an edge `_free` has already cleared, so nothing is skipped mid-run."""
+    return sum(1 for (x, y, z) in _path(a, b) if f.scaffold(x, y, z, blk))
+
+
+def _connect(f, centres, blk, k=10, max_edge=48.0):
+    """Fuse the floating islands with a forest of connectors. Kruskal over each cluster's k nearest
+    neighbours, keeping only edges whose straight line is actually unobstructed (`_free`) - so a
+    connector routes AROUND the squid via the ring of clusters instead of dying against its
+    footprint, and the only components left are the ones the squid genuinely walls off. Shortest
+    free edge first, union-find, so it is a minimum forest. Once one seed block is placed per
+    remaining region the printer chains the rest; `delete all <block>` strips every connector."""
+    n = len(centres)
+    if n < 2:
+        return 0
+    pts = np.array(centres, dtype=float)
+    # k nearest neighbours per node (vectorised); candidate edges are those pairs, deduped i<j.
+    kk = min(k, n - 1)
+    edges = {}
+    for i in range(n):
+        d = np.linalg.norm(pts - pts[i], axis=1)
+        d[i] = np.inf
+        for j in np.argpartition(d, kk)[:kk]:
+            j = int(j)
+            if d[j] > max_edge:
+                continue
+            key = (i, j) if i < j else (j, i)
+            edges[key] = d[j]
+    parent = list(range(n))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    laid = 0
+    for (i, j), _d in sorted(edges.items(), key=lambda e: e[1]):
+        ri, rj = find(i), find(j)
+        if ri == rj:
+            continue
+        a = tuple(int(v) for v in pts[i])
+        b = tuple(int(v) for v in pts[j])
+        if not _free(f, a, b):
+            continue
+        laid += _line(f, a, b, blk)
+        parent[ri] = rj
+
+    # SECOND PASS: whatever the local kNN graph left in separate components, bridge with the
+    # shortest unobstructed edge between any two of them - not limited to nearest neighbours, so a
+    # lone far-south mote reaches the mass however far it is. Kruskal again over these long bridges.
+    roots = {}
+    for i in range(n):
+        roots.setdefault(find(i), []).append(i)
+    comps = list(roots.values())
+    bridges = []
+    for ci in range(len(comps)):
+        for cj in range(ci + 1, len(comps)):
+            best = None
+            for i in comps[ci]:
+                d = np.linalg.norm(pts[comps[cj]] - pts[i], axis=1)
+                m = int(np.argmin(d))
+                if best is None or d[m] < best[0]:
+                    best = (float(d[m]), i, comps[cj][m])
+            if best is not None:
+                bridges.append(best)
+    for _d, i, j in sorted(bridges, key=lambda e: e[0]):
+        ri, rj = find(i), find(j)
+        if ri == rj:
+            continue
+        a = tuple(int(v) for v in pts[i])
+        b = tuple(int(v) for v in pts[j])
+        if not _free(f, a, b):
+            continue
+        laid += _line(f, a, b, blk)
+        parent[ri] = rj
+    return laid
 
 
 def build(cfg: dict, donors=None) -> Canvas:
@@ -416,6 +550,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     # cannot become the whole field.
     pitch = int(p["pitch"])
     counts = {"rocks": 0, "motes": 0, "boulders": 0, "sparks": 0, "streamers": 0}
+    centres = []                       # one representative solid cell per cluster, for the scaffold
     ybase, ytop = 2, sy - 3
     cand = [(gx, gz) for gz in range(0, sz, pitch) for gx in range(0, sx, pitch)]
     cand.sort(key=lambda g: hash01(seed, g[0], g[1], 99))
@@ -435,7 +570,10 @@ def build(cfg: dict, donors=None) -> Canvas:
         jy = ybase + int(hash01(seed, jx, jz, 5) * (ytop - ybase))
         # a spark, or a rock whose radius is drawn small-biased and capped by how open it is
         if hash01(seed, jx, jz, 6) < 0.10 + 0.10 * (1 - v):
-            counts["sparks"] += _spark(f, jx, jy, jz, seed ^ k)
+            rep = _spark(f, jx, jy, jz, seed ^ k)
+            if rep:
+                counts["sparks"] += 1
+                centres.append(rep)
             continue
         u = hash01(seed, jx, jz, 7) ** float(p["r_bias"])
         r = float(p["r_min"]) + u * (float(p["r_max"]) - float(p["r_min"]))
@@ -448,8 +586,9 @@ def build(cfg: dict, donors=None) -> Canvas:
             if not room or counts["boulders"] >= max_boulders:
                 r = float(p["big_at"]) - 1.0
         before = f.n
-        _rock(f, jx, jy, jz, r, _ROCK, v, seed ^ k)
-        if f.n > before:
+        rep = _rock(f, jx, jy, jz, r, _ROCK, v, seed ^ k)
+        if rep is not None and f.n > before:
+            centres.append(rep)
             if r < 2.0:
                 counts["motes"] += 1
             elif r >= float(p["big_at"]):
@@ -459,6 +598,10 @@ def build(cfg: dict, donors=None) -> Canvas:
             else:
                 counts["rocks"] += 1
 
+    # ---- the printing scaffold: fuse every floating island with connectors of a distinct block.
+    if p.get("scaffold"):
+        counts["scaffold"] = _connect(f, centres, c.state(str(p["scaffold_block"])))
+
     c.world_origin = at
     c.meta = {
         "kind": "abyssdrift",
@@ -466,5 +609,6 @@ def build(cfg: dict, donors=None) -> Canvas:
         "closest_to_well": None if f.closest_well == float("inf") else round(f.closest_well, 1),
         "blocks": int((c.ids != 0).sum()),
         "features_built": counts,
+        "scaffold_block": str(p["scaffold_block"]) if p.get("scaffold") else None,
     }
     return c

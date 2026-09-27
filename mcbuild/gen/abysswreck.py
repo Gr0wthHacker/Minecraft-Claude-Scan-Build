@@ -18,8 +18,9 @@ WRECK = {
     "greybox": False, "shell": 2,
     "hull": "deepslate_bricks", "hull_crack": "cracked_deepslate_bricks",
     "dark": "polished_blackstone_bricks", "dark_crack": "cracked_polished_blackstone_bricks",
-    "cu1": "cut_copper", "cu2": "exposed_cut_copper",
-    "cu3": "weathered_cut_copper", "cu4": "oxidized_cut_copper",
+    # All copper placed fresh (cut_copper) - it will oxidize in the world over time.
+    "cu1": "cut_copper", "cu2": "cut_copper",
+    "cu3": "cut_copper", "cu4": "cut_copper",
     "glass": "cyan_stained_glass", "crack": "black_wool",
     "light": "pearlescent_froglight", "scar": "bone_block",
     # Expensive accents, confined to fine instruments - a Prismworks vessel is trimmed in the
@@ -27,10 +28,15 @@ WRECK = {
     "alloy": "dark_prismarine", "optic": "tinted_glass",
     "lens": "amethyst_block", "lantern": "sea_lantern",
     # Interior finish (all placeable on the 1.19 server): a derelict, powered-down, walkable wreck.
-    "i_deck": "deepslate_tiles", "i_wall": "deepslate_bricks", "i_mezz": "iron_block",
-    "i_rail": "iron_bars", "i_pipe": "cut_copper", "i_pipe2": "oxidized_cut_copper",
-    "i_machine": "iron_block", "i_panel": "polished_deepslate", "i_debris": "cobbled_deepslate",
+    # Machinery grey is smooth_stone, not iron_block: 800+ blocks of iron was ten thousand ingots
+    # spent as bulk skin. Iron is kept as a STATEMENT only (i_iron), on the two hero machines.
+    "i_deck": "deepslate_tiles", "i_wall": "deepslate_bricks", "i_mezz": "smooth_stone",
+    "i_rail": "iron_bars", "i_pipe": "cut_copper", "i_pipe2": "cut_copper",
+    "i_machine": "smooth_stone", "i_iron": "iron_block",
+    "i_panel": "polished_deepslate", "i_debris": "cobbled_deepslate",
+    "i_beam": "polished_blackstone_bricks",   # the deckhead: deep shadow overhead
     "i_bunk": "cyan_wool", "i_lamp": "verdant_froglight", "i_lamp2": "sea_lantern",
+    "i_lamp3": "ochre_froglight",             # a warm point where one console still has power
     "water": "water", "mark": "bone_block", "trim": "prismarine_bricks",
 }
 
@@ -50,7 +56,9 @@ IFINISH = {
     "deck": "i_deck", "bulkhead": "i_wall", "mezz": "i_mezz", "rail": "i_rail",
     "pipe": "i_pipe", "pipe2": "i_pipe2", "machine": "i_machine", "panel": "i_panel",
     "debris": "i_debris", "bunk": "i_bunk", "ilight": "i_lamp", "ilight2": "i_lamp2",
+    "ilight3": "i_lamp3", "beam": "i_beam",
     "console": "i_panel", "water": "water", "stair": "i_deck", "leaf": "i_rail",
+    "iron": "i_iron",   # the statement iron: torpedo breech doors and the reactor core face
 }
 
 # Damage volumes: x, y, z, rx, ry, rz, zmin. Caved into the visible south flank by the squid.
@@ -304,11 +312,20 @@ def _interior(solid, shell):
 
 
 def _furnish(inner):
-    """Dress each compartment: sonar, an observation gallery at the viewport, the control-room
-    periscope and consoles, crew bunks and the breach inrush, and a flooded engine room."""
+    """Dress each compartment as a ROOM, not a scatter of boxes.
+
+    The cavity is a tall shell and the deck floats in the middle of it, so a flat floor under a
+    cathedral of dead air was most of why the old fit-out read as nothing. Four systemic moves fix
+    that before any single fitting does: a lit central SPINE that makes the walk a route; an
+    enclosing DECKHEAD over the two cramped compartments so they read as low rooms; continuous
+    equipment BANKS anchored to the true cavity walls instead of boxes floating mid-deck; and a
+    real LIGHTING system - a cold emergency strip you can walk by, motivated bright sources, and a
+    warm point where one console still has power. Then each compartment gets ONE strong gesture.
+    """
     inside = set(inner)
     cells, parts = set(), {}
     D = DECK_Y
+    DH = D + 7                                          # the deckhead height in the cramped bays
 
     def put(x, y, z, part):
         if (x, y, z) in inside:
@@ -320,6 +337,17 @@ def _furnish(inner):
                 for z in range(z0, z1 + 1):
                     put(x, y, z, part)
 
+    def wall(x, y, sgn):
+        """The outermost cavity cell on one flank at this station/course - what to bank against."""
+        z = 43
+        while (x, y, z + sgn) in inside:
+            z += sgn
+        return z
+
+    def ceil(x, z):
+        ys = [y for y in range(D + 1, 66) if (x, y, z) in inside]
+        return max(ys) if ys else D
+
     def overhead(x0, x1, zs, part="pipe"):
         # hung from the overhead: the topmost cavity cell touches the shell, so the run is anchored
         for x in range(x0, x1 + 1):
@@ -328,92 +356,134 @@ def _furnish(inner):
                 if ys:
                     put(x, max(ys), z, part)
 
-    # Emergency lighting: a sparse overhead strip still burning in one bay per compartment.
-    # Powered down, so it is thin - just enough to navigate a derelict, not a lit vessel.
-    for lx in range(20, 160, 11):
-        if 86 <= lx <= 115:
-            continue                                  # the tower shaft is open above - no ceiling here
-        for ly in range(52, D + 2, -1):
-            if (lx, ly, 43) in inside and (lx, ly + 1, 43) not in inside:
-                put(lx, ly, 43, "ilight"); break      # only where a ceiling is directly above
+    # ---- THE SPINE: a copper-curbed central walkway with a recessed cold light strip, end to end.
+    # One move turns the tube into a route - the aisle now reads as 'walk here', and a froglight
+    # every few blocks is the emergency lighting that lets a player actually see the deck.
+    for x in range(10, 165):
+        for z in (41, 45):
+            put(x, D, z, "pipe")                        # the curb lines that frame the aisle
+        if x % 5 == 0:
+            put(x, D, 43, "ilight")                     # a froglight set flush into the walk
 
-    # Wall conduits: cable/pipe risers run floor-to-overhead against both flanks.
-    for cx in range(30, 160, 18):
-        if 86 <= cx <= 115:
-            continue
-        for z in (34, 52):
-            ys = [y for y in range(D + 1, 58) if (cx, y, z) in inside]
-            if ys:
-                for y in range(min(ys), max(ys) + 1):
-                    put(cx, y, z, "pipe2")
+    # ---- THE DECKHEAD: an enclosing beam-and-pipe ceiling over the two cramped compartments (the
+    # torpedo room and the crew quarters), so they read as low rooms and not a floor under a void.
+    for (x0, x1) in ((12, 42), (114, 138)):
+        for x in range(x0, x1 + 1):
+            zl, zr = wall(x, DH, -1), wall(x, DH, 1)
+            if zr - zl < 4:
+                continue
+            if x % 4 == 0:
+                box(x, x, DH, DH, zl, zr, "beam")       # a transverse frame across the room
+            for z in (40, 43, 46):
+                if zl <= z <= zr:
+                    put(x, DH, z, "pipe")               # longitudinal service runs between frames
 
-    # BOW TRIM - sonar station, forward pipe runs, a little debris
-    box(15, 18, D + 1, D + 3, 41, 45, "console"); put(16, D + 1, 43, "ilight")
-    box(20, 41, D + 1, D + 1, 31, 32, "pipe"); box(20, 41, D + 1, D + 1, 54, 55, "pipe")
-    box(22, 26, D + 1, D + 2, 34, 36, "debris")
+    # ---- CONTINUOUS WALL BANKS: low equipment and floor-to-deckhead risers along the flanks of
+    # the utility compartments, anchored to the true wall so nothing floats and the room has depth.
+    def bank(x0, x1, low="machine", riser="pipe", step=5):
+        for x in range(x0, x1 + 1):
+            for sgn in (-1, 1):
+                zw = wall(x, D + 1, sgn)
+                put(x, D + 1, zw, low); put(x, D + 2, zw, low)
+                if x % step == 0:
+                    for y in range(D + 1, min(ceil(x, zw), DH) + 1):
+                        put(x, y, zw, riser)
+    bank(14, 42); bank(80, 110); bank(114, 138)
 
-    # OBSERVATION LOUNGE - a viewing gallery facing the recessed viewport (south, high z)
+    # ---- BOW TRIM - the torpedo room. Two tubes flanking the aisle, breeches facing the entering
+    # player, and a sonar/fire-control bank against the bow cap.
+    for zc in (39, 47):
+        for x in range(13, 31):                         # the tube: an iron cylinder, hollow bore
+            for dz in (-1, 0, 1):
+                for dy in (1, 2, 3):
+                    if abs(dz) == 1 or dy in (1, 3):
+                        put(x, D + dy, zc + dz, "machine")
+        for dz in (-1, 0, 1):                            # the iron breech-door ring, facing aft -
+            for dy in (1, 2, 3):                         # heavy steel, the first machine on entry
+                put(31, D + dy, zc + dz, "iron")
+        put(31, D + 2, zc, "ilight3")                   # one breech indicator still lit
+    box(10, 12, D + 1, D + 4, 40, 46, "console")        # the sonar bank on the bow cap
+    for gz in range(41, 46, 2):
+        put(12, D + 3, gz, "ilight")
+
+    # ---- OBSERVATION LOUNGE - the viewport gallery, kept lofty and reverent. Tiered benches face
+    # the recessed cyan port, which is the room's own light; almost nothing else.
+    for i, zc in enumerate((48, 50, 52)):               # three solid tiers stepping toward the glass
+        for x in range(48, 74):
+            for y in range(D + 1, D + 2 + i):
+                put(x, y, zc, "panel")
     for x in range(48, 74):
-        put(x, D + 1, 53, "panel"); put(x, D + 2, 53, "rail")     # bench + rail before the glass
-    box(52, 70, D + 1, D + 1, 40, 42, "panel")                    # a central plinth
-    put(60, D + 1, 43, "ilight2")                                 # uplight on the window
-    overhead(46, 76, (37, 49))
+        put(x, D + 1, 47, "pipe")                       # the aisle rail before the seating
+    box(55, 58, D + 1, D + 2, 42, 44, "panel")          # a central dedication plinth (off the axis)
+    for x in range(55, 68, 3):
+        put(x, D, 54, "ilight2")                        # the port's own uplight, motivated glow
+    overhead(46, 76, (40, 43, 46))
 
-    # CONTROL ROOM - periscope column, mezzanine consoles, helm and chart tables below
+    # ---- CONTROL ROOM - the command dais. A horseshoe of consoles rings the periscope on the
+    # mezzanine; the chart table sits below; instrument walls face in on both bulkheads.
     for y in range(D + 1, 62):
-        put(101, y, 43, "pipe2")                                  # the scope column up into the sail
-    box(95, 105, D + 9, D + 9, 42, 44, "console"); put(100, D + 10, 43, "ilight2")
-    box(82, 90, D + 1, D + 2, 38, 40, "console"); box(82, 90, D + 1, D + 2, 46, 48, "console")
-    put(86, D + 1, 39, "ilight"); overhead(80, 110, (35, 51))
+        put(101, y, 43, "pipe2")                        # the scope column, up into the open sail
+    for x in range(93, 108):                            # the console horseshoe on the mezzanine top
+        for z in (39, 47):
+            put(x, D + 9, z, "console")
+    for z in range(39, 48):
+        put(93, D + 9, z, "console"); put(107, D + 9, z, "console")
+    put(100, D + 10, 43, "ilight2")
+    box(84, 90, D + 1, D + 2, 41, 45, "console")        # the chart / helm table on the lower deck
+    put(87, D + 3, 43, "ilight3")                       # its reading lamp, still lit
+    for bx in (79, 111):                                # ballast board fwd, gauge bank aft
+        for y in range(D + 1, D + 5):
+            for z in range(38, 49):
+                if z in range(41, 46) and y in range(D + 1, D + 4):
+                    continue                            # leave the bulkhead doorway clear
+                put(bx, y, z, "console")
+        for gz in range(38, 49, 2):
+            put(bx, D + 4, gz, "ilight")
 
-    # CREW QUARTERS - stacked bunks, a mess table, and the squid inrush at the breach (x114-126)
-    for zside in (30, 55):
-        box(128, 137, D + 1, D + 1, zside, zside + 1, "bunk")     # lower mattress, on the deck
-        box(128, 137, D + 3, D + 3, zside, zside + 1, "bunk")     # upper mattress
-        for ex in (128, 137):                                    # end frames tie the bunks together
-            box(ex, ex, D + 1, D + 4, zside, zside + 1, "bunk")
-    box(129, 135, D + 1, D + 1, 42, 44, "panel"); put(132, D + 1, 43, "ilight")
-    box(116, 125, D + 1, D + 3, 42, 54, "debris")                # rubble driven in by the breach
-    overhead(112, 139, (36, 50))
+    # ---- CREW QUARTERS - bunks down both flanks, a mess table, and the breach. The sea broke in
+    # here and it is the only way in, so it is dressed as a WOUND: rubble spilling across the deck,
+    # a torn corroded lip, and a cold light bleeding from the hole.
+    for zc in (28, 47):                                # both flanks, kept inside the quarters hull
+        for x in range(127, 139):
+            put(x, D + 1, zc, "bunk"); put(x, D + 3, zc, "bunk")   # lower + upper mattress
+        for ex in (127, 133, 138):                     # end and mid frames tie each stack together
+            for y in range(D + 1, D + 5):
+                put(ex, y, zc, "bunk")
+    box(131, 135, D + 1, D + 1, 42, 44, "panel")        # the mess table
+    put(133, D + 2, 43, "ilight3")                      # the mess lamp, still lit
+    for x in range(116, 127):                           # rubble driven in, INBOARD of the cut (z<48)
+        for z in range(44, 48):
+            put(x, D + 1, z, "debris")
+            if (x + z) % 3 == 0:
+                put(x, D + 2, z, "debris")
+        for y in range(D + 1, D + 3 + (x % 2)):         # the torn, corroded lip at the breach rim
+            put(x, y, 47, "pipe2")
+    for x in (117, 125):
+        put(x, D + 3, 47, "ilight")                     # cold light bleeding in at the lip
 
-    # ENGINE ROOM - machinery banks, the drive-shaft line, and flooding (the derelict aft)
-    box(146, 160, D + 1, D + 4, 38, 40, "machine"); box(146, 160, D + 1, D + 4, 46, 48, "machine")
-    for x in range(141, 164):
-        put(x, D + 5, 43, "pipe2")                               # the drive shaft
-        if x % 4 == 0:                                           # shaft bearings down to the deck
-            box(x, x, D + 1, D + 4, 43, 43, "machine")
-    box(143, 162, D + 6, D + 6, 41, 45, "pipe"); put(150, D + 2, 43, "ilight")
-    for q in inside:                                             # flood the aft compartment
+    # ---- ENGINE ROOM - flooded and dead but for the reactor: a lit core rising out of the black
+    # water, ringed in iron and copper valves, the drive shaft running aft to the dead rotor.
+    for q in inside:                                    # flood the aft compartment
         x, y, z = q
         if 141 <= x <= 163 and 14 <= y <= D + 2:
             cells.add(q); parts.setdefault(q, "water")
-
-    # ---- HYPER-DETAIL: the fittings that give each compartment its job ----
-    # Bow: two torpedo tubes on the centreline, breeches facing aft, round doors.
-    for zc in (39, 47):
-        box(16, 26, D + 1, D + 3, zc - 1, zc + 1, "machine")
-        box(18, 26, D + 2, D + 2, zc, zc, "debris")             # the bore
-        box(26, 26, D + 1, D + 3, zc - 1, zc + 1, "pipe")       # the breech door ring
-    # Observation lounge: a dedication plaque set beside the rail, and an overhead cable run.
-    box(58, 62, D + 2, D + 2, 52, 52, "console"); put(60, D + 2, 52, "ilight2")
-    overhead(49, 73, (40, 44))                                  # cable run hung from the deckhead
-    # Control room: captain's chair, a ballast board forward, gauge banks on the aft bulkhead.
-    put(86, D + 1, 43, "panel"); box(85, 85, D + 1, D + 3, 43, 43, "machine")   # chair + backrest
-    box(79, 79, D + 1, D + 4, 38, 48, "console")               # ballast board (fwd bulkhead face)
-    for gz in range(39, 48, 2):
-        put(79, D + 2, gz, "ilight")                           # its gauges
-    box(111, 111, D + 1, D + 4, 38, 48, "console")            # gauge bank (aft bulkhead face)
-    for gz in range(39, 48, 2):
-        put(111, D + 3, gz, "ilight")
-    # Crew quarters: a locker bank, and torn plating hung around the breach.
-    for lz in range(32, 54, 3):
-        box(139, 139, D + 1, D + 4, lz, lz, "machine")
-    box(115, 126, D + 3, D + 4, 40, 41, "machine")             # peeled deckhead by the hole
-    # Engine room: the reactor core - a lit core ringed in iron and copper valves, above the flood.
-    box(148, 153, D + 3, D + 6, 41, 45, "machine")
-    box(150, 151, D + 4, D + 5, 42, 44, "ilight2")             # the glowing core
-    for vx in (147, 154):
-        box(vx, vx, D + 3, D + 6, 42, 44, "pipe")             # valve stacks
+    box(147, 154, D - 1, D + 6, 41, 45, "machine")      # the reactor casing, tall through the flood
+    for y in range(D - 1, D + 7):                        # its forward face in iron - the one machine
+        for z in range(41, 46):                          # still alive, read as heavy steel from the deck
+            if (147, y, z) in cells and parts.get((147, y, z)) == "machine":
+                parts[(147, y, z)] = "iron"
+    box(150, 151, D + 2, D + 4, 42, 44, "ilight2")      # a contained core glowing up through the water
+    for vx in (146, 155):                               # corroded valve stacks either side
+        for y in range(D, D + 6):
+            put(vx, y, 42, "pipe2"); put(vx, y, 44, "pipe2")
+    for x in range(141, 164):
+        put(x, D + 5, 43, "pipe2")                      # the drive shaft, aft
+        if x % 4 == 0:
+            for y in range(D + 1, D + 5):
+                put(x, y, 43, "machine")                # its bearings down to the deck
+    box(144, 160, D + 6, D + 6, 41, 45, "pipe")         # an overhead service run
+    bank(142, 145, riser="pipe2", step=3)               # green risers - the sea got in worst here
+    put(158, D + 3, 43, "ilight3")                      # one gauge still flickering
     return cells, parts
 
 
@@ -490,6 +560,16 @@ def build(cfg: dict, donors=None) -> Canvas:
                 else:
                     iparts[q] = pt; icells.add(q)
         parts.update(iparts); shown = shell | icells       # hollow hull + fitted interior
+        # SEE OUT OF THE VIEWPORT. The port is dished into the OUTER skin with the inner shell
+        # course still solid behind it, so from inside the observation lounge faced a deepslate
+        # wall and the window only read from outside. Open the one hull course directly inboard of
+        # each glazed pane (the +z flank, so inboard is -z), leaving the frame surround solid, so
+        # the lounge actually looks through the glass to the sea.
+        for q in list(shown):
+            if parts.get(q) == "viewport":
+                inb = (q[0], q[1], q[2] - 1)
+                if inb in shown and parts.get(inb) not in ("viewport", "viewport_frame"):
+                    shown.discard(inb); parts.pop(inb, None)
         # Open the crush breach through to the deck: remove the south wall above the floor at the
         # main crater so the torn hole is a real, walkable entrance and the ONLY way in.
         for q in list(shown):
@@ -508,8 +588,9 @@ def build(cfg: dict, donors=None) -> Canvas:
     st = {k: c.raw_state(p[k]) for k in ("hull", "hull_crack", "dark", "dark_crack",
           "cu1", "cu2", "cu3", "cu4", "glass", "crack", "light", "scar",
           "alloy", "optic", "lens", "lantern",
-          "i_deck", "i_wall", "i_mezz", "i_rail", "i_pipe", "i_pipe2", "i_machine",
-          "i_panel", "i_debris", "i_bunk", "i_lamp", "i_lamp2", "water", "mark", "trim")}
+          "i_deck", "i_wall", "i_mezz", "i_rail", "i_pipe", "i_pipe2", "i_machine", "i_iron",
+          "i_panel", "i_debris", "i_beam", "i_bunk", "i_lamp", "i_lamp2", "i_lamp3",
+          "water", "mark", "trim")}
     cracked = {st["hull"]: st["hull_crack"], st["dark"]: st["dark_crack"]}
     counts = {k: 0 for k in ("hull", "viewport", "viewport_frame", "tower", "antenna", "shaft",
               "rotor", "survey_arm", "fin", "scar", "breach", "glass", "corrosion",
@@ -522,7 +603,7 @@ def build(cfg: dict, donors=None) -> Canvas:
             c.put(x, y, z, grey); continue
         if part in IFINISH:                              # the fitted interior
             c.put(x, y, z, st[IFINISH[part]])
-            if part in ("ilight", "ilight2"):
+            if part in ("ilight", "ilight2", "ilight3"):
                 counts["light"] = counts.get("light", 0) + 1
             continue
         if part in ("alloy", "optic", "lens", "lantern"):

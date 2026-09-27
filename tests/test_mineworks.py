@@ -18,7 +18,7 @@ from mcbuild.circuit import Circuit
 from mcbuild.gen import mineworks
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG = os.path.join(ROOT, "configs", "pf_mine_works.yaml")
+CONFIG = os.path.join(ROOT, "configs", "pf_prep_works.yaml")
 
 
 @pytest.fixture(scope="module")

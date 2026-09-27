@@ -39,8 +39,10 @@ params:
     # forecourt is U231-239 behind it, so it fronts the ride exactly as it fronted the hall.
     - kind: marquee
       name: Carousel Court
-      at: [20, 235]
+      # The ride centre is fenced; the entrance is the north side approach.
+      at: [20, 227]
       span: 7
+      depth: 1
       height: 7
       board: 3
       title: THE CAROUSEL
@@ -121,11 +123,14 @@ params:
     # fifty blocks between it and the last one.
     - kind: marquee
       name: Sky Lift
+      # A direction board beside the promenade, not an arch into ride fencing.
       at: [128, 274]
-      span: 3
-      depth: 2
+      style: board
+      width: 5
+      height: 4
+      depth: 1
       title: THE SKY LIFT
-      lines: ["big wheel", "queue behind"]
+      lines: ["wheel ahead", "use front walk"]
     # THE QUEUE CANNOT FOLLOW IT ALL THE WAY. At V118 a 10-deep line runs V118-127 and the last
     # five of those are the PROMENADE, which is a street and not a lot. So it stops one course
     # short of the verge at V120, on the Cascade's own lot - which is why `PF Midway Cascade`
@@ -151,12 +156,7 @@ params:
     # problem: a lot whose door is a 3-wide spur with a gantry already over it. Marquee on the spur
     # at V20, portals at V21 flanking it - U227 and U243, eight either side of the lot's centre, so
     # a 5-wide frame clears the gantry's piers at U231/U239 and the verge lamp masts at U216/U238.
-    - kind: portal
-      name: Carousel entrance
-      at: [21, 227]
-      mode: entrance
-      title: RIDE ENTRANCE
-      lines: ["carousel", "", "step up"]
+    # The relocated Carousel marquee now marks the entrance itself.
     - kind: portal
       name: Carousel exit
       at: [21, 243]
@@ -192,6 +192,26 @@ params:
     # console's cells, and `park_games` counts a refusal as a siting error because a machine
     # missing a cell is a machine that does nothing. Bunting belongs over a walk in any case, and
     # the row strings it across its own.
+    # Single-bay strings across the two avenues, measured against the assembled
+    # park. Supports are three cells beyond the paving edge; six clear courses
+    # remain below the lowest pennant. The U300 arrival sightline stays open.
+    - kind: sight
+      name: Carousel avenue bunting
+      motif: bunting
+      at: [58, 254]
+      facing: north
+      span: 1
+      step: 12
+      height: 8
+    - kind: sight
+      name: Garden avenue bunting
+      motif: bunting
+      at: [40, 335]
+      facing: north
+      span: 1
+      step: 12
+      height: 8
+
 roles: [construction]
 design:
   purpose: path

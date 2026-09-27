@@ -43,6 +43,23 @@ LANDS = {
 }
 LAWN, LAWN_TRIM = "moss_block", "moss_carpet"
 
+#: The closest two street lamps ever get. Two nudged off the same plaza from opposite verges once
+#: landed one and two blocks apart - a pair of posts side by side, which reads worse than the gap
+#: they were avoiding.
+#:
+#: IT IS NOT A RULE ABOUT A PAIR FACING EACH OTHER ACROSS A STREET, and read as one it broke both
+#: mid-block walks: a walk is four wide, eight is more than four, so the second verge's mast could
+#: never stand opposite its own partner and was nudged four along - every pair, on both walks.
+#: `place_pair` settles a pair before either half is on the list, which is what exempts it.
+MAST_CLEAR = 8
+#: How far a crossbeam lamp's arms reach either side of its mast. Two facing masts closer than
+#: twice this SHARE their beam - see the walk branch in `build`.
+ARM_REACH = 2
+#: TWELVE, NOT EIGHT. Eight is the anti-bunching minimum - the closest two street lamps ever get -
+#: and anything allowed to sit at exactly that distance from a junction lamp reads as a fifth
+#: corner rather than as the first post of a run.
+JUNCTION_CLEAR = 12
+
 PARKWAYS = {
     "bounds": [0, 0, 199, 599],   # V0..V199 by U0..U599 - the whole envelope
     "lands": None,                 # [{name, u0, u1}] in U order; the gaps between them are reaches
@@ -150,11 +167,24 @@ def build(cfg: dict, donors=None) -> Canvas:
                for rb in (p.get("roundabouts") or [])]
 
     #: The vistas: paved, and furnished by nobody. Held in the canvas' own lattice like `reserved`.
+    #:
+    #: A KEEP-CLEAR MAY BE ROUND, BECAUSE A HOLE IS. Written as a rectangle only, the Prism Well's
+    #: hundred-wide mouth has to be declared as its own bounding square - and that square's
+    #: corners reach r70, where the deck is real and a lamp standing on it is a lamp doing its
+    #: job. A disc is 79% of the square it fits in, so the rectangle-only version puts out about
+    #: a fifth of a land's lighting to solve a problem that exists only inside r50.
     keep_clear = [(int(k["v0"]) - v0, int(k["u0"]) - u0, int(k["v1"]) - v0, int(k["u1"]) - u0)
-                  for k in (p.get("keep_clear") or [])]
+                  for k in (p.get("keep_clear") or []) if "v0" in k]
+    keep_clear_discs = [(int(k["v"]) - v0, int(k["u"]) - u0, float(k["r"]))
+                        for k in (p.get("keep_clear") or []) if "r" in k]
+
+    def in_keep_clear_disc(x: int, z: int) -> bool:
+        return any((x - ix) ** 2 + (z - iz) ** 2 < r * r for ix, iz, r in keep_clear_discs)
 
     def is_keep_clear(x: int, z: int) -> bool:
-        return any(a <= x <= c and b <= z <= d for a, b, c, d in keep_clear)
+        if any(a <= x <= c and b <= z <= d for a, b, c, d in keep_clear):
+            return True
+        return in_keep_clear_disc(x, z)
 
     def is_reserved(x: int, z: int) -> bool:
         if any(a <= x <= c and b <= z <= d for a, b, c, d in reserved):
@@ -555,23 +585,29 @@ def build(cfg: dict, donors=None) -> Canvas:
     #: is the object a walker passes most often.
     LAMPS = {"frontier": lamp_frontier, "midway": lamp_midway, "prismworks": lamp_prismworks}
 
-    def lamp(x: int, z: int, pal: dict, across: str) -> bool:
+    def mast_ok(x: int, z: int, across: str) -> bool:
         """A LAMP STANDS ON LAWN, NEVER ON A PATH. Jack: "several areas have lamp posts on walk
         ways and in weird places" - the verge is two cells outboard of the spine's own border,
         but where an avenue, a plaza, the mid-block walk or the service lane crosses that line
         the cell is paving, and a post was going down in the middle of it. The mast's cell and
-        both arm cells are checked; an arm may reach OVER a path, a post may not stand in one."""
+        both arm cells are checked; an arm may reach OVER a path, a post may not stand in one.
+
+        ASKED WITHOUT BUILDING, because a PAIR has to be settled before either half of it goes
+        down - see `place_pair`."""
         # A MAST'S ARMS REACH TWO CELLS EITHER SIDE OF IT, so a vista is cleared by testing the
         # WHOLE FIVE-CELL SPREAD against the reserve and not just the post. Tested at the post
         # alone, a mast one cell outside a nine-wide walk still hangs a lantern in the middle of
         # it - which is exactly how the second of these two came to stand where it does.
         if any(is_keep_clear(*_step(x, z, side, across)) for side in (-2, -1, 0, 1, 2)):
             return False
-        if not (0 <= x < sx and 0 <= z < sz) or is_reserved(x, z) or (x, z) in paved:
-            return False   # counted by the caller: a refusal is a lamp that would have stood
-                           # in a walkway, and the count is how the guard is checked at all -
-                           # after the fact a lamp's own FOOTING has replaced the lawn under it,
-                           # so nothing downstream can tell where it was placed from.
+        # a refusal here is a lamp that would have stood in a walkway, and the caller's count is
+        # how the guard is checked at all - after the fact a lamp's own FOOTING has replaced the
+        # lawn under it, so nothing downstream can tell where it was placed from.
+        return (0 <= x < sx and 0 <= z < sz) and not is_reserved(x, z) and (x, z) not in paved
+
+    def lamp(x: int, z: int, pal: dict, across: str) -> bool:
+        if not mast_ok(x, z, across):
+            return False
         return LAMPS[pal["land"]](x, z, pal, across)
 
     lamps = glows = refused = 0
@@ -594,14 +630,26 @@ def build(cfg: dict, donors=None) -> Canvas:
     #: station than its own - which is exactly how thirteen of them ended up stacked on one line.
     WINDOW_SHORT = tuple(s for k in range(0, p["lamp_every"] // 2 - 2, 2) for s in ((k,) if not k else (k, -k)))
 
-    #: TWELVE, NOT EIGHT. Eight is the anti-bunching minimum - the closest two street lamps ever
-    #: get - and anything allowed to sit at exactly that distance from a junction lamp reads as a
-    #: fifth corner rather than as the first post of a run.
-    JUNCTION_CLEAR = 12
     junction_at: list = []
 
     def near_junction(x: int, z: int) -> bool:
         return any(abs(px - x) + abs(pz - z) < JUNCTION_CLEAR for px, pz in junction_at)
+
+    def clear_for_mast(mx: int, mz: int, across: str, window) -> bool:
+        """Everything that decides whether a mast may stand here, asked WITHOUT building it."""
+        # A NUDGE MUST NOT BUNCH. Two lamps pushed off the same plaza from opposite verges
+        # landed one and two blocks apart - a pair of posts side by side, which reads worse
+        # than the gap it was avoiding. Eight is about the closest two street lamps ever get.
+        if any(abs(px - mx) + abs(pz - mz) < MAST_CLEAR for px, pz in lamp_at):
+            return False
+        # AND THE NUDGE MUST RESPECT A CROSSING TOO. Blocking the intended cell but not the
+        # ones it can be walked to is no guard at all: the promenade run near the Midway's
+        # second avenue was pushed to eight blocks off that junction's own mast, which reads
+        # as a fifth corner and broke the symmetry of the one junction that was already
+        # right. Junction lamps themselves pass, or none of them could ever be laid.
+        if window != (0,) and near_junction(mx, mz):
+            return False
+        return mast_ok(mx, mz, across)
 
     def place_lamp(x: int, z: int, pal: dict, across: str, window=WINDOW_LONG) -> bool:
         """One lamp, nudged ALONG its own verge line until it clears paving - or dropped.
@@ -611,19 +659,25 @@ def build(cfg: dict, donors=None) -> Canvas:
         lamp's own FOOTING has replaced the lawn under it and nothing downstream can tell where
         it was placed from."""
         nonlocal lamps, refused
+        # A VISTA IS A CORRIDOR AND A HOLE IS NOT, SO THEY GET DIFFERENT ANSWERS. Stepping a mast
+        # along its own street until it clears a sightline is a real fix - it still lights the
+        # street, which is the whole reason the two vista bands carry a cell of tolerance so a
+        # nudged mast "cannot arrive back in the vista from the end". A disc is the Prism Well's
+        # mouth: there is no along-the-street to step to, because the street stops. The only
+        # cells a nudge can reach are the rim, and a lamp on the rim of a two-hundred-course void
+        # is the thing being fixed rather than the fix.
+        #
+        # It cost the rhythm to find out. Refusing the mouth and letting the nudge run moved the
+        # avenue mast at V42/U522 two cells to V40 - out of the disc by half a block, and off its
+        # own rhythm station, which is the one thing `test_a_lamp_stands_on_one_line` exists to
+        # forbid. A MISSING LAMP IS INVISIBLE; A LAMP OFF ITS LINE IS NOT, and this module's own
+        # docstring already says so about the window.
+        if any(in_keep_clear_disc(*_step(x, z, side, across)) for side in (-2, -1, 0, 1, 2)):
+            refused += 1
+            return False
         for shift in window:
             sx_, sz_ = (x, z + shift) if across == "x" else (x + shift, z)
-            # A NUDGE MUST NOT BUNCH. Two lamps pushed off the same plaza from opposite verges
-            # landed one and two blocks apart - a pair of posts side by side, which reads worse
-            # than the gap it was avoiding. Eight is about the closest two street lamps ever get.
-            if any(abs(px - sx_) + abs(pz - sz_) < 8 for px, pz in lamp_at):
-                continue
-            # AND THE NUDGE MUST RESPECT A CROSSING TOO. Blocking the intended cell but not the
-            # ones it can be walked to is no guard at all: the promenade run near the Midway's
-            # second avenue was pushed to eight blocks off that junction's own mast, which reads
-            # as a fifth corner and broke the symmetry of the one junction that was already
-            # right. Junction lamps themselves pass, or none of them could ever be laid.
-            if window != (0,) and near_junction(sx_, sz_):
+            if not clear_for_mast(sx_, sz_, across, window):
                 continue
             if lamp(sx_, sz_, pal, across):
                 lamps += 1
@@ -632,6 +686,55 @@ def build(cfg: dict, donors=None) -> Canvas:
                 return True
         refused += 1
         return False
+
+    def place_pair(va: int, vb: int, z: int, pal: dict, window=WINDOW_LONG) -> bool:
+        """BOTH VERGES OF ONE STREET TAKE THE SAME STATION, OR NEITHER DOES.
+
+        `run` already drives both verges from one list of stations, so the two rows leave it
+        identical - and then `place_lamp` steps each mast along its own line, on its own, with
+        no idea the other verge exists. Measured on the shipped park that is three offset pairs
+        on the spine (U69 against U67, U236 against U238, U496 against U498) and BOTH mid-block
+        walks staggered by four, which is every pair either of them has.
+
+        AND THE ANTI-BUNCHING RULE IS WHY THE WALKS STAGGERED, not a plaza in the way. It is
+        eight, a mid-block walk is four wide, so the second verge's mast was always within eight
+        of the first and could NEVER stand opposite its own partner: it was nudged four along,
+        every time, on both walks. Neither mast is on the list while the other is tested here,
+        so a pair facing each other across a narrow walk is a pair rather than a bunch.
+
+        WHAT IS FORBIDDEN IS NUDGING ALONE, NOT STANDING ALONE. A spur is on ONE side of its
+        street - the spine's east verge is paved at U407 and its west verge is not - and a
+        threshold's masts stand off the south verge only. Dropping the good verge for the sake
+        of the blocked one cost two lamps and opened a 95-block hole where there had been two of
+        40 and 43. So a station that cannot be paired is taken by whichever verge can hold it,
+        at the station itself and with NO nudge: the two rows can differ where the street
+        genuinely differs, and can never drift apart by two."""
+        nonlocal lamps, refused
+        for v in (va, vb):
+            if any(in_keep_clear_disc(*_step(v, z, side, "x")) for side in (-2, -1, 0, 1, 2)):
+                refused += 2
+                return False
+
+        def put(v: int, at: int) -> bool:
+            nonlocal lamps
+            if not lamp(v, at, pal, "x"):
+                return False
+            lamps += 1
+            lamp_at.append((v, at))
+            per_line[v + v0] = per_line.get(v + v0, 0) + 1
+            return True
+
+        for shift in window:
+            zz = z + shift
+            if not all(clear_for_mast(v, zz, "x", window) for v in (va, vb)):
+                continue
+            for v in (va, vb):
+                put(v, zz)
+            return True
+        placed = sum(put(v, z) for v in (va, vb)
+                     if clear_for_mast(v, z, "x", window))
+        refused += 2 - placed
+        return bool(placed)
 
     # ------------------------------------------------------------ a junction lights ITSELF
     #
@@ -794,17 +897,21 @@ def build(cfg: dict, donors=None) -> Canvas:
                     out.append(lo + int(round((hi - lo) * (i + 1) / (n + 1))))
         return [z for z in sorted(set(out)) if z0 <= z <= z1]
 
-    def run(vline: int, spans, every: int, mates=()) -> None:
+    def run(va: int, vb: int, spans, every: int) -> None:
         # A STREET'S TWO VERGES ARE SPACED FROM THE SAME CROSSINGS. A threshold leaves the spine
         # southward, so it lights the south verge only - and spacing each verge from its own
         # lamps then pinned one run and not the other, and the two rows came apart. The anchors
         # are the crossings of the STREET, whichever verge happens to carry their masts.
-        lines = set(mates) | {vline}
-        anchors = [pz for px, pz in junction_at if px in lines]
+        #
+        # ...AND THE STAND-OFF FROM A CROSSING IS THE STREET'S TOO. Asked per verge it answered
+        # differently on each: the threshold masts sit on the south verge, so U447 was inside
+        # twelve of one on V20 and dropped, while V4 - which carries no mast there - kept it.
+        # One unpaired lamp on the park's main boulevard, from a guard asked one verge at a time.
+        anchors = [pz for px, pz in junction_at if px in (va, vb)]
         for z0, z1 in spans:
             for z in spaced(z0, z1, anchors, every):
-                if 0 <= z < sz and not near_junction(vline, z):
-                    place_lamp(vline, z, land_at(z + u0)[0], "x")
+                if 0 <= z < sz and not (near_junction(va, z) and near_junction(vb, z)):
+                    place_pair(va, vb, z, land_at(z + u0)[0])
 
     prom_v = {prom_at(z + u0) for z in range(sz) if prom_open(z + u0)}
     spans_prom, open_run = [], None
@@ -815,16 +922,14 @@ def build(cfg: dict, donors=None) -> Canvas:
         elif not opened and open_run is not None:
             spans_prom.append((open_run, z - 1)); open_run = None
     sp_lines = (spine_v - p["spine_half"] - 2, spine_v + p["spine_half"] + 2)
-    for side in (-1, 1):
-        run(spine_v + side * (p["spine_half"] + 2), [(0, sz - 1)], p["lamp_every"], sp_lines)
-        # A CURVED PROMENADE HAS NO ONE VERGE LINE, so it keeps the old per-cell rhythm. It is
-        # switched off in the shipped park (a swerve has to ramp somewhere and every place the
-        # ramp could go is spoken for), and this is the branch that says so rather than silently
-        # spacing a curve against a line it does not have.
-        if len(prom_v) == 1:
-            pc = next(iter(prom_v)) - v0
-            run(pc + side * (prom_half + 2), spans_prom, p["lamp_every"] + 6,
-                (pc - prom_half - 2, pc + prom_half + 2))
+    run(sp_lines[0], sp_lines[1], [(0, sz - 1)], p["lamp_every"])
+    # A CURVED PROMENADE HAS NO ONE VERGE LINE, so it keeps the old per-cell rhythm. It is
+    # switched off in the shipped park (a swerve has to ramp somewhere and every place the
+    # ramp could go is spoken for), and this is the branch that says so rather than silently
+    # spacing a curve against a line it does not have.
+    if len(prom_v) == 1:
+        pc = next(iter(prom_v)) - v0
+        run(pc - prom_half - 2, pc + prom_half + 2, spans_prom, p["lamp_every"] + 6)
     # THE CROSS WALKS WERE COMPLETELY UNLIT, and they are the entire street access for three
     # attractions - the Snack Window, the Prize Point and the Resonance Vault. Measured, not one
     # mast stood within two cells of any of the three. They are streets and they are lit like
@@ -836,17 +941,44 @@ def build(cfg: dict, donors=None) -> Canvas:
                 continue                     # a column with no slack has no room for a verge post
             wv, wh = int(wk["v"]) - v0, int(wk.get("half", 1))
             wz0, wz1 = int(wk["u0"]) - u0, int(wk["u1"]) - u0
-            for side in (-1, 1):
-                # ONE CELL OF VERGE, NOT TWO - the rule an avenue already follows, for the reason
-                # this park keeps re-teaching. At two the walk's mast stood on V71 and Arrival
-                # Court, whose lot is V24-71, measured a course short. A walk runs between two
-                # lots and the single cell between it and each of them is all the verge there is.
-                vline = wv + side * (wh + 1)
-                # A WALK IS SHORT AND NARROW AND TAKES A CLOSER RHYTHM. At the spine's own 22 a
-                # forty-block walk gets ONE post a side, which is a lamp rather than a lit street.
-                for z in spaced(wz0, wz1, [], max(8, p["lamp_every"] - 8)):
-                    if 0 <= z < sz and not near_junction(vline, z):
-                        place_lamp(vline, z, wpal, "x")
+            # ONE CELL OF VERGE, NOT TWO - the rule an avenue already follows, for the reason
+            # this park keeps re-teaching. At two the walk's mast stood on V71 and Arrival
+            # Court, whose lot is V24-71, measured a course short. A walk runs between two
+            # lots and the single cell between it and each of them is all the verge there is.
+            wa, wb = wv - wh - 1, wv + wh + 1
+            # A WALK IS SHORT AND NARROW AND TAKES A CLOSER RHYTHM. At the spine's own 22 a
+            # forty-block walk gets ONE post a side, which is a lamp rather than a lit street.
+            rhythm = max(MAST_CLEAR, p["lamp_every"] - 8)
+            narrow = wb - wa <= 2 * ARM_REACH
+            # AN ALTERNATING STREET HALVES ITS STATIONS, because each one carries a single post
+            # instead of a facing pair - so every OTHER station falls on a given verge and each
+            # verge keeps exactly the rhythm it was designed for. At the paired spacing a walk
+            # came out with two posts over forty-three blocks, which is a lamp rather than a lit
+            # street: the same complaint that put lamps on the cross walks in the first place.
+            stations = [z for z in spaced(wz0, wz1, [], rhythm // 2 if narrow else rhythm)
+                        if 0 <= z < sz]
+            if not narrow:
+                for z in stations:
+                    if not (near_junction(wa, z) and near_junction(wb, z)):
+                        place_pair(wa, wb, z, wpal)
+                continue
+            # A STREET NARROWER THAN A CROSSBEAM CANNOT CARRY TWO OF THEM. The midway lamp's arms
+            # reach two cells either side and a `half: 1` walk's verges are four apart, so the two
+            # beams MEET: one nine-wide gantry over a three-wide path, sharing a lantern in the
+            # middle and hanging the outer two over the lots. Facing pairs were only ever kept off
+            # each other here by MAST_CLEAR, which is why both walks came out staggered by four -
+            # the stagger was the collision being avoided, not a rhythm.
+            #
+            # So a narrow street ALTERNATES - one post per station, sides by INDEX, which is what
+            # an avenue already does and for the same reason. Keyed on the index rather than the
+            # coordinate so a dropped station cannot leave two neighbours on the same flank.
+            for k, z in enumerate(stations):
+                first = wa if k % 2 == 0 else wb
+                for vline in (first, wb if first == wa else wa):
+                    if near_junction(vline, z):
+                        continue
+                    if place_lamp(vline, z, wpal, "x", WINDOW_SHORT):
+                        break
 
     if len(prom_v) != 1:
         for z in range(sz):
@@ -880,7 +1012,14 @@ def build(cfg: dict, donors=None) -> Canvas:
             # three, so no two of them lit the same way. Keyed on the INDEX the alternation
             # survives whatever the spacing does.
             # (the short window: an avenue lamp may not wander into the next station's stretch)
-            for side in ((-1,) if k % 2 == 0 else (1,)):
+            # A STATION THAT CANNOT TAKE ITS OWN SIDE TAKES THE OTHER, RATHER THAN GOING DARK.
+            # The Plateau Vale's talus stands on SEVENTY-THREE of the frontier avenue's 131 west
+            # verge columns and its east verge is clear; refused on one flank the station simply
+            # went unlit, which on an alternating street is a hole of two rhythms rather than one.
+            # Both verges are real lines, so a lamp on the far one is not a lamp off its line -
+            # which is the rule the window exists to keep and the reason a nudge is bounded.
+            first = -1 if k % 2 == 0 else 1
+            for side in (first, -first):
                 if not near_junction(x, z + side * (ah + 1)):
                     # ONE CELL OF VERGE, NOT TWO. A lamp two cells out from an avenue's
                     # border stands INSIDE the building lot behind it, and measured against the
@@ -888,7 +1027,8 @@ def build(cfg: dict, donors=None) -> Canvas:
                     # on its own, to put the Mine Coaster's 71-wide lot one block short. The
                     # spine and the promenade have designed verges (V19-23, V120/V130) and keep
                     # their two; an avenue runs between two lots and gets one.
-                    place_lamp(x, z + side * (ah + 1), pal, "z", WINDOW_SHORT)
+                    if place_lamp(x, z + side * (ah + 1), pal, "z", WINDOW_SHORT):
+                        break
 
     # ...and the squares themselves: a FEW froglights set flush in the paving. Flush, because a
     # froglight IS the floor - an opaque emitter a course down - so it reaches one less than its

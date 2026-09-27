@@ -1,13 +1,13 @@
 {
   "origin": {
-    "x": 97519,
+    "x": 97522,
     "y": 203,
-    "z": 80308
+    "z": 80338
   },
   "size": {
-    "x": 134,
+    "x": 131,
     "y": 21,
-    "z": 161
+    "z": 131
   },
   "generated_by": "park_frontage",
   "kind": "park_frontage",
@@ -15,28 +15,8 @@
   "pieces": [
     {
       "kind": "marquee",
-      "title": "THE LOST VALE",
-      "signs": 2,
-      "lamps": 4,
-      "span": 5,
-      "piers": 4,
-      "frontage": [
-        -11,
-        11
-      ],
-      "height": 10,
-      "at": [
-        20,
-        19
-      ],
-      "facing": "west",
-      "land": "frontier",
-      "name": "Plateau Vale"
-    },
-    {
-      "kind": "marquee",
-      "title": "THE BONE BED",
-      "signs": 2,
+      "title": "THE BROKEN EDGE",
+      "signs": 1,
       "lamps": 4,
       "span": 7,
       "piers": 2,
@@ -46,8 +26,28 @@
       ],
       "height": 10,
       "at": [
-        20,
-        70
+        24,
+        43
+      ],
+      "facing": "west",
+      "land": "frontier",
+      "name": "Broken Plateau"
+    },
+    {
+      "kind": "marquee",
+      "title": "THE BONE BED",
+      "signs": 1,
+      "lamps": 4,
+      "span": 11,
+      "piers": 2,
+      "frontage": [
+        -7,
+        7
+      ],
+      "height": 10,
+      "at": [
+        23,
+        96
       ],
       "facing": "west",
       "land": "frontier",
@@ -173,7 +173,7 @@
     }
   ],
   "piece_count": 8,
-  "signs": 13,
+  "signs": 11,
   "refused_signs": [],
   "contract": "everything in front of and between the park's attractions: a name board on every one, queues at the rides, entrance and exit thresholds, and sight pieces in the measured empty bands - none of it below the build plane, and nothing over a paved column below head height",
   "unverified": [
@@ -212,52 +212,52 @@
       "narrative": "The Frontier's frontage: a name board over every attraction's own spur, entrance and exit thresholds flanking the Mine Coaster's approach, a switchback queue down the coaster's east flank, a water tower and two ore-cart props in the land's empty bands, and a staff gate on the works yard. Nothing below the build plane, nothing in a walkway, no street furniture.\n"
     },
     "metrics": {
-      "blocks": 1455,
+      "blocks": 1075,
       "materials": 19,
-      "dominant_material_share": 0.1684,
-      "light_blocks": 20,
+      "dominant_material_share": 0.1888,
+      "light_blocks": 16,
       "massing": {
-        "width": 134,
+        "width": 131,
         "height": 21,
-        "depth": 161,
-        "fill_ratio": 0.0032
+        "depth": 131,
+        "fill_ratio": 0.003
       },
       "silhouette": {
         "top": {
-          "area": 297,
-          "fill_ratio": 0.0138
+          "area": 219,
+          "fill_ratio": 0.0128
         },
         "front": {
-          "area": 222,
-          "fill_ratio": 0.0789
+          "area": 203,
+          "fill_ratio": 0.0738
         },
         "side": {
-          "area": 561,
-          "fill_ratio": 0.1659
+          "area": 519,
+          "fill_ratio": 0.1887
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.5278,
-          0.3801,
-          0.0921
+          0.4874,
+          0.3879,
+          0.1247
         ],
-        "top_silhouette_perimeter": 541,
-        "surface_faces_per_block": 2.1787
+        "top_silhouette_perimeter": 484,
+        "surface_faces_per_block": 2.2977
       },
       "material_counts": {
-        "spruce_planks": 245,
-        "stone_bricks": 190,
-        "stripped_spruce_log": 155,
-        "smooth_stone": 134,
-        "polished_blackstone_bricks": 128,
-        "dark_oak_stairs": 112,
-        "red_wool": 102,
+        "spruce_planks": 203,
+        "stone_bricks": 117,
+        "smooth_stone": 108,
+        "polished_blackstone_bricks": 100,
         "dark_oak_planks": 92,
-        "spruce_log": 90,
-        "stone_brick_stairs": 48,
-        "cracked_stone_bricks": 45,
-        "spruce_fence": 40
+        "spruce_log": 82,
+        "stripped_spruce_log": 79,
+        "dark_oak_stairs": 66,
+        "red_wool": 60,
+        "spruce_fence": 40,
+        "stone_brick_stairs": 36,
+        "cracked_stone_bricks": 31
       }
     },
     "checks": [],
@@ -269,7 +269,7 @@
     }
   },
   "design_system": {
-    "fingerprint": "723102a3c1eb4b8748dd7c5a6da8d3ec4b0fd291aabe697188e91af04fc2e327",
+    "fingerprint": "b6c5acee445066c7af91488d385798f61c3db3f0a54ce8db7b556ba942309257",
     "generator_source_digest": "a489ef6ff8b881cb9b7606057100aabb1fac48a1ef3fd3114f5bc41a4e7b2ae8",
     "anchors": [],
     "genome": {
@@ -312,9 +312,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 53.672658,
-    "blocks": 1455,
-    "blocks_per_second": 27.11
+    "seconds": 63.233868,
+    "blocks": 1075,
+    "blocks_per_second": 17.0
   },
   "generator_contract": {
     "ok": true,
@@ -323,7 +323,7 @@
     "roles": [
       "construction"
     ],
-    "blocks": 1455,
+    "blocks": 1075,
     "mechanic_families": [
       "light",
       "rail",
@@ -348,12 +348,7 @@
     "enforce_server_blocks": false
   },
   "server_compatibility": [],
-  "server_unlisted": [
-    "not in the provisional skyblock-1.19 list: chiseled_stone_bricks",
-    "not in the provisional skyblock-1.19 list: dark_oak_planks",
-    "not in the provisional skyblock-1.19 list: dark_oak_stairs",
-    "not in the provisional skyblock-1.19 list: polished_blackstone_bricks"
-  ],
+  "server_unlisted": [],
   "file": "PF Front Frontier.litematic",
   "name": "PF Front Frontier"
 }

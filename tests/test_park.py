@@ -523,3 +523,102 @@ def test_obstacles_are_actually_avoided_when_supplied(land):
         park.build(_cfg("stall", land="atlantis"))
     with pytest.raises(ValueError):
         park.build({**_cfg("stall"), "at": None})
+
+
+_CUT_FAMILIES = ("slab", "stairs", "trapdoor", "fence", "wall", "pane", "carpet")
+
+
+def _detail_share(m):
+    import numpy as np
+    from mcbuild import nbt
+    u, c = np.unique(m.ids.ravel(), return_counts=True)
+    tot = det = 0
+    for i, n in zip(u, c):
+        if i < 0 or i >= len(m.palette):
+            continue
+        name = nbt.state_name(m.palette[i]).split(":")[-1]
+        if name == "air":
+            continue
+        tot += int(n)
+        if any(name.endswith("_" + f) or name == f for f in _CUT_FAMILIES):
+            det += int(n)
+    return det, tot
+
+
+def test_a_proud_course_is_CUT_not_a_full_cube():
+    """A cornice, a plinth splay, a coping and a ceiling are not full cubes on any building anybody
+    admires, and cutting them costs NOTHING - off the stonecutter one block gives TWO slabs and one
+    stair, so a cut course is at worst the same material and usually half.
+
+    The number comes from `reference/amazingsteal`, another player's island on this same server:
+    their detail-block share is 12.0% where ours was 2.05%. This module generates more cells than
+    any other in the park and was the only one with no floor at all, which is why it drifted.
+    """
+    det = tot = 0
+    for land in LANDS:
+        for kind in KINDS:
+            if kind == "paths":            # ground layer, not a building
+                continue
+            d, t = _detail_share(park.build(_cfg(kind, land)).to_model())
+            det += d
+            tot += t
+    share = det / tot
+    assert share >= 0.10, f"park buildings are only {100 * share:.2f}% cut blocks"
+
+
+def test_a_lid_is_a_TOP_slab_and_a_lantern_still_has_a_FULL_block_to_hang_from():
+    """Two halves of one change, and the second is the trap.
+
+    A roof or ceiling laid as `type=top` slabs keeps its top face on the cell boundary, so it is
+    walked on and merlons still stand on it - but a lantern under a slab reads as HANGING FROM AIR
+    (`_hang_light` records the lowland finding). `_hang_light` re-puts a full block at its own
+    anchor and runs AFTER the lid; this asserts the outcome rather than the ordering, so moving
+    either call fails here instead of shipping a room of floating lanterns.
+    """
+    import collections
+
+    from mcbuild import blocks
+    for land in LANDS:
+        for kind in ("gate", "walkthrough"):
+            w, _f, _pal, _p = _built(kind, land=land)
+            by_course = collections.Counter(
+                y for (x, y, z), (n, pr) in w.cells.items() if pr.get("type") == "top")
+            # A LID IS A WHOLE COURSE. Asserting merely that SOME top slab exists is vacuous - the
+            # gate's ticket counter is six of them and satisfied that on the old code, which is how
+            # a contract ends up passing the fault it was written for.
+            assert by_course and max(by_course.values()) >= 40,                 f"{land}/{kind}: no course is a lid, only {dict(by_course)}"
+            for (x, y, z), (name, pr) in w.cells.items():
+                if pr.get("hanging") != "true":
+                    continue
+                above = w.cells.get((x, y + 1, z))
+                assert above, f"{land}/{kind}: lantern at {x} {y} {z} hangs from nothing"
+                assert blocks.is_full_cube(above[0].split("[")[0]), \
+                    f"{land}/{kind}: lantern hangs from {above[0]}, which is not a full block"
+
+
+@pytest.mark.parametrize("facing", FACINGS)
+def test_a_proud_course_leans_INTO_the_mass_at_every_facing(facing):
+    """A stair's TALL side IS its facing, so a cornice and a plinth splay both lean at the wall they
+    grow from - the step fills the junction and the undercut is on the side you can see.
+
+    THIS IS PARAMETRISED OVER FACING BECAUSE THAT IS WHERE IT WAS WRONG. `_Frame`'s i-axis is a
+    REFLECTION of its d-axis (`sx, sz = -dz, -dx`), so the left/right table `inward` used to carry
+    was right for north and south and inverted for east and west - and east is what the tests
+    default to, so every one of them agreed with the bug. A course that should read as one
+    continuous moulding came out as a sawtooth, because the step profile ran ALONG each run instead
+    of across it.
+    """
+    w, f, _pal, _p = _built("tower", facing=facing, tiers=4)
+    ring = [(k, pr) for k, (n, pr) in w.cells.items() if "half" in pr]
+    assert ring, "the tower lays no cut course at all"
+    xs = [x for (x, y, z), _ in ring]
+    zs = [z for (x, y, z), _ in ring]
+    cx, cz = (min(xs) + max(xs)) / 2, (min(zs) + max(zs)) / 2
+    out = []
+    for (x, y, z), pr in ring:
+        dx, dz = park._STEP[pr["facing"]]
+        here = abs(x - cx) + abs(z - cz)
+        there = abs(x + dx - cx) + abs(z + dz - cz)
+        if there >= here:
+            out.append((x, y, z, pr["facing"]))
+    assert not out, f"{len(out)} of {len(ring)} cut cells lean AWAY from the mass, e.g. {out[:3]}"
