@@ -2,6 +2,21 @@ package dev.jack.chunkscan;
 
 /** Grounded grid transitions: walk, one-block step/jump, or one-block descent. */
 final class WalkingSpace implements Nav.Passable {
+    /** Validate the planned ground edge, not the transient block occupied mid-jump. */
+    static boolean committedStepFits(Nav.Passable ground, net.minecraft.core.BlockPos from,
+                                     net.minecraft.core.BlockPos next) {
+        if (from == null || !ground.at(next.getX(), next.getY(), next.getZ())) return false;
+        return from.equals(next) || Nav.stepFits(ground, from.getX(), from.getY(), from.getZ(),
+            next.getX()-from.getX(), next.getY()-from.getY(), next.getZ()-from.getZ());
+    }
+
+    static net.minecraft.world.phys.Vec3 horizontalStep(net.minecraft.world.phys.Vec3 feet,
+                                                       net.minecraft.world.phys.Vec3 aim, double speed) {
+        var delta = new net.minecraft.world.phys.Vec3(aim.x-feet.x, 0, aim.z-feet.z);
+        double distance = delta.length();
+        return distance <= speed ? delta : delta.scale(speed/distance);
+    }
+
     private final Nav.Passable body;
     private final Nav.Passable footing;
 

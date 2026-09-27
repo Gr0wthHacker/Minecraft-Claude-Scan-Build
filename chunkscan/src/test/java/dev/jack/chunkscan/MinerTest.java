@@ -326,13 +326,6 @@ class MinerTest {
 			"a stall shorter than half a stash leg will fire on ordinary slow progress");
 	}
 
-	@Test
-	void aRefusedBridgeIsNotATrySpent() throws java.io.IOException {
-		// Printer.place returns REFUSED while it is still holding the LAST placement. Counted as an
-		// attempt, three of those in a row give up on a drop nothing ever actually tried to bridge.
-		assertTrue(source("Miner").contains("v != Printer.Verdict.REFUSED && ++bridgeTries"),
-			"a refusal still burns one of the bridge attempts");
-	}
 
 	@Test
 	void theWallInPlacesONEBlockPerTickBecauseThePrinterRefusesTheRest() throws java.io.IOException {
@@ -344,7 +337,7 @@ class MinerTest {
 		String src = source("Miner");
 		assertTrue(src.contains("Printer.place(mc, left.get(0), PLUG)"),
 			"the wall-in no longer places exactly one cell per tick");
-		assertEquals(2, src.split("Printer\\.place\\(", -1).length - 1,
+		assertEquals(1, src.split("Printer\\.place\\(", -1).length - 1,
 			"a new Printer.place call appeared - check it is not a loop that will be refused");
 	}
 

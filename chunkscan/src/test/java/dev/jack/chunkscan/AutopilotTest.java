@@ -20,6 +20,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * is the part that would send you spinning the long way round a heading for no reason.
  */
 class AutopilotTest {
+	@Test void miningBypassesEveryFlightRecoveryPath() {
+		String source = AutomationTest.src(Path.of("src/client/java/dev/jack/chunkscan/Autopilot.java"));
+		String tick = source.substring(source.indexOf("private static void tick(Minecraft mc)"));
+		assertTrue(tick.indexOf("if (Miner.running())") < tick.indexOf("if (!on)"));
+		String mining = tick.substring(0, tick.indexOf("if (!on)"));
+		assertTrue(mining.contains("guardUntil = 0"));
+		assertTrue(mining.contains("tickMiningWalk(mc, p)"));
+		assertTrue(mining.contains("return;"));
+		String walker = source.substring(source.indexOf("private static void tickMiningWalk"),
+			source.indexOf("private static void walkOn"));
+		assertTrue(walker.contains("p.getAbilities().flying = false"));
+		assertTrue(walker.contains("Nav.standable(mc.level)"));
+		assertTrue(walker.contains("WalkingSpace.committedStepFits"));
+		assertFalse(walker.contains("sendCommand"));
+		assertFalse(walker.contains("hold(mc"));
+		String miner = AutomationTest.src(Path.of("src/client/java/dev/jack/chunkscan/Miner.java"));
+		assertFalse(miner.contains("Autopilot.set(true)"));
+	}
 	@Test void aNoRouteHasABoundedRetryInsteadOfADirectFlightFallback() {
 		String source = AutomationTest.src(java.nio.file.Path.of("src/client/java/dev/jack/chunkscan/Autopilot.java"));
 		int noRoute = source.indexOf("no route and no way round to");

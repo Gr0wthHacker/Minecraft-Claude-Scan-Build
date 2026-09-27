@@ -4,6 +4,31 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WalkingSpaceTest {
+    @Test void aCommittedAscentSurvivesTheUnsupportedMidJumpCell() {
+        var from = new net.minecraft.core.BlockPos(0,64,0);
+        var next = new net.minecraft.core.BlockPos(1,65,0);
+        var walk = new WalkingSpace((x,y,z)->x==0 ? y>=64 : y>=65,
+            (x,y,z)->(x==0 && y==63)||(x==1 && y==64));
+        assertFalse(walk.at(0,65,0)); // the player's block at the apex
+        assertTrue(WalkingSpace.committedStepFits(walk,from,next));
+        var lostLanding = new WalkingSpace((x,y,z)->true,(x,y,z)->x==0 && y==63);
+        assertFalse(WalkingSpace.committedStepFits(lostLanding,from,next));
+    }
+
+    @Test void steeringConvergesWithoutReversingAtWaypointOrDuringLanding() {
+        var aim = new net.minecraft.world.phys.Vec3(1.5,65,0.5);
+        var feet = new net.minecraft.world.phys.Vec3(0.5,65.2,0.5);
+        for (int tick=0; tick<20; tick++) {
+            var step = WalkingSpace.horizontalStep(feet,aim,Autopilot.WALK_SPEED);
+            assertTrue(step.x>=0);
+            assertTrue(step.length()<=Autopilot.WALK_SPEED+1e-9);
+            assertEquals(0,step.y);
+            feet=feet.add(step);
+        }
+        assertEquals(aim.x,feet.x,1e-9);
+        assertEquals(0,WalkingSpace.horizontalStep(feet,aim,Autopilot.WALK_SPEED).length(),1e-9);
+    }
+
     @Test void flatWalkRequiresImmediateFooting() {
         var walk = new WalkingSpace((x,y,z)->y>=64,(x,y,z)->y==63 && x!=1);
         assertTrue(walk.at(0,64,0));

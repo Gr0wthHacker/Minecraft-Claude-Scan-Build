@@ -14,49 +14,11 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Branch-mines quartz in the Nether, on foot, and puts it away.
- *
- * <p>Everything this needs already existed — {@link Nav#standable} is a grounded router, {@link
- * Autopilot} walks, {@link Digger} breaks one watched block at a time, {@link Printer} places one,
- * {@link ContainerInteraction} opens a chest. What was missing was the CYCLE, and three gates that
- * would each have made it do nothing in silence:
- *
- * <ul>
- *   <li><b>The walk gate refused.</b> {@code Autopilot.walk} steers on foot only toward a fetch or
- *       a landing — Jack's rule, and a good one: on the island the work hangs over the void, so a
- *       body walking to it walks off the edge. A corridor the miner cut itself is a floor, so
- *       mining is the third destination that gate admits, and the ground condition it actually
- *       turns on still runs.</li>
- *   <li><b>The plot gate refused every cell.</b> See {@link Digger#authorize} — an island is an
- *       X/Z rectangle with no dimension, so in the Nether nothing is ever inside one.</li>
- *   <li><b>{@link VoidRisk} approved every cell.</b> It searched downward for a block that
- *       {@code blocksMotion}, and lava does not — so a drop into a lava lake read as CAUGHT and the
- *       one gate protecting the drops would have waved through every block whose quartz burns.</li>
- * </ul>
- *
- * <h2>Why a tunnel is safe to dig blind here, and it is not blind</h2>
- *
- * <p>Branch mining is how mining bots die: you break into a pocket you could not see. <b>This one
- * can see it</b> — the client holds every block of every loaded chunk, the ones behind the rock
- * included — so {@link LavaGuard} refuses a corridor with lava anywhere near it BEFORE a swing,
- * rather than reacting after one. Reaction is still the last layer and it has to be immediate:
- * lava in the Nether spreads a block every 10 ticks against the Overworld's 30.
- *
- * <h2>The cycle</h2>
- *
- * <pre>
- *   look ahead      LavaGuard over the next {@link #LOOKAHEAD} cells of corridor; lava -&gt; turn
- *   harvest         every exposed ore within reach, FIRST, before the corridor moves on
- *   advance         one cell, walking, on {@link Nav#standable}
- *   full            walk to the stash chest, empty the pack, walk back
- *   danger          escape, and PROVE the escape moved us
- * </pre>
- *
- * <p><b>It is not persisted across a relog, deliberately.</b> Every other job here resumes its
- * intent from {@code session.json}; this one holds a box, a heading and a live hazard model, and
- * all three are coordinates — {@link Wand}'s rule, that coordinates mean nothing without a world.
- * Resuming a job that swings a pickaxe into a world that has moved is the dangerous direction, and
- * typing {@code /cscan mine} again costs nothing.
+ * Finds actual quartz in loaded terrain and cuts supported corridors toward it on foot.
+ * Search is incremental, bounded by the authorized mining area and 4096 corridor cells,
+ * and currently stays at the starting tunnel height. Unsafe or stalled deposits are skipped.
+ * No target means stop, never speculative tunneling. Stash and emergency handling remain local
+ * to the session; no mining coordinates survive a relog.
  */
 final class Miner {
 
@@ -277,6 +239,9 @@ final class Miner {
 		}
 
 		on = true;
+        deposit = null;
+        oreSearch = null;
+        rejectedOre.clear();
 		dimension = mc.level.dimension().identifier().toString();
 		origin = here;
 		heading = p.getDirection();
@@ -307,10 +272,8 @@ final class Miner {
 		String note = "mining " + heading.getName() + " from " + Wand.fmt(here)
 			+ ", inside " + radius + " blocks, stash at " + Wand.fmt(chest)
 			+ ". Escape: /" + escapeCommand + ".";
-		if (!Autopilot.on()) {
-			Autopilot.set(true);
-			note += "  autofly was off — turned ON, because the miner walks.";
-		}
+		Autopilot.set(false);
+		note += " Walking only; flight is disabled for the mining trip.";
 		return note;
 	}
 
@@ -340,7 +303,7 @@ final class Miner {
 
 	static String status() {
 		if (!on) return "the miner is off. /cscan mine <radius> starts it where you stand.";
-		return "mining " + heading.getName() + ", " + depth + " cells in, " + report()
+		return (deposit == null ? "searching for quartz" : "quartz at " + Wand.fmt(deposit.ore())) + ", " + report()
 			+ (stashing != Stash.NO ? " [stashing: " + stashing + "]" : "")
 			+ (escapePhase != Escape.NO ? " [" + escapePhase + "]" : "");
 	}
@@ -422,82 +385,81 @@ final class Miner {
 			return null;
 		}
 
-		LavaGuard.Cells world = LavaGuard.of(mc.level);
+        if (deposit != null && System.currentTimeMillis() - progressAt > MINE_STALL_MS) {
+            rejectedOre.add(deposit.ore());
+            deposit = null;
+            Digger.pause(mc);
+        }
+        if (deposit != null && !isQuartz(mc, deposit.ore())) deposit = null;
+        if (deposit == null) {
+            Digger.pause(mc);
+            plan = List.of();
+            Hud.stopGuiding();
+            if (oreSearch == null) oreSearch = new QuartzSearch.Search(p.blockPosition());
+            deposit = oreSearch.advance(new QuartzSearch.World() {
+                public boolean corridor(BlockPos feet) { return miningCorridor(mc, feet); }
+                public boolean ore(BlockPos cell) { return isQuartz(mc, cell); }
+            }, rejectedOre, 32);
+            if (deposit == null && !oreSearch.done()) return null;
+            oreSearch = null;
+            if (deposit == null) return halt(mc,
+                "no reachable quartz found within the 4096-cell loaded, supported corridor search; move to another area");
+            oreStep = 0;
+            progressAt = System.currentTimeMillis();
+        }
+        // Keep the stash return point on the last occupied corridor cell.
+        while (oreStep < deposit.path().size()
+            && WalkingSpace.arrived(p.position(), deposit.path().get(oreStep))) {
+            origin = deposit.path().get(oreStep++);
+            depth = 1;
+            progressAt = System.currentTimeMillis();
+        }
+        BlockPos next = deposit.path().get(Math.min(oreStep, deposit.path().size()-1));
+        if (!miningCorridor(mc, next)) {
+            rejectedOre.add(deposit.ore());
+            deposit = null;
+            plan = List.of();
+            Digger.pause(mc);
+            Hud.stopGuiding();
+            return "quartz approach became unsafe; selecting another deposit";
+        }
+        var work = new ArrayList<BlockPos>();
+        for (BlockPos cell : List.of(next.above(), next))
+            if (!mc.level.getBlockState(cell).isAir()) work.add(cell);
+        if (!work.isEmpty()) {
+            // Dig only the next corridor face on a proven route to known quartz.
+            plan = List.copyOf(work);
+            Hud.stopGuiding();
+        } else {
+            plan = List.of();
+            Digger.pause(mc);
+            Hud.guideMine(next, "walking to quartz at " + Wand.fmt(deposit.ore()));
+        }
+        return null;
+    }
 
-		// A CLOCK ON THE DIGGING, because every other way of being stuck here has one and this did
-		// not. Treated as a reason to turn rather than to stop: a face that has produced nothing in
-		// three quarters of a minute is one worth giving up on, and TURN_LIMIT is what decides the
-		// box is finished.
-		if (System.currentTimeMillis() - progressAt > MINE_STALL_MS) {
-			return turnAway(mc, p, "nothing broken or gained here for "
-				+ (MINE_STALL_MS / 1000) + " seconds");
-		}
+    private static QuartzSearch.Deposit deposit;
+    private static QuartzSearch.Search oreSearch;
+    private static int oreStep;
+    private static final java.util.Set<BlockPos> rejectedOre = new java.util.HashSet<>();
 
-		// THE CORRIDOR IS LOOKED AT BEFORE IT IS COMMITTED TO. This is the layer that makes branch
-		// mining safe rather than lucky: the lava is already in the client's hands, so the corridor
-		// turns away from a pocket it has not touched yet.
-		LavaGuard.Threat ahead = LavaGuard.scan(world, segment(origin, heading, depth, LOOKAHEAD),
-			LavaGuard.SEGMENT_CLEAR);
-		if (ahead != null) return turnAway(mc, p, ahead.describe());
+    private static boolean isQuartz(Minecraft mc, BlockPos cell) {
+        return mc.level.isLoaded(cell) && mc.level.getBlockState(cell).is(
+            net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE);
+    }
 
-		// THE EDGE OF THE BOX IS ALSO A REASON TO TURN, AND NOTHING ELSE WOULD HAVE NOTICED. Past it
-		// the digger answers OFF_PLOT for every cell - correctly - so the plan stays full, no swing
-		// lands, and only a LAVA threat was able to turn the corridor. The miner would have stood at
-		// the boundary refusing its own work for as long as the session ran, in silence.
-		for (BlockPos c : face(origin, heading, depth)) {
-			if (!Digger.authorizedHere(dimension, c)) return turnAway(mc, p, "the edge of the working area");
-		}
-
-		List<BlockPos> work = new ArrayList<>(exposedOre(mc, p));
-		// THE FACE GOES LAST ON PURPOSE. Digger takes the first cell of the list that is in reach
-		// and NEVER the last one while any other remains, so ore is always stripped before the
-		// corridor moves past it - which is the whole point of a branch tunnel.
-		for (BlockPos c : face(origin, heading, depth)) {
-			if (!mc.level.getBlockState(c).isAir()) work.add(c);
-		}
-		plan = List.copyOf(work);
-
-		BlockPos stand = standFor(origin, heading, depth);
-		if (!work.isEmpty()) {
-			bridgeTries = 0;
-			Hud.guideMine(stand, "mining " + heading.getName());
-			return null;
-		}
-
-		// THE PLAN MUST NOT OUTRUN THE BODY. In an open cavern every face is already air, so without
-		// this the depth advanced once per replan - four ticks - while the body walked half a block,
-		// and the corridor ran off into unexplored dark dragging a target the body could never catch.
-		// It also decides where a turn re-origins, so a runaway plan puts the next branch somewhere
-		// nobody has ever stood.
-		if (!p.blockPosition().closerThan(stand, ARRIVE)) {
-			Hud.guideMine(stand, "walking up to the face");
-			return null;
-		}
-
-		// The face is cut. Step into it - but only onto something that will hold a body.
-		BlockPos next = standFor(origin, heading, depth + 1);
-		BlockPos floor = next.below();
-		if (!mc.level.isLoaded(floor)) return null;      // wait for the chunk; the scan will judge it
-		if (!mc.level.getBlockState(floor).blocksMotion()) {
-			// A CORRIDOR THAT OPENS INTO A DROP IS ONE THE MINER WALKS DOWN. A tunnel breaking into a
-			// cavern is the normal way that happens in the Nether, and what is at the bottom is
-			// routinely the lava this whole class exists to stay out of. Bridge it, and if there is
-			// nothing to bridge with, treat the drop exactly like lava and turn.
-			Printer.Verdict v = Printer.place(mc, floor, PLUG);
-			// A REFUSAL is the printer still holding the LAST placement, not a try we have spent. Counted
-			// as one, three refusals in a row give up on a drop nothing ever actually tried to bridge.
-			if (v != Printer.Verdict.REFUSED && ++bridgeTries > BRIDGE_TRIES) {
-				return turnAway(mc, p, "a drop at " + Wand.fmt(next) + " and no " + PLUG + " to bridge it");
-			}
-			return null;
-		}
-		bridgeTries = 0;
-		turns = 0;                                       // the corridor moved: the box is not finished
-		progressAt = System.currentTimeMillis();
-		depth++;
-		Hud.guideMine(standFor(origin, heading, depth), "mining " + heading.getName());
-		return null;
-	}
+    private static boolean miningCorridor(Minecraft mc, BlockPos feet) {
+        for (BlockPos c : List.of(feet, feet.above())) {
+            if (!Digger.authorizedHere(dimension, c) || !Bounds.contains(c)
+                || !mc.level.isLoaded(c)) return false;
+            var state = mc.level.getBlockState(c);
+            if (!state.isAir() && !state.is(net.minecraft.world.level.block.Blocks.NETHERRACK)
+                && !state.is(net.minecraft.world.level.block.Blocks.NETHER_QUARTZ_ORE)) return false;
+        }
+        return mc.level.isLoaded(feet.below()) && mc.level.getBlockState(feet.below()).blocksMotion()
+            && LavaGuard.scan(LavaGuard.of(mc.level), List.of(feet, feet.above()),
+                LavaGuard.SEGMENT_CLEAR) == null;
+    }
 
 	/**
 	 * Take the next heading, or stop.

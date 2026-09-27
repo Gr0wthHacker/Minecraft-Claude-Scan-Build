@@ -536,6 +536,7 @@ final class Autopilot {
 
 	/** Let go of both, for every path that stops steering. A stuck key is worse than a stuck loop. */
 	static void release(Minecraft mc) {
+		MiningWalkInput.stop(mc);
 		hold(mc, false, false);
 	}
 
@@ -915,6 +916,15 @@ final class Autopilot {
 
 	private static void tick(Minecraft mc) {
 		LocalPlayer p = mc.player;
+		// Mining owns movement even with autofly off. Do this before the post-flight
+		// guard, rescue, regain and recovery paths: none may enable flight for a miner.
+		if (Miner.running()) {
+			guardUntil = 0;
+			regainStage = rescueStage = 0;
+			release(mc);
+			if (p != null && mc.level != null) tickMiningWalk(mc, p);
+			return;
+		}
 		if (!on) {
 			// ---- THE SAFETY OUTLIVES THE AUTOPILOT. See GUARD_MS. Switching off is the most
 			// dangerous moment rather than the safest: the body keeps its velocity and nothing is
@@ -1425,7 +1435,7 @@ final class Autopilot {
 		// Level on foot. A walking player does not stare at the floor to walk toward it, and the
 		// look angle is sent to the server.
 		float wantPitch = flying ? (float) Math.toDegrees(-Math.asin(dir.y)) : 0f;
-		p.setYRot(approach(p.getYRot(), wantYaw));
+		if (flying) p.setYRot(approach(p.getYRot(), wantYaw));
 		p.setXRot(approach(p.getXRot(), wantPitch));
 
 		// ---- go. Slow into the target so the last few blocks are not an overshoot and a wobble.
@@ -1653,21 +1663,44 @@ final class Autopilot {
 		walkOn(mc, p, dir, aim, speed);
 	}
 
-	private static void walkOn(Minecraft mc, LocalPlayer p, Vec3 dir, Vec3 aim, double speed) {
-		Vec3 flat = new Vec3(dir.x, 0, dir.z);
-		if (flat.lengthSqr() < 1.0e-6) {
-			if (aim.y > p.getY() + 0.5 && p.onGround()) {
-				p.setDeltaMovement(new Vec3(0, JUMP, 0));
-			}
+	private static BlockPos miningStepFrom;
+
+	private static void tickMiningWalk(Minecraft mc, LocalPlayer p) {
+		// A server may retain flying abilities in the Nether. Never use them, even
+		// if the player arrived flying or manually enabled autofly during mining.
+		on = false;
+		if (p.getAbilities().flying) {
+			p.getAbilities().flying = false;
+			p.onUpdateAbilities();
+		}
+		BlockPos target = Hud.target();
+		if (!Hud.targetMine() || target == null || !Bounds.contains(target)
+			|| Screens.container() != null || AutomationControl.blocksMovement()) return;
+		Nav.Passable ground = Bounds.within(Nav.standable(mc.level));
+		BlockPos here = p.blockPosition();
+		// Keep a committed step through a jump. The airborne block is not a
+		// standing cell, and replanning from it cancels the jump halfway across.
+		if (p.onGround() && (!target.equals(pathTo) || (path.isEmpty() && --repathIn <= 0))) {
+			path = new java.util.ArrayList<>(Nav.route(ground, here, target));
+			pathTo = target;
+			miningStepFrom = here;
+			repathIn = path.isEmpty() ? NO_ROUTE_BACKOFF : 20;
+		}
+		while (p.onGround() && !path.isEmpty() && WalkingSpace.arrived(p.position(), path.get(0)))
+			miningStepFrom = path.remove(0);
+		if (path.isEmpty()) return;
+		BlockPos next = path.get(0);
+		if (!WalkingSpace.committedStepFits(ground, miningStepFrom, next)) {
+			path.clear();
+			repathIn = 0;
 			return;
 		}
-		flat = flat.normalize();
-		Vec3 v = p.getDeltaMovement();
-		double y = v.y;
-		boolean stepUp = aim.y > p.getY() + 0.6;
-		if (p.onGround() && (p.horizontalCollision || stepUp)) y = JUMP;
-		Vec3 fenced = Bounds.clamp(p.position(), new Vec3(flat.x * speed, 0, flat.z * speed));
-		p.setDeltaMovement(fenced.x, y, fenced.z);
+		Vec3 aim = Vec3.atBottomCenterOf(next);
+		MiningWalkInput.walk(mc, p, aim);
+	}
+
+	private static void walkOn(Minecraft mc, LocalPlayer p, Vec3 dir, Vec3 aim, double speed) {
+		MiningWalkInput.walk(mc, p, aim);
 	}
 
 	/**
