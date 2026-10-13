@@ -249,6 +249,11 @@ EXTRAS_READY = {"PF Water Claim Lake", "PF Water Wyrm Garden",
                 #: building here - the dressing keeps out of module lots and cannot do that for a
                 #: lot that is not occupied yet.
                 "PF Plateau Shop",
+                #: **THE WORM IN THE LAST PLAZA (2026-10-13).** Jack: "at the very end circle ...
+                #: a big scary worm thing in the circle coming out of the ground (breaking the
+                #: ground)". It stands on the spine's r11 plaza at V12/U43, so it goes in AFTER
+                #: `Park Ways` has laid that paving - the foot replaces 113 cells of it on purpose.
+                "PF Sandworm",
                 #
                 # RETIRED WITH THEM, and each was measured before it was cut:
                 #   PF Frontier Diggings  5,577 - a 30x16 trench with a 25-block spine in a 53x46

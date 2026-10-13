@@ -1,0 +1,158 @@
+{
+  "origin": {
+    "x": 97488,
+    "y": 199,
+    "z": 80322
+  },
+  "size": {
+    "x": 49,
+    "y": 69,
+    "z": 72
+  },
+  "generated_by": "sandworm",
+  "kind": "sandworm",
+  "facing": "south",
+  "foot": [
+    97512,
+    202,
+    80343
+  ],
+  "height": 53.4,
+  "length": 64.7,
+  "mouth_radius": 10.4,
+  "refused": 0,
+  "clipped": 0,
+  "parts": {
+    "body": 7396,
+    "plates": 133,
+    "teeth": 470,
+    "rubble": 205,
+    "cracks": 53,
+    "pruned": 39
+  },
+  "contract": "a colossal worm rearing out of a round plaza: a solid segmented body on one curved spine, a hollow lit throat with three rings of teeth and six fangs, a dorsal row of plates, and the paving heaved and cracked round its foot. The walk round it stays.",
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 8218,
+      "materials": 13,
+      "dominant_material_share": 0.4106,
+      "light_blocks": 0,
+      "massing": {
+        "width": 27,
+        "height": 57,
+        "depth": 46,
+        "fill_ratio": 0.1161
+      },
+      "silhouette": {
+        "top": {
+          "area": 666,
+          "fill_ratio": 0.1888
+        },
+        "front": {
+          "area": 813,
+          "fill_ratio": 0.2405
+        },
+        "side": {
+          "area": 976,
+          "fill_ratio": 0.1965
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.3781,
+          0.4918,
+          0.1301
+        ],
+        "top_silhouette_perimeter": 496,
+        "surface_faces_per_block": 0.9433
+      },
+      "material_counts": {
+        "cobblestone": 3374,
+        "dripstone_block": 1279,
+        "granite": 1269,
+        "smooth_basalt": 981,
+        "bone_block": 579,
+        "nether_wart_block": 279,
+        "netherrack": 173,
+        "tuff": 55,
+        "red_nether_bricks": 51,
+        "cracked_stone_bricks": 48,
+        "mossy_stone_bricks": 47,
+        "stone_bricks": 47
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "242f317455be6513c8491362782e3c445e7493e8c58a188a59cad7c00737470a",
+    "generator_source_digest": "06bf0d6c5a54e49b5274bb05650a7605da213efaeff53f9bbb407589c3b506af",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 7.402537,
+    "blocks": 8218,
+    "blocks_per_second": 1110.16
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 8218,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [],
+  "file": "PF Sandworm.litematic",
+  "name": "PF Sandworm"
+}
