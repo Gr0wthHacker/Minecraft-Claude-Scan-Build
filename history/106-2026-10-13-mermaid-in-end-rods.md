@@ -19,3 +19,15 @@ The 44-block build (726 rods) looked like a dense clump in game: head and torso 
 and a ring every 3 courses left no gaps, and the views tool (nearest-surface) hid it. A wireframe needs
 room to open up. Now `height: 72`, `ring_every: 5`, `ribs: 6`, `hair: 9`, `sway: 0.17` (1356 rods, 1
 component). Judge wireframes with `tools/look.py`, not `views.py`. Raised hand shortened to sit by the head.
+
+## Revision 2: "hyper detailed" - 120 blocks, 6407 rods
+Added: a face drawn on the head's own surface (eyes, lids, brows, nose, lips, cheek lines), tiara,
+necklace, scallop-shell top, scalloped scale rows on the tail, dorsal crest, hip fins, double-outline
+fluke with ten veins, caged arms with bracelets and five-finger hands, a trident in the raised hand,
+~28 hair strands. `_join` bridges any stray detail to the main piece.
+- `look.py` renders end rods as full cubes, so it cannot judge a wireframe's face. `/tmp`-style thin-rod
+  preview (rod = 1/4 cell wide along its axis) showed what it really is: see-through, so the back half
+  of the cage and the hair overlap the face. Fixes: the head is only side contours (no front/back ribs
+  or rings), and hair starts at the SIDES of the head (two curtains) with only a few strands at the back.
+- The head is ~1.4x the old width and the face is stretched 1.55x vertically; a 12-block head turns every
+  facial feature into a 1-rod smear.

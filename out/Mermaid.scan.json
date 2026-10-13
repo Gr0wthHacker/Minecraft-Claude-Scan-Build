@@ -1,23 +1,31 @@
 {
   "origin": {
-    "x": -20,
+    "x": -41,
     "y": 97,
-    "z": -15
+    "z": -33
   },
   "size": {
-    "x": 39,
-    "y": 78,
-    "z": 39
+    "x": 79,
+    "y": 164,
+    "z": 79
   },
   "generated_by": "mermaid",
   "kind": "mermaid",
-  "height": 72.0,
+  "height": 120.0,
   "facing": [
     0,
     1
   ],
   "features_built": {
-    "rods": 1356
+    "cage": 1368,
+    "face": 236,
+    "scales": 676,
+    "hair": 2206,
+    "arms": 682,
+    "fins": 950,
+    "trident": 127,
+    "shell": 155,
+    "rods": 6407
   },
   "mechanics": {
     "minecraft": "java-1.19",
@@ -33,41 +41,41 @@
   "design": {
     "brief": {},
     "metrics": {
-      "blocks": 1356,
+      "blocks": 6407,
       "materials": 1,
       "dominant_material_share": 1.0,
       "light_blocks": 0,
       "massing": {
-        "width": 30,
-        "height": 72,
-        "depth": 25,
-        "fill_ratio": 0.0251
+        "width": 68,
+        "height": 152,
+        "depth": 47,
+        "fill_ratio": 0.0132
       },
       "silhouette": {
         "top": {
-          "area": 230,
-          "fill_ratio": 0.1512
+          "area": 1249,
+          "fill_ratio": 0.2001
         },
         "front": {
-          "area": 598,
-          "fill_ratio": 0.1966
+          "area": 2844,
+          "fill_ratio": 0.2195
         },
         "side": {
-          "area": 549,
-          "fill_ratio": 0.1805
+          "area": 1841,
+          "fill_ratio": 0.1421
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.1704,
-          0.3429,
-          0.4867
+          0.1775,
+          0.6871,
+          0.1355
         ],
-        "top_silhouette_perimeter": 444,
-        "surface_faces_per_block": 3.4115
+        "top_silhouette_perimeter": 1736,
+        "surface_faces_per_block": 3.3691
       },
       "material_counts": {
-        "end_rod": 1356
+        "end_rod": 6407
       }
     },
     "checks": [],
@@ -79,8 +87,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "a510bff0444dc8af1e2059e7492ae39fba4ef52c469de06d5f9d3187b7eb3d21",
-    "generator_source_digest": "de02a3a7ed4b1681241b0252d9239ba2ff23240148aa6614e7935225e8b5d80b",
+    "fingerprint": "c6691ecdaea3239116e5079e7719fa31b879806300e826a4645942b99950dc89",
+    "generator_source_digest": "fb7408661e6b38125a990bb24755a1ba91924b82a8dc1c4b96fe3ba5b810e28c",
     "anchors": [],
     "capabilities": {
       "purpose": false,
@@ -97,9 +105,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 0.059983,
-    "blocks": 1356,
-    "blocks_per_second": 22606.3
+    "seconds": 0.51547,
+    "blocks": 6407,
+    "blocks_per_second": 12429.43
   },
   "generator_contract": {
     "ok": false,
@@ -108,7 +116,7 @@
     ],
     "anchors": 0,
     "roles": [],
-    "blocks": 1356,
+    "blocks": 6407,
     "mechanic_families": []
   },
   "fun_contract": {
