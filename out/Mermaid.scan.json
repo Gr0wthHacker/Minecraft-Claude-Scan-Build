@@ -1,31 +1,29 @@
 {
   "origin": {
-    "x": -41,
-    "y": 97,
-    "z": -33
+    "x": -29,
+    "y": 93,
+    "z": -31
   },
   "size": {
-    "x": 79,
-    "y": 164,
-    "z": 79
+    "x": 81,
+    "y": 141,
+    "z": 81
   },
   "generated_by": "mermaid",
   "kind": "mermaid",
-  "height": 120.0,
+  "height": 100.0,
   "facing": [
     0,
     1
   ],
   "features_built": {
-    "cage": 1368,
-    "face": 236,
-    "scales": 676,
-    "hair": 2206,
-    "arms": 682,
-    "fins": 950,
-    "trident": 127,
-    "shell": 155,
-    "rods": 6407
+    "body": 2448,
+    "scales": 2394,
+    "fluke": 535,
+    "hair": 259,
+    "face": 42,
+    "shell": 172,
+    "trident": 62
   },
   "mechanics": {
     "minecraft": "java-1.19",
@@ -41,41 +39,52 @@
   "design": {
     "brief": {},
     "metrics": {
-      "blocks": 6407,
-      "materials": 1,
-      "dominant_material_share": 1.0,
+      "blocks": 17497,
+      "materials": 16,
+      "dominant_material_share": 0.1663,
       "light_blocks": 0,
       "massing": {
-        "width": 68,
-        "height": 152,
-        "depth": 47,
-        "fill_ratio": 0.0132
+        "width": 61,
+        "height": 124,
+        "depth": 54,
+        "fill_ratio": 0.0428
       },
       "silhouette": {
         "top": {
-          "area": 1249,
-          "fill_ratio": 0.2001
+          "area": 2184,
+          "fill_ratio": 0.3329
         },
         "front": {
-          "area": 2844,
-          "fill_ratio": 0.2195
+          "area": 1971,
+          "fill_ratio": 0.1726
         },
         "side": {
-          "area": 1841,
-          "fill_ratio": 0.1421
+          "area": 1375,
+          "fill_ratio": 0.1204
         }
       },
       "composition": {
         "base_middle_crown_mass": [
-          0.1775,
-          0.6871,
-          0.1355
+          0.4257,
+          0.4624,
+          0.1119
         ],
-        "top_silhouette_perimeter": 1736,
-        "surface_faces_per_block": 3.3691
+        "top_silhouette_perimeter": 524,
+        "surface_faces_per_block": 0.9119
       },
       "material_counts": {
-        "end_rod": 6407
+        "white_wool": 2910,
+        "blue_ice": 2768,
+        "blue_wool": 2485,
+        "light_blue_wool": 2038,
+        "red_wool": 1778,
+        "brown_wool": 1637,
+        "orange_wool": 1357,
+        "cyan_wool": 1052,
+        "purple_wool": 428,
+        "snow_block": 404,
+        "pink_wool": 343,
+        "magenta_wool": 133
       }
     },
     "checks": [],
@@ -87,8 +96,8 @@
     }
   },
   "design_system": {
-    "fingerprint": "c6691ecdaea3239116e5079e7719fa31b879806300e826a4645942b99950dc89",
-    "generator_source_digest": "fb7408661e6b38125a990bb24755a1ba91924b82a8dc1c4b96fe3ba5b810e28c",
+    "fingerprint": "109ca5618e96fdbdf458c7ea4cdd4797d81b3f73c3ced0dabe4af01215e83f1e",
+    "generator_source_digest": "55fd27b262d84742d7c1f5064d6c7a4d78df7920dea1e9fff233b880256e3391",
     "anchors": [],
     "capabilities": {
       "purpose": false,
@@ -105,9 +114,9 @@
   "efficiency": {
     "ok": true,
     "failures": [],
-    "seconds": 0.51547,
-    "blocks": 6407,
-    "blocks_per_second": 12429.43
+    "seconds": 0.516092,
+    "blocks": 17497,
+    "blocks_per_second": 33902.89
   },
   "generator_contract": {
     "ok": false,
@@ -116,7 +125,7 @@
     ],
     "anchors": 0,
     "roles": [],
-    "blocks": 6407,
+    "blocks": 17497,
     "mechanic_families": []
   },
   "fun_contract": {
@@ -137,7 +146,10 @@
     "enforce_server_blocks": false
   },
   "server_compatibility": [],
-  "server_unlisted": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: blue_ice",
+    "not in the provisional skyblock-1.19 list: purple_wool"
+  ],
   "file": "Mermaid.litematic",
   "name": "Mermaid"
 }

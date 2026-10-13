@@ -31,3 +31,17 @@ fluke with ten veins, caged arms with bracelets and five-finger hands, a trident
   or rings), and hair starts at the SIDES of the head (two curtains) with only a few strands at the back.
 - The head is ~1.4x the old width and the face is stretched 1.55x vertically; a 12-block head turns every
   facial feature into a 1-rod smear.
+
+## Revision 3: the wireframe is retired - a SOLID block mermaid (gen: mermaid)
+Jack's verdict on the 120-block rod wireframe: "crappy". Root cause was structural, not tuning: a
+see-through cage shows its own back half through the front, so the face drowned in hair and ribs.
+The rod version lives on as `gen/mermaid_rods.py` / `configs/mermaid_rods.yaml`; `gen: mermaid` is now
+a filled loft that is then PAINTED:
+- body = the same S-spine, elliptical-station loft, filled; tail coat = overlapping-disc fish scales
+  (rows offset by half, 3-tone, ramp teal -> violet); thin veined fluke riding the tail's own spine;
+- face painted on a FLAT PANEL clipped/filled into the head (an ellipsoid front is stair-steps and
+  smears features), found by probing the real skin (`front_z`);
+- palette is the CHEAP tier: wool, blue ice, snow, end rod (shaft), ochre froglight. Concrete,
+  terracotta, glass and prismarine are all "expensive" here - the first build was 17k expensive blocks;
+- a pool underfoot grounds it; lobe tips are stood on it; tiara points anchor to the band cell.
+Trap: filling a column down from EVERY fluke cell walled up the notch - only the tips (<=3 above the pool).

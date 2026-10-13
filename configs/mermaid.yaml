@@ -1,14 +1,14 @@
-# A MERMAID drawn in end rods - a lofted wireframe (contour rings + longitudinal ribs), with
-# flowing hair, a raised hand and a forked fluke. See mcbuild/gen/mermaid.py.
+# A MERMAID built from blocks - a solid statue: painted face, fish-scale tail ramping teal to violet,
+# shell top, long hair, a trident (end-rod shaft, gold head) and a pool underfoot. See
+# mcbuild/gen/mermaid.py. The end-rod wireframe version is configs/mermaid_rods.yaml.
 #
-# No site yet: it builds at the origin until a place is chosen (give `root`, the world cell of the
-# fluke's lowest rod, or `at`). An end rod is light level 14, so the whole figure is its own lamp.
+# No site chosen yet: `root` is the world cell of the pool's centre top, and it is a PLACEHOLDER.
 name: Mermaid
 gen: mermaid
 params:
   seed: 5
-  height: 120
-  root: [0, 100, 0]      # PLACEHOLDER site - the fluke's lowest rod; move before placing
+  height: 100
+  root: [0, 100, 0]
 finish:
   cheapen: false
   hollow: false
