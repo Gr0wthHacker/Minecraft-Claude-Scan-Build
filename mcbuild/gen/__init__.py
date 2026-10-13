@@ -28,6 +28,7 @@ from . import corgi  # noqa: E402
 from . import abyssmarket  # noqa: E402
 from . import abyssaccess  # noqa: E402
 from . import ribwalk  # noqa: E402
+from . import sandworm  # noqa: E402
 from . import downs  # noqa: E402
 from . import wyrmgate  # noqa: E402
 from . import arcstair  # noqa: E402
@@ -207,6 +208,8 @@ GENERATORS = {
     # WHAT ACTUALLY WENT ON THE FRONTIER REACH. Not an animal and not an object beside the walk:
     # a colossal ribcage the causeway is cut THROUGH. mcbuild/gen/ribwalk.py
     "ribwalk": ribwalk,
+    # A WORM BREAKING UP THROUGH THE END-OF-PARK PLAZA. mcbuild/gen/sandworm.py
+    "sandworm": sandworm,
     "arrival": arrival,
     "attractions": attractions,
     "ticketing": ticketing,

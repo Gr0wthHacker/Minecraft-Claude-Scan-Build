@@ -1,0 +1,38 @@
+# PF SANDWORM - something enormous breaking up through the paving of the park's last plaza.
+#
+# Jack: "at the very end circle which has a road that leads towards void and one that leads past
+# the bone canyon place; can we put a big scary worm thing in the circle coming out of the ground
+# (breaking the ground)". And, when the circle was not obvious: "the lost lands dinosaur side,
+# completely opposite, I said near the bone canyon."
+#
+# ---------------------------------------------------------------------------------------------
+# WHICH CIRCLE, AND HOW IT WAS FOUND
+#
+# `Park Ways` lays a round r11 plaza (23 across) wherever an avenue meets the arrival spine. The
+# one on the Lost Plateau side is V12 / U43: the spine (V6-18) runs on NORTH from it to U0, which
+# is the park's rim and open void, and the U41-45 avenue runs EAST from it along the foot of the
+# Broken Plateau's gorge. Those are the two roads in the description, and it is the last plaza a
+# guest reaches walking the spine out of the Midway - the very end. World: X97512, Z80343.
+#
+# ---------------------------------------------------------------------------------------------
+# THE WALK STAYS A WALK
+#
+# The plaza is 23 across. The worm's foot is 13, the rubble heaved round it stops at r8.7, so a
+# ring of paving about 3 wide is left for the two roads to meet on. The head leans SOUTH, back
+# down the spine toward whoever is arriving, and hangs thirty-odd courses up - clear of the
+# street under it. It faces the way a guest comes from, which is the only direction it can be
+# seen opening from.
+name: PF Sandworm
+gen: sandworm
+params:
+  kind: sandworm
+  centre: [97512, 80343]
+  plane_y: 202
+  facing: south
+  seed: 31
+finish:
+  # the ground the worm breaks - `Park Ways` holds this plaza's paving and froglights, so the
+  # overlap reported is exactly the paving the foot replaces.
+  verify_against: out/Park Ways.litematic
+
+origin_lock: false
