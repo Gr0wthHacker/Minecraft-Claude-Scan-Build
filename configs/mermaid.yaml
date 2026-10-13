@@ -7,7 +7,11 @@ name: Mermaid
 gen: mermaid
 params:
   seed: 5
-  height: 44
+  height: 72
+  ring_every: 5
+  ribs: 6
+  hair: 9
+  sway: 0.17
   root: [0, 100, 0]      # PLACEHOLDER site - the fluke's lowest rod; move before placing
 finish:
   cheapen: false

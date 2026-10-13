@@ -219,7 +219,7 @@ def build(cfg: dict, donors=None) -> Canvas:
     sx, sz = spine(sh)
     sy = Y(sh) - 0.5
     arm_r = [(XC + sx + a, sy, ZC + sz), (XC + sx + a + 3.5 * k, sy - 4 * k, ZC + sz + 1.5 * k),
-             (XC + sx + a + 6.0 * k, sy + 2 * k, ZC + sz + 3.0 * k), (XC + sx + a + 6.5 * k, sy + 7 * k, ZC + sz + 3.0 * k)]
+             (XC + sx + a + 6.0 * k, sy + 1 * k, ZC + sz + 3.0 * k), (XC + sx + a + 6.5 * k, sy + 4.5 * k, ZC + sz + 3.0 * k)]
     arm_l = [(XC + sx - a, sy, ZC + sz), (XC + sx - a - 2.0 * k, sy - 5 * k, ZC + sz + 1.5 * k),
              (XC + sx - a - 1.5 * k, sy - 10 * k, ZC + sz + 3.5 * k), (XC + sx - a - 0.5 * k, sy - 13 * k, ZC + sz + 5.0 * k)]
     for arm in (arm_r, arm_l):

@@ -13,3 +13,9 @@ elliptical stations - plus an outline-and-veins fluke, one-line arms and flowing
   behind the body.
 - `configs/mermaid.yaml` carries a PLACEHOLDER `root` ([0,100,0]) because a sidecar needs a world
   position and no site was chosen. Re-site before placing. The animal rubric does not apply.
+
+## Revision: 44 -> 72 blocks
+The 44-block build (726 rods) looked like a dense clump in game: head and torso were ~5 wide, so 8 ribs
+and a ring every 3 courses left no gaps, and the views tool (nearest-surface) hid it. A wireframe needs
+room to open up. Now `height: 72`, `ring_every: 5`, `ribs: 6`, `hair: 9`, `sway: 0.17` (1356 rods, 1
+component). Judge wireframes with `tools/look.py`, not `views.py`. Raised hand shortened to sit by the head.
