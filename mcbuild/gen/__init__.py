@@ -48,6 +48,7 @@ from . import abysssound  # noqa: E402
 from . import abysswreck  # noqa: E402
 from . import abyssdrift  # noqa: E402
 from . import jellyfish  # noqa: E402
+from . import mermaid  # noqa: E402
 
 
 GENERATORS = {
@@ -102,6 +103,8 @@ GENERATORS = {
     "abyssdrift": abyssdrift,
     # a giant bioluminescent jellyfish - the squid's companion, a dome on trailing lines
     "jelly": jellyfish,
+    # a mermaid drawn in end rods - a lofted wireframe, rings and ribs, hair and fluke
+    "mermaid": mermaid,
     # THE ABYSS MARKET - the fit-out of the squid's own 54,994-cell sealed cavity,
     # entered by a shaft from Prismworks that never touches the well's fall column.
     # mcbuild/gen/abyssmarket.py
