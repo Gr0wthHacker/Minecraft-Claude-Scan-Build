@@ -49,6 +49,7 @@ from . import abysswreck  # noqa: E402
 from . import abyssdrift  # noqa: E402
 from . import jellyfish  # noqa: E402
 from . import mermaid_rods  # noqa: E402
+from . import mermaid_standing  # noqa: E402
 from . import mermaid  # noqa: E402
 
 
@@ -106,6 +107,7 @@ GENERATORS = {
     "jelly": jellyfish,
     # a mermaid drawn in end rods - a lofted wireframe, rings and ribs, hair and fluke
     "mermaid_rods": mermaid_rods,
+    "mermaid_standing": mermaid_standing,
     "mermaid": mermaid,
     # THE ABYSS MARKET - the fit-out of the squid's own 54,994-cell sealed cavity,
     # entered by a shaft from Prismworks that never touches the well's fall column.

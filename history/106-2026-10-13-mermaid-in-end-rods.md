@@ -45,3 +45,16 @@ a filled loft that is then PAINTED:
   terracotta, glass and prismarine are all "expensive" here - the first build was 17k expensive blocks;
 - a pool underfoot grounds it; lobe tips are stood on it; tiara points anchor to the band cell.
 Trap: filling a column down from EVERY fluke cell walled up the notch - only the tips (<=3 above the pool).
+
+## Revision 4: a swimming sea-spirit (gen: mermaid); the standing statue is `mermaid_standing`
+Jack: "more mystical than human, and swimming horizontally". `gen: mermaid` is now a horizontal swimmer:
+- the body is built UPRIGHT in a scratch frame (loft, scales, veils, fluke, arms) and rotated a quarter
+  turn with a transpose (belly toward +z); end-rod facings are remapped (up<->east) or they point wrong;
+- the HEAD is built after the rotation, in world axes, upright and turned to the viewer: lying on her
+  side puts the face 90 degrees off, and the first build did exactly that;
+- mystical, not human: pearl skin with scales climbing the flanks, glowing froglight eyes, brow gem,
+  fin-ears, a coral crown, belly line of froglights, long fin veils, a crescent fluke with end-rod
+  filaments, hair streaming BEHIND along the body and ending in end-rod wisps;
+- a sheet placed per path-point (not per integer course) renders as a comb, not a membrane: raster per y;
+- stray pieces (hair wisps) are joined by threads of end rod at the end; one component.
+Open: the torso reads as a flat slab from the front and the arms are bars; this direction needs Jack's eye.
