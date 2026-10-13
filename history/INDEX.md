@@ -112,3 +112,4 @@
 - `history/103-2026-09-13-the-dressing-audit-a-third-of-the-park-s-planting-was-eating.md` -- 2026-09-13 -- THE DRESSING AUDIT: a third of the park's planting was eating itself
 - `history/104-2026-09-26-quartzminer-the-miner-rebuilt-as-its-own-mod.md` -- 2026-09-26 -- quartzminer: the Nether miner rebuilt as its own mod
 - `history/105-2026-09-26-autopilot-flies-with-keys.md` -- 2026-09-26 -- The autopilot flies with real key presses
+- `history/106-2026-10-13-mermaid-in-end-rods.md` -- 2026-10-13 -- A mermaid drawn in end rods (lofted wireframe, gen/mermaid.py)

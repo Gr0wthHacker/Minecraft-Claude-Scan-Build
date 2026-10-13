@@ -1,0 +1,154 @@
+{
+  "origin": {
+    "x": -107,
+    "y": 58,
+    "z": -21
+  },
+  "size": {
+    "x": 140,
+    "y": 85,
+    "z": 32
+  },
+  "generated_by": "mermaid",
+  "kind": "mermaid",
+  "height": 110.0,
+  "facing": [
+    1,
+    0
+  ],
+  "pose": "swimming",
+  "features_built": {
+    "body": 3502,
+    "scales": 3060,
+    "fluke": 1223,
+    "hair": 361,
+    "face": 74,
+    "fins": 2395,
+    "crown": 5,
+    "glow": 838
+  },
+  "mechanics": {
+    "minecraft": "java-1.19",
+    "families": {},
+    "verifiers": {},
+    "roles": [
+      "construction"
+    ],
+    "role_contracts": {
+      "construction": "legal states, supported placements, stable components, and an auditable bill of materials"
+    }
+  },
+  "design": {
+    "brief": {},
+    "metrics": {
+      "blocks": 22775,
+      "materials": 10,
+      "dominant_material_share": 0.3332,
+      "light_blocks": 0,
+      "massing": {
+        "width": 138,
+        "height": 83,
+        "depth": 28,
+        "fill_ratio": 0.071
+      },
+      "silhouette": {
+        "top": {
+          "area": 1457,
+          "fill_ratio": 0.3252
+        },
+        "front": {
+          "area": 4724,
+          "fill_ratio": 0.397
+        },
+        "side": {
+          "area": 1039,
+          "fill_ratio": 0.382
+        }
+      },
+      "composition": {
+        "base_middle_crown_mass": [
+          0.0758,
+          0.7698,
+          0.1544
+        ],
+        "top_silhouette_perimeter": 1119,
+        "surface_faces_per_block": 1.0496
+      },
+      "material_counts": {
+        "white_wool": 7588,
+        "light_blue_wool": 4061,
+        "pink_wool": 3173,
+        "magenta_wool": 2345,
+        "blue_wool": 1885,
+        "purple_wool": 1435,
+        "cyan_wool": 1370,
+        "end_rod": 885,
+        "verdant_froglight": 28,
+        "pearlescent_froglight": 5
+      }
+    },
+    "checks": [],
+    "ok": true,
+    "scenarios": {
+      "declared": [],
+      "checks": [],
+      "ok": true
+    }
+  },
+  "design_system": {
+    "fingerprint": "ed85979b5a442d33305a6b7bf03290ee2a149e889555beee608a5443f873ead0",
+    "generator_source_digest": "6891bd14389cec0751813ce71e6e1fffc5cea8f6fcf3cab790688599a85972ef",
+    "anchors": [],
+    "capabilities": {
+      "purpose": false,
+      "style": false,
+      "palette_roles": false,
+      "visual_review": false,
+      "journey": false,
+      "anchors": false,
+      "mechanics": [],
+      "redstone_declared": false,
+      "scenario": false
+    }
+  },
+  "efficiency": {
+    "ok": true,
+    "failures": [],
+    "seconds": 2.31882,
+    "blocks": 22775,
+    "blocks_per_second": 9821.8
+  },
+  "generator_contract": {
+    "ok": false,
+    "failures": [
+      "missing design purpose"
+    ],
+    "anchors": 0,
+    "roles": [],
+    "blocks": 22775,
+    "mechanic_families": []
+  },
+  "fun_contract": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "animal_quality": {
+    "declared": false,
+    "ok": true,
+    "failures": []
+  },
+  "server_profile": {
+    "name": "skyblock-1.19",
+    "minecraft": "1.19",
+    "data_version": 3120,
+    "allow_entities": false,
+    "enforce_server_blocks": false
+  },
+  "server_compatibility": [],
+  "server_unlisted": [
+    "not in the provisional skyblock-1.19 list: purple_wool"
+  ],
+  "file": "Mermaid.litematic",
+  "name": "Mermaid"
+}

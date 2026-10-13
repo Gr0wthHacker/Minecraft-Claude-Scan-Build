@@ -1,0 +1,18 @@
+# A MERMAID SPIRIT, swimming - lying on her side, gliding +x, head turned toward +z (the viewer).
+# Pearl skin with scales up the flanks, glowing eyes and a brow gem, fin-ears, a coral crown that points
+# the way she swims, hair and fin-veils streaming behind, a long undulating tail, a crescent fluke with
+# filaments of end rod. See mcbuild/gen/mermaid.py. Standing versions: mermaid_standing / mermaid_rods.
+#
+# No site chosen yet: `root` is the world cell of her HEAD, and it is a PLACEHOLDER.
+name: Mermaid
+gen: mermaid
+params:
+  seed: 11
+  height: 110
+  root: [0, 100, 0]
+finish:
+  cheapen: false
+  hollow: false
+  ground: false
+  drop_floaters: false
+origin_lock: false
